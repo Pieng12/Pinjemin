@@ -16,7 +16,7 @@ class PromotionModeTest extends TestCase
             ->assertSee('Kebutuhan sesaat tidak selalu harus dibeli.')
             ->assertSee('https://www.instagram.com/pinjemin911/', false)
             ->assertSee('mailto:pinjemin99@gmail.com', false)
-            ->assertSee('images/landing/logo-pinjemin.png', false)
+            ->assertSee('images/landing/logo pinjemin.svg', false)
             ->assertSee('images/landing/promo-01.jpeg', false)
             ->assertSee('images/landing/promo-02.jpeg', false)
             ->assertSee('images/landing/promo-03.jpeg', false)
