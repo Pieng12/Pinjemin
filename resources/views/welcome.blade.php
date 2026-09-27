@@ -209,6 +209,4 @@
     </section>
 @endsection
 
-@push('footer_credits')
-    <p class="mt-2 text-xs text-white/45">Foto proyektor: <a href="https://commons.wikimedia.org/wiki/File:%22LCD_Projector%22.jpg" class="underline hover:text-white">Thamizhpparithi Maari</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" class="underline hover:text-white">CC BY-SA 4.0</a>. Ukuran disesuaikan.</p>
-@endpush
+
