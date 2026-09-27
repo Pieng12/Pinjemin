@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 560" role="img" aria-labelledby="title">
+  <title id="title">Ilustrasi marketplace penyewaan barang</title>
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#67e8f9"/>
+    </linearGradient>
+  </defs>
+  <rect width="760" height="560" rx="44" fill="url(#g)" opacity=".25"/>
+  <circle cx="640" cy="96" r="48" fill="#fff" opacity=".35"/>
+  <circle cx="105" cy="430" r="78" fill="#fff" opacity=".22"/>
+  <g fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M138 404h470"/>
+    <path d="M246 352h244a26 26 0 0 0 26-26V172a26 26 0 0 0-26-26H246a26 26 0 0 0-26 26v154a26 26 0 0 0 26 26Z" fill="#fff"/>
+    <path d="M260 190h212M260 224h132M260 258h86"/>
+    <path d="M564 242h58a24 24 0 0 1 24 24v62a24 24 0 0 1-24 24h-58a24 24 0 0 1-24-24v-62a24 24 0 0 1 24-24Z" fill="#eff6ff"/>
+    <path d="M565 282h56M565 312h38"/>
+    <path d="M142 260h78v92h-78z" fill="#fff"/>
+    <path d="M162 260l18-38 18 38"/>
+    <path d="M346 404v-52M414 404v-52"/>
+  </g>
+  <g fill="#2563eb">
+    <circle cx="316" cy="310" r="18"/>
+    <circle cx="362" cy="310" r="18" opacity=".75"/>
+    <circle cx="408" cy="310" r="18" opacity=".5"/>
+  </g>
+  <g fill="#0f172a">
+    <circle cx="332" cy="116" r="18"/>
+    <path d="M306 164c12-18 40-18 52 0v92h-52z"/>
+  </g>
+  <g fill="#1d4ed8">
+    <path d="M289 245h24l-18 97h-28z"/>
+    <path d="M350 245h24l22 97h-28z"/>
+  </g>
+  <path d="M292 176c-34 18-48 43-52 77" fill="none" stroke="#0f172a" stroke-width="10" stroke-linecap="round"/>
+  <path d="M372 176c36 16 57 42 72 78" fill="none" stroke="#0f172a" stroke-width="10" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 420" role="img" aria-labelledby="title">
+  <title id="title">Ilustrasi barang menjadi lebih bermanfaat</title>
+  <rect x="42" y="54" width="476" height="312" rx="32" fill="#eff6ff"/>
+  <circle cx="455" cy="105" r="44" fill="#bfdbfe"/>
+  <circle cx="110" cy="335" r="36" fill="#dbeafe"/>
+  <g fill="#fff" stroke="#2563eb" stroke-width="4" stroke-linejoin="round">
+    <rect x="140" y="136" width="112" height="94" rx="18"/>
+    <rect x="306" y="136" width="112" height="94" rx="18"/>
+    <rect x="220" y="250" width="120" height="76" rx="18"/>
+  </g>
+  <g fill="none" stroke="#1d4ed8" stroke-width="4" stroke-linecap="round">
+    <path d="M252 182h54"/>
+    <path d="M286 164l20 18-20 18"/>
+    <path d="M196 176v18M178 194h36"/>
+    <path d="M362 174l28 28M390 174l-28 28"/>
+    <path d="M250 288h60"/>
+  </g>
+  <g fill="#0f172a">
+    <circle cx="168" cy="108" r="16"/>
+    <path d="M144 130h48v78h-48z"/>
+    <circle cx="420" cy="270" r="16"/>
+    <path d="M396 292h48v78h-48z"/>
+  </g>
+</svg>
