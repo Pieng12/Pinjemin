@@ -8,7 +8,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('meta_description', 'Pinjemin mempertemukan kebutuhan sementara dengan barang yang jarang digunakan di sekitar kita.')">
-    <link rel="icon" type="image/png" href="{{ asset('images/landing/logo-pinjemin.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/landing/logo pinjemin.svg') }}">
     <title>@yield('title', 'Pinjemin')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -19,7 +19,7 @@
                 <div class="site-nav-row {{ $navTitle ? 'has-page-title' : '' }}">
                     <div class="site-nav-leading">
                         <a href="{{ route('home') }}" class="site-logo" aria-label="Pinjemin, kembali ke beranda">
-                            <img src="{{ asset('images/landing/logo-pinjemin.png') }}" alt="" class="site-logo-mark" width="44" height="40">
+                            <img src="{{ asset('images/landing/logo pinjemin.svg') }}" alt="" class="site-logo-mark" width="44" height="40">
                             <span>Pinjemin<span class="text-accent">.</span></span>
                         </a>
 
@@ -157,7 +157,7 @@
             <div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 text-sm sm:px-6 md:grid-cols-4 lg:px-8">
                 <div class="md:col-span-2">
                     <a href="{{ route('home') }}" class="inline-flex items-center gap-3 text-xl font-semibold text-white">
-                        <img src="{{ asset('images/landing/logo-pinjemin.png') }}" alt="" class="h-12 w-12 object-contain" width="48" height="44">
+                        <img src="{{ asset('images/landing/logo pinjemin.svg') }}" alt="" class="h-12 w-12 rounded-full object-cover" width="48" height="44">
                         Pinjemin<span class="text-accent">.</span>
                     </a>
                     <p class="mt-4 max-w-md leading-7 text-white/70">Cara yang lebih ringan untuk memakai barang seperlunya dan membuat barang yang jarang digunakan kembali bermanfaat.</p>

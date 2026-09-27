@@ -98,7 +98,8 @@
     .site-logo-mark {
         width: 42px;
         height: 38px;
-        object-fit: contain;
+        border-radius: 9999px;
+        object-fit: cover;
     }
 
     .site-nav-leading {

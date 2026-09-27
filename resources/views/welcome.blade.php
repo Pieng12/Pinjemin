@@ -23,7 +23,7 @@
             @endforeach
 
             <div class="home-hero-copy">
-                <img src="{{ asset('images/landing/logo-pinjemin.png') }}" alt="Logo Pinjemin" class="promo-hero-logo landing-reveal" width="92" height="82">
+                <img src="{{ asset('images/landing/logo pinjemin.svg') }}" alt="Logo Pinjemin" class="promo-hero-logo rounded-full object-cover landing-reveal" width="92" height="82">
                 <p class="promo-hero-kicker landing-reveal" style="transition-delay: 40ms">Sewa lebih bijak, barang lebih bermanfaat</p>
                 <h1 class="landing-reveal" style="transition-delay: 80ms">Pinjemin<span class="text-accent">.</span></h1>
                 <p class="promo-hero-tagline landing-reveal" style="transition-delay: 120ms">Butuh sesekali?<br>Temukan, sewa, mulai ceritamu.</p>

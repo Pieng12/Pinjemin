@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('meta_description', 'Admin Pinjemin')">
-    <link rel="icon" type="image/png" href="{{ asset('images/landing/logo-pinjemin.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/landing/logo pinjemin.svg') }}">
     <title>@yield('title', 'Admin Pinjemin')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -13,7 +13,7 @@
         <aside class="hidden border-r border-zinc-200 bg-white lg:flex lg:min-h-screen lg:flex-col">
             <div class="p-6">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 text-lg font-semibold text-zinc-950">
-                    <img src="{{ asset('images/landing/logo-pinjemin.png') }}" alt="" class="h-10 w-10 object-contain" width="40" height="36">
+                    <img src="{{ asset('images/landing/logo pinjemin.svg') }}" alt="" class="h-10 w-10 rounded-full object-cover" width="40" height="36">
                     Pinjemin<span class="text-accent">.</span>
                 </a>
                 <p class="mt-4 text-xs font-semibold uppercase tracking-wide text-zinc-500">Admin Panel</p>

@@ -23,7 +23,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('meta_description', 'Workspace pemilik Pinjemin untuk mengelola barang dan permintaan sewa.')">
-    <link rel="icon" type="image/png" href="{{ asset('images/landing/logo-pinjemin.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/landing/logo pinjemin.svg') }}">
     <title>@yield('title', 'Dashboard Pemilik - Pinjemin')</title>
     <script>
         try {
@@ -45,7 +45,7 @@
         <aside id="owner-sidebar" class="owner-sidebar" data-owner-sidebar aria-label="Sidebar pemilik">
             <div class="owner-sidebar-head">
                 <a href="{{ route('owner.dashboard') }}" class="owner-wordmark" aria-label="Pinjemin, dashboard pemilik">
-                    <img src="{{ asset('images/landing/logo-pinjemin.png') }}" alt="" class="owner-logo-mark" width="38" height="34">
+                    <img src="{{ asset('images/landing/logo pinjemin.svg') }}" alt="" class="owner-logo-mark rounded-full object-cover" width="38" height="34">
                     <span>Pinjemin<span class="text-accent">.</span></span>
                 </a>
                 <button type="button" class="owner-icon-button owner-collapse-button" data-owner-collapse aria-controls="owner-sidebar" aria-expanded="true" aria-label="Ciutkan sidebar" title="Ciutkan sidebar">

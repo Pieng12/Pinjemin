@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('meta_description', 'Masuk atau daftar ke Pinjemin.')">
-    <link rel="icon" type="image/png" href="{{ asset('images/landing/logo-pinjemin.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/landing/logo pinjemin.svg') }}">
     <title>@yield('title', 'Pinjemin')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -13,7 +13,7 @@
         <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-6 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 text-lg font-semibold text-zinc-950">
-                    <img src="{{ asset('images/landing/logo-pinjemin.png') }}" alt="" class="h-10 w-10 object-contain" width="40" height="36">
+                    <img src="{{ asset('images/landing/logo pinjemin.svg') }}" alt="" class="h-10 w-10 rounded-full object-cover" width="40" height="36">
                     Pinjemin<span class="text-accent">.</span>
                 </a>
                 <a href="{{ route('home') }}" class="text-sm font-semibold text-blue-700">Kembali ke marketplace</a>
