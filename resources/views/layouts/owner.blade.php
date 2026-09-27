@@ -23,6 +23,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('meta_description', 'Workspace pemilik Pinjemin untuk mengelola barang dan permintaan sewa.')">
+    <link rel="icon" type="image/png" href="{{ asset('images/landing/logo-pinjemin.png') }}">
     <title>@yield('title', 'Dashboard Pemilik - Pinjemin')</title>
     <script>
         try {
