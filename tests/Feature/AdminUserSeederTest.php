@@ -26,7 +26,7 @@ class AdminUserSeederTest extends TestCase
         $this->assertTrue(Hash::check('Example-admin-123!', $admin->password));
         $this->assertSame(1, User::query()->count());
         $this->assertSame(0, Item::query()->count());
-        $this->post('/login', ['email' => $admin->email, 'password' => 'Example-admin-123!'])->assertRedirect(route('dashboard'));
+        $this->post('/login', ['email' => $admin->email, 'password' => 'Example-admin-123!', 'terms_accepted' => '1'])->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($admin);
         $this->get('/admin')->assertOk();
     }
@@ -54,7 +54,7 @@ class AdminUserSeederTest extends TestCase
         $this->assertTrue(Hash::check('Reset-admin-123!', $admin->fresh()->password));
         $this->assertNull($admin->fresh()->remember_token);
         $this->assertSame('Admin Existing', $admin->fresh()->name);
-        $this->post('/login', ['email' => $admin->email, 'password' => 'Reset-admin-123!'])->assertRedirect(route('dashboard'));
+        $this->post('/login', ['email' => $admin->email, 'password' => 'Reset-admin-123!', 'terms_accepted' => '1'])->assertRedirect(route('dashboard'));
     }
 
     public function test_missing_password_skips_account_creation(): void

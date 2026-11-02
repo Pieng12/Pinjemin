@@ -29,6 +29,7 @@ class FoundationTest extends TestCase
             'email' => 'dina@example.test',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'terms_accepted' => '1',
             'role' => User::RoleAdmin,
         ])->assertRedirect(route('dashboard'));
 
@@ -49,6 +50,7 @@ class FoundationTest extends TestCase
         $this->post('/login', [
             'email' => 'login@example.test',
             'password' => 'password123',
+            'terms_accepted' => '1',
         ])->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);

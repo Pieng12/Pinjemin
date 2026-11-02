@@ -22,8 +22,10 @@
             <x-validation-summary class="mt-6" />
 
             @yield('content')
+            <footer class="mt-6 border-t border-zinc-200 pt-5 text-zinc-500"><x-legal-links class="justify-center" /></footer>
         </div>
     </main>
+    <x-legal-modal />
     @stack('scripts')
 </body>
 </html>

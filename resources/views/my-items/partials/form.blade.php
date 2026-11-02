@@ -1,6 +1,11 @@
 @php($conditions = \App\ItemCondition::options())
 
 <div class="grid gap-6">
+    <aside class="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-zinc-600">
+        <p class="font-semibold text-blue-950">Tanggung jawab pemilik barang</p>
+        <p class="mt-2">Pastikan kamu berhak menyewakan barang, jelaskan kondisi dan aksesori dengan jujur, serta tulis aturan penggunaannya. Komisi 5% dari biaya sewa dipotong saat pencairan; ongkir tidak dikenai komisi.</p>
+        <a href="{{ route('legal.terms') }}#pemilik" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block font-semibold text-blue-700 underline underline-offset-2">Baca aturan untuk pemilik</a>
+    </aside>
     <section class="card card-pad">
         <h2 class="text-lg font-semibold text-zinc-950">Informasi Barang</h2>
         <div class="mt-5 grid gap-5 lg:grid-cols-2">

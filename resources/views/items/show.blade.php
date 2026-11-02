@@ -105,10 +105,6 @@
                             >
                                 @csrf
                                 <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm leading-6"><strong>Persyaratan barang</strong><p>Foto kondisi: {{ $item->requires_condition_photos ? 'Wajib dari pemilik dan penyewa saat penyerahan serta pengembalian.' : 'Opsional; kedua pihak tetap boleh mendokumentasikan kondisi.' }}</p><p>Identitas: {{ $item->requires_identity_verification ? 'Penyewa wajib terverifikasi admin sebelum booking diterima. Pemilik tidak menerima dokumen identitas.' : 'Tidak diwajibkan untuk barang ini.' }}</p><p>Penyerahan dan pengembalian menggunakan checklist serta konfirmasi kedua pihak.</p></div>
-                                @if($item->requires_condition_photos || $item->requires_identity_verification)
-                                    <label class="flex items-start gap-3 text-sm"><input type="checkbox" name="requirements_accepted" value="1" required @checked(old('requirements_accepted')) class="mt-1 h-4 w-4 accent-brand"><span>Saya menyetujui persyaratan foto dan identitas barang ini.</span></label>
-                                    @error('requirements_accepted')<p class="field-error">{{ $message }}</p>@enderror
-                                @endif
                                 <div data-booking-calendar hidden>
                                     <label for="rental-range" class="field-label">Periode sewa</label>
                                     <div class="mb-3 flex items-center gap-2">
@@ -167,6 +163,12 @@
                                         <div class="flex justify-between gap-4 border-t border-zinc-200 pt-3 text-base"><dt class="font-semibold text-zinc-950">Total Estimasi</dt><dd class="text-xl font-semibold text-blue-700" data-total>Rp 0</dd></div>
                                     </dl>
                                     <p class="mt-3 text-sm text-zinc-600" data-availability-message>Pilih tanggal untuk melihat ketersediaan.</p>
+                                </div>
+                                <div class="rounded-md border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-zinc-600">
+                                    <p class="font-semibold text-blue-950">Sebelum mengajukan sewa</p>
+                                    <p class="mt-2">DP adalah bagian biaya sewa. Pembayaran booking baru diperiksa admin dan barang diserahkan setelah lunas. Pengembalian serta masalah kondisi mengikuti pemeriksaan kedua pihak.</p>
+                                    <label class="mt-3 flex min-h-11 items-start gap-3 py-2"><input type="checkbox" name="requirements_accepted" value="1" required @checked(old('requirements_accepted')) class="mt-1 h-4 w-4 shrink-0 accent-brand" aria-describedby="booking-terms-error"><span>Saya menyetujui <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-700 underline underline-offset-2">aturan penyewaan Pinjemin</a> dan persyaratan barang ini, termasuk foto serta identitas jika diwajibkan pemilik.</span></label>
+                                    <div id="booking-terms-error">@error('requirements_accepted')<p class="field-error" role="alert">{{ $message }}</p>@enderror</div>
                                 </div>
                                 <x-button type="submit" class="w-full">Ajukan Sewa</x-button>
                             </form>

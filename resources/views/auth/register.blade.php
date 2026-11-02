@@ -21,6 +21,11 @@
                 </div>
                 <x-password-input autocomplete="new-password" minlength="8" help="Gunakan minimal 8 karakter." />
                 <x-password-input name="password_confirmation" label="Konfirmasi Password" autocomplete="new-password" minlength="8" />
+                <label class="flex min-h-11 items-start gap-3 py-2 text-sm leading-6 text-zinc-600">
+                    <input type="checkbox" name="terms_accepted" value="1" required @checked(old('terms_accepted')) class="mt-1 h-4 w-4 shrink-0 accent-brand" aria-describedby="terms-error">
+                    <span>Saya menyetujui <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-700 underline underline-offset-2">Syarat &amp; Ketentuan</a> serta <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-700 underline underline-offset-2">Kebijakan Privasi</a> Pinjemin.</span>
+                </label>
+                <div id="terms-error">@error('terms_accepted')<p class="field-error" role="alert">{{ $message }}</p>@enderror</div>
                 <x-button type="submit" class="w-full">Daftar</x-button>
             </form>
             <p class="mt-5 text-sm text-zinc-600">Sudah punya akun? <a href="{{ route('login') }}" class="font-medium text-blue-700 hover:text-blue-800">Masuk</a></p>

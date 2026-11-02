@@ -15,7 +15,8 @@
         <label><span class="field-label">Tanggal kedaluwarsa (wajib untuk SIM)</span><input type="date" name="document_expires_on" value="{{ old('document_expires_on') }}" min="{{ now(\App\Models\Booking::RentalTimezone)->toDateString() }}" class="input"></label>
         <label><span class="field-label">Foto dokumen</span><input type="file" name="document" accept="image/jpeg,image/png,image/webp" required class="photo-file-input" data-private-image-input><span class="field-help">Satu foto JPG, PNG, atau WebP maksimal 5 MB. Pastikan tulisan terbaca.</span></label>
         <div data-private-image-preview hidden><img alt="Preview identitas privat" class="max-h-80 w-full rounded-md border border-zinc-200 bg-white object-contain p-2"></div>
-        <label class="flex items-start gap-3 text-sm leading-6"><input type="checkbox" name="consent" value="1" required class="mt-1 h-4 w-4 accent-brand"><span>Saya menyetujui pemrosesan data identitas untuk tujuan dan masa penyimpanan yang dijelaskan di atas.</span></label>
+        <label class="flex items-start gap-3 text-sm leading-6"><input type="checkbox" name="consent" value="1" required @checked(old('consent')) class="mt-1 h-4 w-4 accent-brand"><span>Saya menyetujui pemrosesan data identitas untuk tujuan dan masa penyimpanan yang dijelaskan di atas serta dalam <a href="{{ route('legal.privacy') }}#identitas" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-700 underline underline-offset-2">Kebijakan Privasi</a>.</span></label>
+        @error('consent')<p class="field-error" role="alert">{{ $message }}</p>@enderror
         <x-button type="submit" class="w-fit">Kirim ke Admin</x-button>
     </form>
     @endif

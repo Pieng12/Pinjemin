@@ -63,6 +63,12 @@
                     <x-button :href="route('identity.index')" variant="outline" class="ml-2">Verifikasi Identitas</x-button>
                 </div>
             </form>
+            <div class="mt-6 border-t border-zinc-100 pt-4 text-xs leading-6 text-zinc-500">
+                <x-legal-links />
+                @if($user->terms_accepted_at)
+                    <p class="mt-2">Persetujuan akun: {{ $user->terms_version }}, {{ $user->terms_accepted_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB.</p>
+                @endif
+            </div>
         </div>
     </section>
 @endsection

@@ -17,6 +17,7 @@
             <div>
                 <h2 id="payment-title" class="text-lg font-semibold text-zinc-950">Pembayaran</h2>
                 <p class="mt-1 text-sm text-zinc-600">{{ $booking->collectsViaPlatform() ? 'Pembayaran ke rekening Pinjemin, diverifikasi manual oleh admin setelah dana masuk.' : 'Diverifikasi manual oleh pemilik, bukan oleh bank atau payment gateway.' }}</p>
+                <a href="{{ route('legal.terms') }}#pembayaran" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block text-sm font-semibold text-blue-700 underline underline-offset-2">Aturan pembayaran, DP, dan refund</a>
             </div>
             @if($booking->payment_legacy)<span class="badge bg-zinc-100 text-zinc-600">Lunas - data lama</span>@endif
         </div>

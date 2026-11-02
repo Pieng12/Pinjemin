@@ -20,10 +20,15 @@ class LoginController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
+        $validated = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'terms_accepted' => ['required', 'accepted'],
+        ], [
+            'terms_accepted.required' => 'Setujui Syarat & Ketentuan dan Kebijakan Privasi sebelum masuk.',
+            'terms_accepted.accepted' => 'Setujui Syarat & Ketentuan dan Kebijakan Privasi sebelum masuk.',
         ]);
+        $credentials = ['email' => $validated['email'], 'password' => $validated['password']];
 
         $key = 'login:'.hash('sha256', Str::lower(trim($credentials['email'])).'|'.$request->ip());
         if (RateLimiter::tooManyAttempts($key, 5)) {
@@ -40,6 +45,15 @@ class LoginController extends Controller
         }
 
         RateLimiter::clear($key);
+
+        $user = $request->user();
+        if (! $user->terms_accepted_at || $user->terms_version !== config('legal.terms_version') || $user->privacy_version !== config('legal.privacy_version')) {
+            $user->forceFill([
+                'terms_version' => config('legal.terms_version'),
+                'privacy_version' => config('legal.privacy_version'),
+                'terms_accepted_at' => now(),
+            ])->save();
+        }
 
         $request->session()->regenerate();
 

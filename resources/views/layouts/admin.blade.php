@@ -88,9 +88,11 @@
 
                 @yield('content')
             </main>
+            <footer class="border-t border-zinc-200 px-4 py-5 text-zinc-500 sm:px-6 lg:px-8"><x-legal-links /></footer>
         </div>
     </div>
     <x-confirm-modal />
+    <x-legal-modal />
     @stack('scripts')
 </body>
 </html>

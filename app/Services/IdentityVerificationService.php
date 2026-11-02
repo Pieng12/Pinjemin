@@ -35,6 +35,7 @@ class IdentityVerificationService
                     'document_type' => $data['document_type'], 'legal_name' => $data['legal_name'],
                     'document_number' => $data['document_number'], 'document_path' => $path,
                     'document_mime' => $document->getMimeType(),
+                    'privacy_version' => config('legal.privacy_version'),
                     'document_expires_on' => $data['document_type'] === 'sim' ? $data['document_expires_on'] : null,
                     'status' => 'pending', 'consented_at' => now(), 'retain_until' => now()->addDays(30),
                 ]);

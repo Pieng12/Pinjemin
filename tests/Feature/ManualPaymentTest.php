@@ -211,6 +211,7 @@ class ManualPaymentTest extends TestCase
         ]);
         $start = now(Booking::RentalTimezone)->addDays($startOffset)->toDateString();
         $booking = app(BookingService::class)->create($renter, $item, [
+            'requirements_accepted' => true,
             'start_date' => $start,
             'end_date' => Carbon::parse($start)->addDays(2)->toDateString(),
             'quantity' => 1,

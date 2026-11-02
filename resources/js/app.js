@@ -34,10 +34,12 @@ import {
     X,
 } from 'lucide';
 import { initializeBookingForm } from './booking';
+import { initializeLegalModal } from './legal-modal';
 
 const formatRupiah = (value) => `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0))}`;
 
 document.addEventListener('DOMContentLoaded', () => {
+    initializeLegalModal();
     createIcons({
         icons: {
             ArrowRight,
@@ -964,6 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-payment-policy]').forEach(settings => {
         const deposit = settings.querySelector('[data-deposit-enabled]');
         const cash = settings.querySelector('[data-cash-enabled]');
+        if (!deposit || !cash) return;
         const sync = () => {
             cash.disabled = !deposit.checked;
             if (!deposit.checked) cash.checked = false;

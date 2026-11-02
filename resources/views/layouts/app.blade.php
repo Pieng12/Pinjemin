@@ -70,6 +70,7 @@
                                         <div class="my-1 border-t border-zinc-100"></div>
                                         <a href="{{ route('profile.edit') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Profil</a>
                                         <a href="{{ route('identity.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Verifikasi Identitas</a>
+                                        <a href="{{ route('legal.terms') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Aturan &amp; Privasi</a>
                                         @if (auth()->user()->isAdmin())
                                             <a href="{{ route('admin.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">Admin Panel</a>
                                         @endif
@@ -109,6 +110,7 @@
                             <a href="{{ route('home') }}#cara-kerja" class="site-mobile-link" data-section-link="cara-kerja">Cara Kerja</a>
                             <a href="{{ route('home') }}#faq" class="site-mobile-link" data-section-link="faq">FAQ</a>
                             <a href="{{ route('home') }}#kontak" class="site-mobile-link" data-section-link="kontak">Kontak</a>
+                            <a href="{{ route('legal.terms') }}" class="site-mobile-link {{ request()->routeIs('legal.*') ? 'is-active' : '' }}" @if(request()->routeIs('legal.terms')) aria-current="page" @endif>Aturan Pinjemin</a>
                         </div>
                     </div>
                     @if($marketplaceEnabled)
@@ -198,12 +200,14 @@
                 </div>
             </div>
             <div class="border-t border-white/10 px-4 py-5 text-center text-xs text-white/55">
+                <x-legal-links class="mb-3 justify-center text-white/80" />
                 &copy; {{ now()->year }} Pinjemin. Semua hak dilindungi.
                 @stack('footer_credits')
             </div>
         </footer>
     </div>
     <x-confirm-modal />
+    <x-legal-modal />
     @stack('scripts')
 </body>
 </html>

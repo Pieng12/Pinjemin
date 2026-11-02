@@ -23,16 +23,21 @@ class RegisterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
+            'terms_accepted' => ['required', 'accepted'],
         ], [
             'password.confirmed' => 'Konfirmasi password tidak sama.',
             'password.min' => 'Password minimal 8 karakter.',
+            'terms_accepted.required' => 'Setujui Syarat & Ketentuan dan Kebijakan Privasi sebelum membuat akun.',
+            'terms_accepted.accepted' => 'Setujui Syarat & Ketentuan dan Kebijakan Privasi sebelum membuat akun.',
         ]);
 
-        $user = User::create([
+        $user = new User([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
         ]);
+
+        $user->forceFill(['terms_version' => config('legal.terms_version'), 'privacy_version' => config('legal.privacy_version'), 'terms_accepted_at' => now()])->save();
 
         Auth::login($user);
 

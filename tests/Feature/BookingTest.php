@@ -359,6 +359,7 @@ class BookingTest extends TestCase
             'end_date' => '2026-09-22',
             'quantity' => 1,
             'renter_note' => 'Tolong disiapkan sebelum siang.',
+            'requirements_accepted' => '1',
         ], $overrides);
     }
 

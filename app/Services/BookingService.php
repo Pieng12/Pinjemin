@@ -35,8 +35,8 @@ class BookingService
                 throw ValidationException::withMessages(['fulfillment_method' => 'Pemilik tidak menyediakan pengiriman untuk barang ini.']);
             }
             $pricing = $this->calculator->calculate($item, $data['start_date'], $data['end_date'], (int) $data['quantity']);
-            if (($item->requires_condition_photos || $item->requires_identity_verification) && ! ($data['requirements_accepted'] ?? false)) {
-                throw ValidationException::withMessages(['requirements_accepted' => 'Setujui persyaratan foto dan identitas barang sebelum mengajukan booking.']);
+            if (! in_array($data['requirements_accepted'] ?? null, ['yes', 'on', 1, '1', true, 'true'], true)) {
+                throw ValidationException::withMessages(['requirements_accepted' => 'Setujui aturan penyewaan dan persyaratan barang sebelum mengajukan booking.']);
             }
             $this->ensureTotalFits($pricing['total_amount']);
 
@@ -59,7 +59,7 @@ class BookingService
                     'pricing_version' => 2,
                     'payment_collection' => 'platform',
                     'commission_rate' => 5,
-                    'inspection_policy' => ['version' => 1, 'terms_version' => 'rental-evidence-1', 'photos_required' => (bool) $item->requires_condition_photos, 'identity_required' => (bool) $item->requires_identity_verification, 'item_rules' => $item->rules, 'accepted_at' => now()->toIso8601String()],
+                    'inspection_policy' => ['version' => 1, 'terms_version' => config('legal.terms_version'), 'photos_required' => (bool) $item->requires_condition_photos, 'identity_required' => (bool) $item->requires_identity_verification, 'item_rules' => $item->rules, 'accepted_at' => now()->toIso8601String()],
                     'item_name' => $item->name,
                     'owner' => ['name' => $item->user->name, 'email' => $item->user->email, 'phone' => $item->user->phone],
                     'renter' => ['name' => $renter->name, 'email' => $renter->email, 'phone' => $renter->phone],

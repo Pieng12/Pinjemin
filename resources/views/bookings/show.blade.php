@@ -67,6 +67,11 @@
             <p class="mt-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800" role="alert">Ada konflik stok pada periode booking ini, termasuk kemungkinan barang terlambat kembali. Periksa pengembalian sebelum menyerahkan barang kepada penyewa.</p>
         @endif
 
+        <aside class="mt-5 rounded-md border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-zinc-600">
+            <p>{{ $viewer === 'owner' ? 'Sebelum menerima booking, periksa persyaratan identitas, periode, stok, dan cara penerimaan barang. Pencairan mengikuti hasil pengembalian serta pemeriksaan kondisi.' : 'Rincian dan persyaratan yang tercatat pada booking ini tetap menjadi acuan, termasuk jika aturan barang berubah setelah pengajuan.' }}</p>
+            <a href="{{ route('legal.terms') }}#pembatalan" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block font-semibold text-blue-700 underline underline-offset-2">Baca aturan pembatalan dan pengaduan</a>
+        </aside>
+
         <div class="mt-8 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
             <aside class="space-y-5">
                 <div class="card card-pad">

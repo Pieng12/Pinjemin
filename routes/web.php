@@ -30,6 +30,8 @@ use App\Http\Controllers\RentOutController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::view('/syarat-ketentuan', 'legal.terms')->name('legal.terms');
+Route::view('/kebijakan-privasi', 'legal.privacy')->name('legal.privacy');
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 Route::middleware('marketplace')->group(function (): void {

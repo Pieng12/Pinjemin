@@ -25,6 +25,7 @@ class BookingLifecycleTest extends TestCase
         UserPaymentMethod::factory()->for(User::factory()->admin())->create(['is_platform' => true]);
         $this->actingAs(User::factory()->create())->post(route('items.bookings.store', $item), [
             'start_date' => '2026-09-18', 'end_date' => '2026-09-20', 'quantity' => 1,
+            'requirements_accepted' => '1',
         ])->assertSessionHasNoErrors();
         $booking = $item->bookings()->firstOrFail();
         $this->assertSame(3, $booking->rental_days);
@@ -43,9 +44,11 @@ class BookingLifecycleTest extends TestCase
         $this->getJson(route('items.calendar', [$item, 'month' => '2026-09']))->assertOk()->assertJsonPath('today', '2026-09-19');
         $this->actingAs(User::factory()->create())->post(route('items.bookings.store', $item), [
             'start_date' => '2026-09-18', 'end_date' => '2026-09-20', 'quantity' => 1,
+            'requirements_accepted' => '1',
         ])->assertSessionHasErrors('start_date');
         $this->post(route('items.bookings.store', $item), [
             'start_date' => '2026-09-19', 'end_date' => '2026-09-20', 'quantity' => 1,
+            'requirements_accepted' => '1',
         ])->assertSessionHasNoErrors();
         $this->assertSame(2, $item->bookings()->firstOrFail()->rental_days);
     }
@@ -101,7 +104,7 @@ class BookingLifecycleTest extends TestCase
         [$booking, $owner, $renter, $item] = $this->booking();
         Booking::factory()->approved()->for($item)->create(['start_date' => '2026-09-21', 'end_date' => '2026-09-21', 'quantity' => 1]);
         $this->actingAs($owner)->patch(route('incoming-bookings.approve', $booking))->assertSessionHasErrors('quantity');
-        $this->actingAs($renter)->post(route('items.bookings.store', $item), ['start_date' => '2026-09-20', 'end_date' => '2026-09-22', 'quantity' => 1])->assertSessionHasErrors('quantity');
+        $this->actingAs($renter)->post(route('items.bookings.store', $item), ['start_date' => '2026-09-20', 'end_date' => '2026-09-22', 'quantity' => 1, 'requirements_accepted' => '1'])->assertSessionHasErrors('quantity');
     }
 
     public function test_paid_delivery_requires_quote_and_renter_confirmation_even_for_zero_fee(): void
@@ -245,7 +248,7 @@ class BookingLifecycleTest extends TestCase
     public function test_new_bookings_require_location_and_valid_delivery_choice_and_recipient(): void
     {
         [$booking, $owner, $renter, $item] = $this->booking();
-        $payload = ['start_date' => '2026-09-20', 'end_date' => '2026-09-22', 'quantity' => 1];
+        $payload = ['start_date' => '2026-09-20', 'end_date' => '2026-09-22', 'quantity' => 1, 'requirements_accepted' => '1'];
         $this->actingAs($renter)->post(route('items.bookings.store', $item), $payload + ['fulfillment_method' => 'delivery'])
             ->assertSessionHasErrors(['recipient_name', 'recipient_phone', 'recipient_city', 'recipient_address']);
         $this->post(route('items.bookings.store', $item), $payload + $this->recipient() + ['fulfillment_method' => 'delivery'])->assertSessionHasErrors('fulfillment_method');
@@ -329,6 +332,7 @@ class BookingLifecycleTest extends TestCase
         ]);
         $this->actingAs($renter)->post(route('items.bookings.store', $item), [
             'start_date' => '2026-09-20', 'end_date' => '2026-09-22', 'quantity' => $quantity,
+            'requirements_accepted' => '1',
             'fulfillment_method' => $delivery ? 'delivery' : 'pickup',
         ] + ($delivery ? $this->recipient() : []))->assertSessionHasNoErrors();
         $booking = Booking::query()->where('item_id', $item->id)->firstOrFail();

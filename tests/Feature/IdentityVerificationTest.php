@@ -34,6 +34,7 @@ class IdentityVerificationTest extends TestCase
         $original = $file->get();
         $this->actingAs($user)->post(route('identity.store'), $this->payload(['document' => $file]))->assertSessionHasNoErrors();
         $identity = $user->currentIdentity();
+        $this->assertSame(config('legal.privacy_version'), $identity->privacy_version);
         $row = DB::table('identity_verifications')->find($identity->id);
         $this->assertNotSame('1234567890123456', $row->document_number);
         $this->assertNotSame('Nama Resmi Privat', $row->legal_name);

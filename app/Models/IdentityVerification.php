@@ -13,7 +13,7 @@ class IdentityVerification extends Model
     /** @use HasFactory<IdentityVerificationFactory> */
     use HasFactory;
 
-    protected $fillable = ['user_id', 'document_type', 'legal_name', 'document_number', 'document_path', 'document_mime', 'document_expires_on', 'status', 'consented_at', 'reviewed_at', 'reviewed_by', 'verified_until', 'retain_until', 'hold_review_at', 'hold_reason', 'purged_at', 'review_note'];
+    protected $fillable = ['user_id', 'document_type', 'legal_name', 'document_number', 'document_path', 'document_mime', 'document_expires_on', 'status', 'consented_at', 'privacy_version', 'reviewed_at', 'reviewed_by', 'verified_until', 'retain_until', 'hold_review_at', 'hold_reason', 'purged_at', 'review_note'];
 
     protected $hidden = ['document_number', 'legal_name', 'document_path'];
 

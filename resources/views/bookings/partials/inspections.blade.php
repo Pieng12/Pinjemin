@@ -4,6 +4,7 @@
     @php($isParty = auth()->user()->can('participateInspection', $booking))
     @php($isOwner = auth()->id() === $booking->item->user_id)
     @php($inspectionActions = in_array($booking->status, [\App\BookingStatus::Approved, \App\BookingStatus::Completed], true) && !in_array($booking->payout?->status, ['processing', 'paid', 'cancelled'], true))
+    <a href="{{ route('legal.terms') }}#kondisi" target="_blank" rel="noopener noreferrer" class="w-fit text-sm font-semibold text-blue-700 underline underline-offset-2">Panduan foto, pengembalian, dan pengaduan</a>
     <div><h2 id="inspections-title" class="text-xl font-semibold">Pemeriksaan &amp; Berita Acara</h2><p class="mt-2 text-sm leading-6 text-zinc-600">Foto kondisi {{ $policy['photos_required'] ? 'wajib dari kedua pihak' : 'opsional dan tetap boleh diunggah' }}. Bukti yang sudah dikirim dikunci. Waktu unggah bukan jaminan waktu pengambilan foto. Ketentuan {{ $policy['terms_version'] }}.</p></div>
     @if($policy['item_rules'] ?? null)<p class="rounded-md bg-zinc-50 p-4 text-sm whitespace-pre-line"><strong>Aturan barang saat pengajuan:</strong> {{ $policy['item_rules'] }}</p>@endif
     @if($policy['identity_required'])

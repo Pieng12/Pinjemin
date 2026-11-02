@@ -142,7 +142,7 @@ class PlatformPaymentTest extends TestCase
         $payment = $this->proof($first, $renter);
         $this->verify($first, $payment, $admin, 'SAME-REF');
         $item = Item::factory()->for($owner)->create(['quantity' => 1]);
-        $second = app(BookingService::class)->create($renter, $item, ['start_date' => '2026-11-03', 'end_date' => '2026-11-05', 'quantity' => 1]);
+        $second = app(BookingService::class)->create($renter, $item, ['start_date' => '2026-11-03', 'end_date' => '2026-11-05', 'quantity' => 1, 'requirements_accepted' => true]);
         $this->accept($second, $owner);
         $secondPayment = $this->proof($second, $renter);
         $this->actingAs($admin)->patch(route('admin.payments.review', [$second, $secondPayment]), ['decision' => 'verify', 'transaction_reference' => 'same-ref'])->assertSessionHasErrors('transaction_reference');
@@ -329,6 +329,7 @@ class PlatformPaymentTest extends TestCase
         UserPaymentMethod::factory()->for($owner)->create(['type' => 'bank', 'is_primary' => true, 'account_identifier' => '999888777']);
         $item = Item::factory()->for($owner)->create(['daily_price' => 100000, 'deposit_amount' => 50000, 'quantity' => 1, 'allow_deposit_payment' => true, 'allow_cash_balance' => true, 'delivery_enabled' => $delivery, 'free_delivery' => false]);
         $booking = app(BookingService::class)->create($renter, $item, [
+            'requirements_accepted' => true,
             'start_date' => '2026-11-03', 'end_date' => '2026-11-05', 'quantity' => 1,
             'fulfillment_method' => $delivery ? Booking::Delivery : Booking::Pickup,
             'recipient_name' => 'Penyewa', 'recipient_phone' => '08123456789', 'recipient_city' => 'Medan', 'recipient_address' => 'Jalan Penyewa 1',

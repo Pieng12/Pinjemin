@@ -57,6 +57,27 @@
 }
 
 @layer components {
+    .legal-modal {
+        position: fixed;
+        inset: 0;
+        width: min(800px, calc(100vw - 32px));
+        height: min(760px, calc(100dvh - 32px));
+        max-width: none;
+        max-height: none;
+        margin: auto;
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid #e4e4e7;
+        border-radius: 8px;
+        background: #fff;
+        color: #18181b;
+        box-shadow: 0 24px 80px rgb(6 44 55 / 24%);
+    }
+
+    .legal-modal:not([open]) { display: none; }
+    .legal-modal[open] { display: flex; flex-direction: column; animation: pinjemin-menu-in 160ms ease-out; }
+    .legal-modal::backdrop { background: rgb(6 44 55 / 55%); backdrop-filter: blur(3px); }
+
     .site-header {
         z-index: 40;
         top: 0;

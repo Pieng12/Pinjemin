@@ -40,13 +40,13 @@ class AuditRegressionTest extends TestCase
         $this->freezeTime();
         $user = User::factory()->create(['email' => 'limit@example.test', 'password' => 'password123']);
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            $this->post('/login', ['email' => $user->email, 'password' => 'wrong'])->assertSessionHasErrors('email');
+            $this->post('/login', ['email' => $user->email, 'password' => 'wrong', 'terms_accepted' => '1'])->assertSessionHasErrors('email');
         }
-        $this->post('/login', ['email' => $user->email, 'password' => 'password123'])
+        $this->post('/login', ['email' => $user->email, 'password' => 'password123', 'terms_accepted' => '1'])
             ->assertSessionHasErrors(['email' => 'Terlalu banyak percobaan masuk. Coba lagi dalam 60 detik.']);
         $this->assertGuest();
         $this->travel(61)->seconds();
-        $this->post('/login', ['email' => $user->email, 'password' => 'password123'])->assertRedirect(route('dashboard'));
+        $this->post('/login', ['email' => $user->email, 'password' => 'password123', 'terms_accepted' => '1'])->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -54,14 +54,14 @@ class AuditRegressionTest extends TestCase
     {
         $user = User::factory()->create(['password' => 'password123']);
         for ($attempt = 0; $attempt < 4; $attempt++) {
-            $this->post('/login', ['email' => $user->email, 'password' => 'wrong']);
+            $this->post('/login', ['email' => $user->email, 'password' => 'wrong', 'terms_accepted' => '1']);
         }
-        $this->post('/login', ['email' => $user->email, 'password' => 'password123'])->assertRedirect();
+        $this->post('/login', ['email' => $user->email, 'password' => 'password123', 'terms_accepted' => '1'])->assertRedirect();
         $this->post('/logout')->assertRedirect();
         for ($attempt = 0; $attempt < 4; $attempt++) {
-            $this->post('/login', ['email' => $user->email, 'password' => 'wrong']);
+            $this->post('/login', ['email' => $user->email, 'password' => 'wrong', 'terms_accepted' => '1']);
         }
-        $this->post('/login', ['email' => $user->email, 'password' => 'password123'])->assertRedirect(route('dashboard'));
+        $this->post('/login', ['email' => $user->email, 'password' => 'password123', 'terms_accepted' => '1'])->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
     }
 
@@ -72,6 +72,7 @@ class AuditRegressionTest extends TestCase
         $item = Item::factory()->create(['daily_price' => 100000, 'deposit_amount' => 50000, 'delivery_enabled' => true]);
         UserPaymentMethod::factory()->for($item->user)->create();
         $booking = app(BookingService::class)->create(User::factory()->create(), $item, [
+            'requirements_accepted' => true,
             'start_date' => '2026-10-03', 'end_date' => '2026-10-05', 'quantity' => 1,
             'fulfillment_method' => Booking::Delivery, 'recipient_name' => 'Penyewa',
             'recipient_phone' => '08123456789', 'recipient_city' => 'Medan', 'recipient_address' => 'Jalan Tujuan 1',
