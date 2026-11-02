@@ -8,25 +8,27 @@
 
 @php
     $rawValue = old($name, $value);
-    $rawValue = $rawValue !== null && $rawValue !== '' ? (string) (int) $rawValue : '';
+    $rawValue = $rawValue !== null ? (string) $rawValue : '';
     $inputId = $attributes->get('id') ?? $name;
 @endphp
 
 <div>
-    <label for="{{ $inputId }}_display" class="field-label">
+    <label for="{{ $inputId }}" class="field-label">
         {{ $label }} @if ($required)<span class="text-red-600">*</span>@endif
     </label>
     <input
-        id="{{ $inputId }}_display"
-        type="text"
-        inputmode="numeric"
+        id="{{ $inputId }}"
+        name="{{ $name }}"
+        type="number"
+        min="0"
+        step="0.01"
+        inputmode="decimal"
         autocomplete="off"
-        data-currency-display
-        data-target="{{ $inputId }}"
+        data-currency-input
         value="{{ $rawValue }}"
+        @required($required)
         {{ $attributes->except(['id', 'name', 'value'])->merge(['class' => 'input']) }}
     >
-    <input id="{{ $inputId }}" type="hidden" name="{{ $name }}" value="{{ $rawValue }}" data-currency-raw @required($required)>
     @if ($help)
         <p class="field-help">{{ $help }}</p>
     @endif

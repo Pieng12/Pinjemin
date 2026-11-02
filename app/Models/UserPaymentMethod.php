@@ -16,7 +16,7 @@ class UserPaymentMethod extends Model
 
     protected $fillable = [
         'user_id', 'type', 'provider', 'account_name', 'account_identifier', 'qris_path',
-        'instructions', 'is_active', 'is_primary', 'sort_order',
+        'instructions', 'is_active', 'is_primary', 'sort_order', 'is_platform',
     ];
 
     public function user(): BelongsTo
@@ -50,6 +50,7 @@ class UserPaymentMethod extends Model
             'type' => PaymentMethodType::class,
             'is_active' => 'boolean',
             'is_primary' => 'boolean',
+            'is_platform' => 'boolean',
         ];
     }
 }

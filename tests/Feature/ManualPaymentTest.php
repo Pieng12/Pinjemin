@@ -63,7 +63,7 @@ class ManualPaymentTest extends TestCase
             'is_active' => 1,
         ];
         $this->actingAs($owner)->post(route('payment-methods.store'), $payload)
-            ->assertSessionHasErrors('type');
+            ->assertSessionHasErrors('type', errorBag: 'method-new');
         $this->post(route('payment-methods.store'), array_merge($payload, ['is_active' => 0]))
             ->assertSessionHasNoErrors();
 
@@ -112,7 +112,7 @@ class ManualPaymentTest extends TestCase
         $this->patch(route('incoming-bookings.payments.review', [$booking, $payment]), ['decision' => 'verify'])->assertSessionHasNoErrors();
         $booking->refresh();
         $this->assertSame(BookingStatus::Approved, $booking->status);
-        $this->assertSame(320000.0, (float) $booking->verifiedPayments()->sum('amount'));
+        $this->assertSame(300000.0, (float) $booking->verifiedPayments()->sum('amount'));
         $this->get(route('bookings.payment-receipt', $booking))->assertOk()->assertDownload('PAY-'.$booking->booking_code.'.pdf');
         $this->actingAs($owner)->patch(route('incoming-bookings.payments.review', [$booking, $payment]), ['decision' => 'verify'])->assertForbidden();
     }
@@ -137,7 +137,7 @@ class ManualPaymentTest extends TestCase
 
         $this->submitProof($booking, $renter);
         $balance = $booking->payments()->reorder()->latest('id')->firstOrFail();
-        $this->assertSame(300000.0, (float) $balance->amount);
+        $this->assertSame(280000.0, (float) $balance->amount);
         $this->actingAs($owner)->patch(route('incoming-bookings.payments.review', [$booking, $balance]), ['decision' => 'verify'])->assertSessionHasNoErrors();
         $this->assertSame(BookingStatus::Approved, $booking->fresh()->status);
         $this->assertSame(3, $booking->payments()->count());
@@ -215,6 +215,11 @@ class ManualPaymentTest extends TestCase
             'end_date' => Carbon::parse($start)->addDays(2)->toDateString(),
             'quantity' => 1,
         ]);
+        // Existing direct-to-owner bookings retain their original payment and cash policies.
+        $snapshot = $booking->fulfillment_snapshot;
+        unset($snapshot['payment_collection'], $snapshot['commission_rate'], $snapshot['inspection_policy']);
+        $snapshot['payment_policy']['allow_cash_balance'] = $deposit && $cash;
+        $booking->update(['fulfillment_snapshot' => $snapshot]);
 
         return [$booking, $owner, $renter, $item];
     }

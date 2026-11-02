@@ -19,11 +19,7 @@
                 <a href="{{ route('home') }}" class="text-sm font-semibold text-blue-700">Kembali ke marketplace</a>
             </div>
 
-            @if ($errors->any())
-                <div class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 shadow-sm">
-                    Periksa kembali data yang kamu masukkan.
-                </div>
-            @endif
+            <x-validation-summary class="mt-6" />
 
             @yield('content')
         </div>

@@ -14,7 +14,7 @@
             <div>
                 <x-booking-status-badge :status="$booking->status" :booking="$booking" />
                 <h1 class="mt-3 text-3xl font-bold tracking-tight text-zinc-950">Booking #{{ $booking->booking_code }}</h1>
-                <p class="mt-2 text-zinc-600">{{ $booking->item->name }} / {{ $booking->created_at->format('d M Y H:i') }}</p>
+                <p class="mt-2 text-zinc-600">{{ $booking->item->name }} / {{ $booking->created_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 @can('downloadInvoice', $booking)<x-button :href="route('bookings.invoice', $booking)" variant="outline">Unduh Invoice</x-button>@endcan
@@ -58,5 +58,7 @@
             </div>
         </div>
         @include('bookings.partials.payment', ['booking' => $booking, 'viewer' => 'admin'])
+        @include('bookings.partials.payout', ['booking' => $booking, 'viewer' => 'admin'])
+        @include('bookings.partials.inspections', ['booking' => $booking])
     </section>
 @endsection

@@ -128,20 +128,20 @@ class MarketplacePresentationTest extends TestCase
         $item = Item::factory()->for($user)->create();
         ItemPhoto::factory()->count(2)->for($item)->create();
 
-        $this->actingAs($user)->get(route('my-items.edit', $item))
+        $response = $this->actingAs($user)->get(route('my-items.edit', $item))
             ->assertSee('data-photo-upload data-existing-count="2"', false)
-            ->assertSee('item-photo-natural')
-            ->assertDontSee('object-cover');
+            ->assertSee('item-photo-natural');
+        $this->assertProductPhotosAreNotCropped($response->getContent());
     }
 
     public function test_public_item_gallery_displays_natural_photo_and_uncropped_thumbnails(): void
     {
         $photo = ItemPhoto::factory()->primary()->create();
 
-        $this->get(route('items.show', $photo->item))
+        $response = $this->get(route('items.show', $photo->item))
             ->assertSee('item-photo-natural')
-            ->assertSee('object-contain')
-            ->assertDontSee('object-cover');
+            ->assertSee('object-contain');
+        $this->assertProductPhotosAreNotCropped($response->getContent());
     }
 
     public function test_owner_detail_displays_uncropped_main_photo_and_thumbnails(): void
@@ -150,9 +150,20 @@ class MarketplacePresentationTest extends TestCase
         $item = Item::factory()->for($user)->create();
         ItemPhoto::factory()->for($item)->primary()->create();
 
-        $this->actingAs($user)->get(route('my-items.show', $item))
+        $response = $this->actingAs($user)->get(route('my-items.show', $item))
             ->assertSee('owner-detail-photo')
-            ->assertSee('object-contain')
-            ->assertDontSee('object-cover');
+            ->assertSee('object-contain');
+        $this->assertProductPhotosAreNotCropped($response->getContent());
+    }
+
+    private function assertProductPhotosAreNotCropped(string $html): void
+    {
+        $document = new \DOMDocument;
+        $document->loadHTML($html, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
+        $images = (new \DOMXPath($document))->query('//img[@data-item-photo or @data-gallery-main or contains(@class, "item-photo-natural")]');
+        $this->assertGreaterThan(0, $images->length);
+        foreach ($images as $image) {
+            $this->assertStringNotContainsString('object-cover', $image->getAttribute('class'));
+        }
     }
 }

@@ -18,6 +18,13 @@ class ReviewBookingPaymentRequest extends FormRequest
         return [
             'decision' => ['required', Rule::in(['verify', 'reject'])],
             'owner_comment' => [Rule::requiredIf($this->input('decision') === 'reject'), 'nullable', 'string', 'max:1000'],
+            'transaction_reference' => [Rule::requiredIf($this->route('booking')->collectsViaPlatform() && $this->input('decision') === 'verify'), 'nullable', 'string', 'max:150'],
         ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return ['owner_comment.required' => 'Jelaskan alasan bukti pembayaran ditolak.', 'transaction_reference.required' => 'Isi referensi transaksi dari mutasi rekening.'];
     }
 }

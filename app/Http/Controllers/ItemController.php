@@ -19,9 +19,9 @@ class ItemController extends Controller
             'condition' => ['nullable', 'in:'.implode(',', ItemCondition::values())],
             'city' => ['nullable', 'string', 'max:255'],
             'min_price' => ['nullable', 'numeric', 'min:0'],
-            'max_price' => ['nullable', 'numeric', 'min:0'],
+            'max_price' => ['nullable', 'numeric', 'min:0', ...($request->filled('min_price') ? ['gte:min_price'] : [])],
             'sort' => ['nullable', 'in:newest,price_asc,price_desc'],
-        ]);
+        ], ['max_price.gte' => 'Harga maksimum harus sama atau lebih besar dari harga minimum.']);
 
         $items = Item::query()
             ->marketplace()
@@ -38,8 +38,8 @@ class ItemController extends Controller
             })
             ->when($filters['condition'] ?? null, fn ($query, string $condition) => $query->where('condition', $condition))
             ->when($filters['city'] ?? null, fn ($query, string $city) => $query->where('city', $city))
-            ->when($filters['min_price'] ?? null, fn ($query, string $price) => $query->where('daily_price', '>=', $price))
-            ->when($filters['max_price'] ?? null, fn ($query, string $price) => $query->where('daily_price', '<=', $price));
+            ->when(isset($filters['min_price']), fn ($query) => $query->where('daily_price', '>=', $filters['min_price']))
+            ->when(isset($filters['max_price']), fn ($query) => $query->where('daily_price', '<=', $filters['max_price']));
 
         match ($filters['sort'] ?? 'newest') {
             'price_asc' => $items->orderBy('daily_price')->orderByDesc('id'),

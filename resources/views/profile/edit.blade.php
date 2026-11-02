@@ -60,6 +60,7 @@
                 <div>
                     <x-button type="submit">Simpan Profil</x-button>
                     <x-button :href="route('payment-methods.index')" variant="outline" class="ml-2">Metode Pembayaran</x-button>
+                    <x-button :href="route('identity.index')" variant="outline" class="ml-2">Verifikasi Identitas</x-button>
                 </div>
             </form>
         </div>

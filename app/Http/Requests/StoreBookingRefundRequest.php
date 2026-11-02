@@ -20,4 +20,17 @@ class StoreBookingRefundRequest extends FormRequest
             'proof' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ];
     }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'refunded_at.required' => 'Isi waktu refund dalam WIB.',
+            'refunded_at.date' => 'Waktu refund tidak valid.',
+            'proof.required' => 'Unggah foto bukti refund.',
+            'proof.image' => 'Pilih foto bukti refund yang valid.',
+            'proof.mimes' => 'Bukti refund harus berformat JPG, PNG, atau WebP.',
+            'proof.max' => 'Ukuran bukti refund maksimal 5 MB.',
+        ];
+    }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.owner')
+@extends($platform ? 'layouts.admin' : 'layouts.owner')
 
 @section('title', 'Metode Pembayaran - Pinjemin')
 
@@ -7,8 +7,8 @@
         <div class="page-header">
             <div>
                 <p class="eyebrow">Pembayaran manual</p>
-                <h1 class="mt-2 text-3xl font-semibold text-zinc-950">Metode Pembayaran</h1>
-                <p class="mt-2 max-w-2xl text-zinc-600">Rekening hanya ditampilkan kepada penyewa setelah booking diterima.</p>
+                <h1 class="mt-2 text-3xl font-semibold text-zinc-950">{{ $platform ? 'Rekening Penerimaan Pinjemin' : 'Metode Pembayaran & Pencairan' }}</h1>
+                <p class="mt-2 max-w-2xl text-zinc-600">{{ $platform ? 'Penyewa membayar ke tujuan ini. Semua admin mengelola daftar yang sama; perubahan tidak mengubah instruksi booking lama.' : 'Untuk booking baru, penyewa membayar ke Pinjemin. Tambahkan bank atau e-wallet aktif sebagai tujuan pencairan; komisi 5% dipotong dari biaya sewa, di luar ongkir. Metode booking lama tetap berlaku.' }}</p>
             </div>
             <p class="text-sm font-semibold text-zinc-600">{{ $activeMethodsCount }} / 10 metode aktif</p>
         </div>
@@ -31,14 +31,14 @@
                         @endif
                     </div>
                     @if($method->instructions)<p class="mt-4 whitespace-pre-line text-sm leading-6 text-zinc-600">{{ $method->instructions }}</p>@endif
-                    <details class="mt-5 border-t border-zinc-100 pt-4">
+                    <details class="mt-5 border-t border-zinc-100 pt-4" @if(old('_payment_method_form') === 'method-'.$method->id) open @endif>
                         <summary class="cursor-pointer text-sm font-semibold text-blue-700">Edit metode</summary>
-                        <form method="POST" action="{{ route('payment-methods.update', $method) }}" enctype="multipart/form-data" class="mt-4 grid gap-4" data-payment-method-form data-private-image-upload>
+                        <form method="POST" action="{{ route(($platform ? 'admin.' : '').'payment-methods.update', $method) }}" enctype="multipart/form-data" class="mt-4 grid gap-4" data-payment-method-form data-private-image-upload>
                             @csrf @method('PUT')
                             @include('payment-methods.partials.fields', ['current' => $method])
                             <div class="flex flex-wrap gap-2"><x-button type="submit">Simpan</x-button></div>
                         </form>
-                        <form method="POST" action="{{ route('payment-methods.destroy', $method) }}" class="mt-3" data-confirm data-confirm-title="Hapus metode pembayaran?" data-confirm-message="Metode hilang dari profil, tetapi snapshot booking lama tetap tersimpan." data-confirm-button="Hapus Metode">
+                        <form method="POST" action="{{ route(($platform ? 'admin.' : '').'payment-methods.destroy', $method) }}" class="mt-3" data-confirm data-confirm-title="Hapus metode pembayaran?" data-confirm-message="Metode hilang dari profil, tetapi snapshot booking lama tetap tersimpan." data-confirm-button="Hapus Metode">
                             @csrf @method('DELETE')
                             <x-button type="submit" variant="danger">Hapus</x-button>
                         </form>
@@ -49,7 +49,7 @@
 
         <div class="card card-pad mt-8">
             <h2 class="text-lg font-semibold text-zinc-950">Tambah Metode</h2>
-            <form method="POST" action="{{ route('payment-methods.store') }}" enctype="multipart/form-data" class="mt-5 grid gap-4" data-payment-method-form data-private-image-upload>
+            <form method="POST" action="{{ route(($platform ? 'admin.' : '').'payment-methods.store') }}" enctype="multipart/form-data" class="mt-5 grid gap-4" data-payment-method-form data-private-image-upload>
                 @csrf
                 @include('payment-methods.partials.fields', ['current' => null])
                 <x-button type="submit" class="w-fit">Tambah Metode</x-button>

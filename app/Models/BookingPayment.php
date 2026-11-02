@@ -16,7 +16,7 @@ class BookingPayment extends Model
     protected $fillable = [
         'booking_id', 'submitted_by_user_id', 'reviewed_by_user_id', 'kind', 'channel', 'amount',
         'method_snapshot', 'proof_path', 'transferred_at', 'renter_note', 'status',
-        'owner_comment', 'submitted_at', 'reviewed_at',
+        'owner_comment', 'submitted_at', 'reviewed_at', 'transaction_reference', 'transaction_key',
     ];
 
     public function booking(): BelongsTo

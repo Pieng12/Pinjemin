@@ -14,7 +14,7 @@ class UserPaymentMethodPolicy
 
     public function view(User $user, UserPaymentMethod $method): bool
     {
-        return $user->id === $method->user_id || $user->isAdmin();
+        return $method->is_platform ? $user->isAdmin() : ($user->id === $method->user_id || $user->isAdmin());
     }
 
     public function create(User $user): bool
@@ -24,12 +24,12 @@ class UserPaymentMethodPolicy
 
     public function update(User $user, UserPaymentMethod $method): bool
     {
-        return $user->id === $method->user_id;
+        return $method->is_platform ? $user->isAdmin() : $user->id === $method->user_id;
     }
 
     public function delete(User $user, UserPaymentMethod $method): bool
     {
-        return $user->id === $method->user_id;
+        return $this->update($user, $method);
     }
 
     public function restore(User $user, UserPaymentMethod $method): bool

@@ -18,8 +18,12 @@ class OwnerDashboardController extends Controller
             'activeItemsCount' => $user->items()->marketplace()->count(),
             'pendingBookingsCount' => Booking::query()
                 ->where(function ($query): void {
-                    $query->whereIn('status', [BookingStatus::Pending->value, BookingStatus::PaymentReview->value])
-                        ->orWhere('refund_status', 'pending');
+                    $query->where('status', BookingStatus::Pending->value)
+                        ->orWhere(function ($query): void {
+                            $query->whereDoesntHave('payout')->where(function ($query): void {
+                                $query->where('status', BookingStatus::PaymentReview->value)->orWhere('refund_status', 'pending');
+                            });
+                        });
                 })
                 ->whereHas('item', fn ($query) => $query->where('user_id', $user->id))
                 ->count(),

@@ -9,3 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('bookings:expire-quotes')->everyMinute()->withoutOverlapping();
+Schedule::command('rentals:maintain-evidence')->everyMinute()->withoutOverlapping();
+Schedule::command('rentals:maintain-evidence --prune')->daily()->withoutOverlapping();

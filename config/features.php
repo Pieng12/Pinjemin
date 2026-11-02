@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'marketplace_enabled' => (bool) env('FEATURE_MARKETPLACE_ENABLED', false),
+    'marketplace_enabled' => (bool) env('FEATURE_MARKETPLACE_ENABLED', true),
 ];

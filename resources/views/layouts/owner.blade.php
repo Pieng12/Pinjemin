@@ -1,6 +1,8 @@
 @php
     $ownerPageTitle = match (true) {
         request()->routeIs('owner.dashboard') => 'Overview',
+        request()->routeIs('owner.payouts') => 'Pencairan Saya',
+        request()->routeIs('identity.*') => 'Verifikasi Identitas',
         request()->routeIs('my-items.create') => 'Tambah Barang',
         request()->routeIs('my-items.edit') => 'Edit Barang',
         request()->routeIs('my-items.show') => 'Detail Barang',
@@ -14,6 +16,8 @@
         ['my-items.index', 'Barang Saya', 'package', request()->routeIs('my-items.*') && !request()->routeIs('my-items.create')],
         ['incoming-bookings.index', 'Booking Masuk', 'inbox', request()->routeIs('incoming-bookings.*')],
         ['payment-methods.index', 'Metode Pembayaran', 'credit-card', request()->routeIs('payment-methods.*')],
+        ['owner.payouts', 'Pencairan Saya', 'wallet', request()->routeIs('owner.payouts')],
+        ['identity.index', 'Verifikasi Identitas', 'badge-check', request()->routeIs('identity.*')],
         ['my-items.create', 'Tambah Barang', 'plus', request()->routeIs('my-items.create')],
     ];
 @endphp
@@ -87,12 +91,9 @@
                 @if (session('status'))
                     <div class="page-shell pb-0"><div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{{ session('status') }}</div></div>
                 @endif
-                @if ($errors->any())
+                @if (collect($errors->getBags())->contains(fn ($bag) => $bag->any()))
                     <div class="page-shell pb-0">
-                        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-                            <p class="font-semibold">Periksa kembali data yang kamu masukkan.</p>
-                            <p class="mt-1">{{ $errors->first() }}</p>
-                        </div>
+                        <x-validation-summary />
                     </div>
                 @endif
                 @yield('content')

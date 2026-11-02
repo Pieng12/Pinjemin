@@ -42,6 +42,12 @@
     </section>
 
     <section class="card card-pad" data-payment-policy>
+        <h2 class="text-lg font-semibold text-zinc-950">Persyaratan Penyewa</h2>
+        <p class="mt-2 text-sm leading-6 text-zinc-600">Berlaku untuk booking berikutnya. Foto katalog tetap wajib untuk barang aktif. Foto kondisi sukarela tetap diperbolehkan jika kewajiban dimatikan.</p>
+        <div class="my-5 grid gap-4">
+            <input type="hidden" name="requires_condition_photos" value="0"><label class="flex items-start gap-3 text-sm"><input type="checkbox" name="requires_condition_photos" value="1" @checked(old('requires_condition_photos', $item?->requires_condition_photos)) class="mt-1 h-4 w-4 accent-brand"><span>Wajib Foto Kondisi Saat Penyerahan &amp; Pengembalian</span></label>
+            <input type="hidden" name="requires_identity_verification" value="0"><label class="flex items-start gap-3 text-sm"><input type="checkbox" name="requires_identity_verification" value="1" @checked(old('requires_identity_verification', $item?->requires_identity_verification)) class="mt-1 h-4 w-4 accent-brand"><span>Wajib Verifikasi Identitas Penyewa melalui Admin<span class="mt-1 block text-zinc-500">Pemilik hanya melihat status, tanpa salinan KTP/SIM.</span></span></label>
+        </div>
         <h2 class="text-lg font-semibold text-zinc-950">Kebijakan Pembayaran</h2>
         <div class="mt-5 grid gap-3">
             <label class="flex items-start gap-3 text-sm font-medium text-zinc-800">
@@ -49,11 +55,8 @@
                 <input type="checkbox" name="allow_deposit_payment" value="1" @checked(old('allow_deposit_payment', $item?->allow_deposit_payment)) class="mt-0.5 h-4 w-4 accent-blue-700" data-deposit-enabled>
                 <span>Izinkan penyewa membayar DP lebih dahulu<span class="mt-1 block font-normal text-zinc-500">Nominal DP mengikuti nilai uang muka per unit di bawah.</span></span>
             </label>
-            <label class="flex items-start gap-3 text-sm font-medium text-zinc-800">
-                <input type="hidden" name="allow_cash_balance" value="0">
-                <input type="checkbox" name="allow_cash_balance" value="1" @checked(old('allow_cash_balance', $item?->allow_cash_balance)) class="mt-0.5 h-4 w-4 accent-blue-700" data-cash-enabled>
-                <span>Izinkan sisa pembayaran tunai saat pengambilan<span class="mt-1 block font-normal text-zinc-500">Hanya tersedia untuk pengambilan langsung setelah DP terverifikasi.</span></span>
-            </label>
+            <input type="hidden" name="allow_cash_balance" value="{{ $item?->allow_cash_balance ? 1 : 0 }}">
+            <p class="text-sm leading-6 text-zinc-500">Booking baru dibayar ke Pinjemin dan diperiksa admin. DP serta pelunasan melalui transfer; penyerahan setelah lunas. Komisi 5% dari biaya sewa dipotong saat pencairan, di luar ongkir. Ketentuan booking lama tetap berlaku.</p>
             @error('allow_deposit_payment')<p class="field-error">{{ $message }}</p>@enderror
             @error('allow_cash_balance')<p class="field-error">{{ $message }}</p>@enderror
         </div>

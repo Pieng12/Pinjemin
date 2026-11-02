@@ -69,6 +69,7 @@
                                         <a href="{{ route('incoming-bookings.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Booking Masuk</a>
                                         <div class="my-1 border-t border-zinc-100"></div>
                                         <a href="{{ route('profile.edit') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Profil</a>
+                                        <a href="{{ route('identity.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Verifikasi Identitas</a>
                                         @if (auth()->user()->isAdmin())
                                             <a href="{{ route('admin.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">Admin Panel</a>
                                         @endif
@@ -90,7 +91,8 @@
                     </div>
 
                     <button type="button" data-mobile-menu-toggle="#mobile-menu" aria-expanded="false" aria-controls="mobile-menu" class="site-menu-button" aria-label="Buka menu">
-                        <i data-lucide="menu" class="h-5 w-5"></i>
+                        <i data-lucide="menu" data-menu-open-icon class="h-5 w-5" aria-hidden="true"></i>
+                        <i data-lucide="x" data-menu-close-icon class="h-5 w-5" aria-hidden="true"></i>
                     </button>
                 </div>
 
@@ -99,24 +101,41 @@
                 @endif
 
                 <div id="mobile-menu" class="site-mobile-menu hidden {{ $navTitle ? 'has-page-title' : '' }}" data-open="false">
-                    <a href="{{ route('home') }}" class="site-mobile-link" data-section-link="beranda">Beranda</a>
-                    <a href="{{ route('home') }}#tentang" class="site-mobile-link" data-section-link="tentang">Tentang</a>
-                    <a href="{{ route('home') }}#cara-kerja" class="site-mobile-link" data-section-link="cara-kerja">Cara Kerja</a>
-                    <a href="{{ route('home') }}#faq" class="site-mobile-link" data-section-link="faq">FAQ</a>
-                    <a href="{{ route('home') }}#kontak" class="site-mobile-link" data-section-link="kontak">Kontak</a>
+                    <div class="site-menu-group">
+                        <p class="site-menu-caption">Jelajahi Pinjemin</p>
+                        <div class="site-menu-grid">
+                            <a href="{{ route('home') }}" class="site-mobile-link" data-section-link="beranda">Beranda</a>
+                            <a href="{{ route('home') }}#tentang" class="site-mobile-link" data-section-link="tentang">Tentang</a>
+                            <a href="{{ route('home') }}#cara-kerja" class="site-mobile-link" data-section-link="cara-kerja">Cara Kerja</a>
+                            <a href="{{ route('home') }}#faq" class="site-mobile-link" data-section-link="faq">FAQ</a>
+                            <a href="{{ route('home') }}#kontak" class="site-mobile-link" data-section-link="kontak">Kontak</a>
+                        </div>
+                    </div>
                     @if($marketplaceEnabled)
-                        <div class="my-2 border-t border-zinc-100"></div>
-                        <a href="{{ route('browse') }}" class="site-mobile-link {{ request()->routeIs('browse') ? 'is-active' : '' }}" @if (request()->routeIs('browse')) aria-current="page" @endif>Menyewa Barang</a>
-                        <a href="{{ route('rent-out') }}" class="site-mobile-link {{ request()->routeIs('rent-out') ? 'is-active' : '' }}" @if (request()->routeIs('rent-out')) aria-current="page" @endif>Sewakan Barang</a>
+                        <div class="site-menu-group">
+                            <p class="site-menu-caption">Sewa &amp; Sewakan</p>
+                            <div class="site-menu-grid">
+                                <a href="{{ route('browse') }}" class="site-mobile-link {{ request()->routeIs('browse') ? 'is-active' : '' }}" @if (request()->routeIs('browse')) aria-current="page" @endif>Menyewa Barang</a>
+                                <a href="{{ route('rent-out') }}" class="site-mobile-link {{ request()->routeIs('rent-out') ? 'is-active' : '' }}" @if (request()->routeIs('rent-out')) aria-current="page" @endif>Sewakan Barang</a>
+                            </div>
+                        </div>
                         @auth
-                            <div class="my-2 border-t border-zinc-100"></div>
-                            <a href="{{ route('my-bookings.index') }}" class="site-mobile-link">Penyewaan Saya</a>
-                            <a href="{{ route('owner.dashboard') }}" class="site-mobile-link">Dashboard Pemilik</a>
-                            <a href="{{ route('profile.edit') }}" class="site-mobile-link">Profil</a>
-                            <form method="POST" action="{{ route('logout') }}" class="mt-2">
-                                @csrf
-                                <button type="submit" class="btn btn-danger w-full justify-start">Keluar</button>
-                            </form>
+                            <div class="site-menu-group">
+                                <p class="site-menu-caption">Akun Saya</p>
+                                <div class="site-menu-grid">
+                                    <a href="{{ route('my-bookings.index') }}" class="site-mobile-link">Penyewaan Saya</a>
+                                    <a href="{{ route('owner.dashboard') }}" class="site-mobile-link">Dashboard Pemilik</a>
+                                    <a href="{{ route('profile.edit') }}" class="site-mobile-link">Profil</a>
+                                    <a href="{{ route('identity.index') }}" class="site-mobile-link">Verifikasi Identitas</a>
+                                    @if (auth()->user()->isAdmin())
+                                        <a href="{{ route('admin.dashboard') }}" class="site-mobile-link">Admin Panel</a>
+                                    @endif
+                                </div>
+                                <form method="POST" action="{{ route('logout') }}" class="mt-2">
+                                    @csrf
+                                    <button type="submit" class="site-mobile-link w-full text-red-700 hover:bg-red-50">Keluar</button>
+                                </form>
+                            </div>
                         @else
                             <a href="{{ route('login') }}" class="site-mobile-link">Masuk</a>
                         @endauth
@@ -142,11 +161,9 @@
                 </div>
             @endif
 
-            @if ($errors->any())
+            @if (collect($errors->getBags())->contains(fn ($bag) => $bag->any()))
                 <div class="page-shell pb-0">
-                    <div class="reveal rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 shadow-sm">
-                        Periksa kembali data yang kamu masukkan.
-                    </div>
+                    <x-validation-summary />
                 </div>
             @endif
 

@@ -28,6 +28,12 @@ class StoreBookingPaymentRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'payment_plan.in' => 'Pilih cara pembayaran yang tersedia.',
+            'method_index.required' => 'Pilih rekening tujuan pembayaran.',
+            'method_index.integer' => 'Pilih rekening tujuan yang valid.',
+            'transferred_at.required' => 'Isi waktu transfer dalam WIB.',
+            'transferred_at.date' => 'Waktu transfer tidak valid.',
+            'proof.required' => 'Unggah foto bukti pembayaran.',
             'proof.image' => 'Pilih foto bukti pembayaran yang valid.',
             'proof.mimes' => 'Bukti harus berformat JPG, PNG, atau WebP.',
             'proof.max' => 'Ukuran bukti maksimal 5 MB.',

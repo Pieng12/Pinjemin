@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
 class TrustedProxyTest extends TestCase
@@ -9,6 +10,7 @@ class TrustedProxyTest extends TestCase
     public function test_assets_use_https_when_the_request_is_forwarded_by_railway(): void
     {
         config()->set('features.marketplace_enabled', false);
+        Vite::useHotFile(storage_path('framework/testing-missing-vite.hot'));
 
         $response = $this->withServerVariables([
             'HTTP_HOST' => 'pinjemin-production.up.railway.app',

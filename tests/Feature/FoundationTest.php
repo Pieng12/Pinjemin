@@ -18,8 +18,8 @@ class FoundationTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Pinjam seperlunya. Bagikan manfaatnya.')
-            ->assertSee('Cara Pinjemin akan bekerja');
+            ->assertSee('Sewa lebih bijak, barang lebih bermanfaat')
+            ->assertSee('Cara kerja Pinjemin');
     }
 
     public function test_user_can_register(): void

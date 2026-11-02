@@ -42,6 +42,16 @@ class User extends Authenticatable
         return $this->hasMany(Item::class);
     }
 
+    public function identityVerifications(): HasMany
+    {
+        return $this->hasMany(IdentityVerification::class)->latest('id');
+    }
+
+    public function currentIdentity(): ?IdentityVerification
+    {
+        return $this->identityVerifications()->first();
+    }
+
     public function rentalBookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'renter_user_id');
@@ -49,7 +59,7 @@ class User extends Authenticatable
 
     public function paymentMethods(): HasMany
     {
-        return $this->hasMany(UserPaymentMethod::class)->orderByDesc('is_primary')->orderBy('sort_order')->orderBy('id');
+        return $this->hasMany(UserPaymentMethod::class)->where('is_platform', false)->orderByDesc('is_primary')->orderBy('sort_order')->orderBy('id');
     }
 
     /** @return array<string, string> */

@@ -40,15 +40,16 @@ class IncomingBookingController extends Controller
     {
         Gate::authorize('viewAsOwner', $booking);
 
-        $booking->load(['item.category', 'item.primaryPhoto', 'item.user', 'renter', 'payments.reviewer', 'refund']);
+        $booking->load(['item.category', 'item.primaryPhoto', 'item.user', 'renter', 'payments.reviewer', 'refund', 'payout', 'conditionSessions.reports.user']);
 
         return view('bookings.show', [
             'booking' => $booking,
             'viewer' => 'owner',
             'hasActivePaymentMethod' => $booking->item->user->paymentMethods()
                 ->where('is_active', true)
+                ->when($booking->collectsViaPlatform(), fn ($query) => $query->where('type', '!=', 'qris')->whereNotNull('account_identifier'))
                 ->exists(),
-            'stockConflict' => $booking->status === BookingStatus::Approved
+            'stockConflict' => in_array($booking->status, [BookingStatus::Approved, BookingStatus::PartiallyPaid], true)
                 && $availability->getAvailableQuantity($booking->item,
                     max(now(Booking::RentalTimezone)->toDateString(), $booking->start_date->toDateString()),
                     max(now(Booking::RentalTimezone)->toDateString(), $booking->end_date->toDateString()), $booking) < $booking->quantity,

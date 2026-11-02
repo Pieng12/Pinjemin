@@ -44,6 +44,13 @@ class PrivatePaymentImageController extends Controller
         return $this->image($refund->proof_path);
     }
 
+    public function payout(Booking $booking): StreamedResponse
+    {
+        Gate::authorize('viewPayout', $booking);
+
+        return $this->image($booking->payout?->proof_path);
+    }
+
     private function image(?string $path): StreamedResponse
     {
         abort_unless($path && Storage::disk('local')->exists($path), 404);

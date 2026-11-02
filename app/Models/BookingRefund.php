@@ -12,7 +12,7 @@ class BookingRefund extends Model
     /** @use HasFactory<BookingRefundFactory> */
     use HasFactory;
 
-    protected $fillable = ['booking_id', 'recorded_by_user_id', 'amount', 'proof_path', 'refunded_at', 'note'];
+    protected $fillable = ['booking_id', 'recorded_by_user_id', 'amount', 'proof_path', 'refunded_at', 'note', 'destination_snapshot'];
 
     public function booking(): BelongsTo
     {
@@ -26,6 +26,6 @@ class BookingRefund extends Model
 
     protected function casts(): array
     {
-        return ['amount' => 'decimal:2', 'refunded_at' => 'datetime'];
+        return ['amount' => 'decimal:2', 'refunded_at' => 'datetime', 'destination_snapshot' => 'array'];
     }
 }

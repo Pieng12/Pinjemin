@@ -28,6 +28,7 @@
                             <div class="owner-inventory-actions">
                                 <x-button :href="route('my-items.show', $item)" variant="outline" class="min-h-10">Lihat</x-button>
                                 <x-button :href="route('my-items.edit', $item)" variant="outline" class="min-h-10">Edit</x-button>
+                                <details class="w-full rounded-md border border-zinc-200 p-3 text-sm"><summary class="cursor-pointer font-semibold">Persyaratan Foto &amp; Identitas</summary><form method="POST" action="{{ route('my-items.requirements', $item) }}" class="mt-3 grid gap-3">@csrf @method('PATCH')<input type="hidden" name="requires_condition_photos" value="0"><label class="flex gap-2"><input type="checkbox" name="requires_condition_photos" value="1" @checked($item->requires_condition_photos)> Wajib foto kondisi dua pihak</label><input type="hidden" name="requires_identity_verification" value="0"><label class="flex gap-2"><input type="checkbox" name="requires_identity_verification" value="1" @checked($item->requires_identity_verification)> Wajib verifikasi identitas penyewa</label><p class="text-xs text-zinc-500">Hanya mengubah booking berikutnya.</p><x-button type="submit" variant="outline">Simpan Persyaratan</x-button></form></details>
                                 <form method="POST" action="{{ route('my-items.toggle-status', $item) }}">
                                     @csrf
                                     @method('PATCH')

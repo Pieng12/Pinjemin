@@ -63,24 +63,28 @@ class BookingPolicy
     public function submitPayment(User $user, Booking $booking): bool
     {
         return $this->isRenter($user, $booking)
-            && in_array($booking->effectiveStatus(), [BookingStatus::AwaitingPayment, BookingStatus::PartiallyPaid], true);
+            && in_array($booking->effectiveStatus(), [BookingStatus::AwaitingPayment, BookingStatus::PartiallyPaid], true)
+            && ! ($booking->payment_plan === PaymentPlan::DepositCash && $booking->verifiedAmount() > 0);
     }
 
     public function reviewPayment(User $user, Booking $booking): bool
     {
-        return $this->isOwner($user, $booking) && $booking->status === BookingStatus::PaymentReview;
+        return ($booking->collectsViaPlatform() ? $user->isAdmin() : $this->isOwner($user, $booking))
+            && $booking->status === BookingStatus::PaymentReview;
     }
 
     public function cashAndHandOver(User $user, Booking $booking): bool
     {
         return $this->isOwner($user, $booking)
+            && ! $booking->usesConditionInspections()
+            && ! $booking->collectsViaPlatform()
             && $booking->status === BookingStatus::PartiallyPaid
             && $booking->payment_plan === PaymentPlan::DepositCash;
     }
 
     public function recordRefund(User $user, Booking $booking): bool
     {
-        return $this->isOwner($user, $booking)
+        return ($booking->collectsViaPlatform() ? $user->isAdmin() : $this->isOwner($user, $booking))
             && $booking->status === BookingStatus::Cancelled
             && $booking->refund_status === 'pending';
     }
@@ -92,12 +96,22 @@ class BookingPolicy
 
     public function handOver(User $user, Booking $booking): bool
     {
-        return $this->isOwner($user, $booking) && $booking->status === BookingStatus::Approved && ! $booking->handed_over_at;
+        return ! $booking->usesConditionInspections() && $this->isOwner($user, $booking) && $booking->status === BookingStatus::Approved && ! $booking->handed_over_at;
     }
 
     public function complete(User $user, Booking $booking): bool
     {
-        return $this->isOwner($user, $booking) && $booking->status === BookingStatus::Approved && (bool) $booking->handed_over_at;
+        return ! $booking->usesConditionInspections() && $this->isOwner($user, $booking) && $booking->status === BookingStatus::Approved && (bool) $booking->handed_over_at;
+    }
+
+    public function participateInspection(User $user, Booking $booking): bool
+    {
+        return $booking->usesConditionInspections() && ($this->isOwner($user, $booking) || $this->isRenter($user, $booking));
+    }
+
+    public function resolveInspection(User $user, Booking $booking): bool
+    {
+        return $user->isAdmin() && $booking->usesConditionInspections();
     }
 
     public function downloadInvoice(User $user, Booking $booking): bool
@@ -113,6 +127,33 @@ class BookingPolicy
     public function viewPaymentFiles(User $user, Booking $booking): bool
     {
         return $this->view($user, $booking);
+    }
+
+    public function managePayout(User $user, Booking $booking): bool
+    {
+        return $user->isAdmin() && $booking->collectsViaPlatform();
+    }
+
+    public function receivePayout(User $user, Booking $booking): bool
+    {
+        return $this->isOwner($user, $booking) && $booking->collectsViaPlatform();
+    }
+
+    public function setRefundDestination(User $user, Booking $booking): bool
+    {
+        return $this->isRenter($user, $booking) && $booking->collectsViaPlatform()
+            && $booking->status === BookingStatus::Cancelled && $booking->refund_status === 'pending';
+    }
+
+    public function viewPayout(User $user, Booking $booking): bool
+    {
+        return $user->isAdmin() || $this->isOwner($user, $booking);
+    }
+
+    public function reportPaymentIssue(User $user, Booking $booking): bool
+    {
+        return $this->view($user, $booking) && $booking->collectsViaPlatform()
+            && $booking->handed_over_at !== null;
     }
 
     private function isRenter(User $user, Booking $booking): bool

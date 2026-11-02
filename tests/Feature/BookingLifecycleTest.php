@@ -22,6 +22,7 @@ class BookingLifecycleTest extends TestCase
         $this->travelTo(Carbon::parse('2026-09-18T01:00:00Z'));
         $item = Item::factory()->create(['quantity' => 1]);
         UserPaymentMethod::factory()->for($item->user)->create(['is_primary' => true]);
+        UserPaymentMethod::factory()->for(User::factory()->admin())->create(['is_platform' => true]);
         $this->actingAs(User::factory()->create())->post(route('items.bookings.store', $item), [
             'start_date' => '2026-09-18', 'end_date' => '2026-09-20', 'quantity' => 1,
         ])->assertSessionHasNoErrors();
@@ -131,7 +132,7 @@ class BookingLifecycleTest extends TestCase
         $this->actingAs($owner)->patch(route('incoming-bookings.quote-delivery', $booking), ['delivery_fee' => 35000])->assertSessionHasNoErrors();
         $this->actingAs($renter)->patch(route('my-bookings.confirm-delivery', $booking))->assertSessionHasNoErrors();
         $booking->refresh();
-        $this->assertSame('655000.00', $booking->total_amount);
+        $this->assertSame('635000.00', $booking->total_amount);
         $this->assertSame($snapshot, $booking->fulfillment_snapshot);
         $this->assertSame($snapshot['owner'], $booking->invoice_snapshot['owner']);
         $this->assertSame('Jalan Penyewa 10', $booking->invoice_snapshot['recipient']['address']);
@@ -139,7 +140,7 @@ class BookingLifecycleTest extends TestCase
         $this->assertSame('35000.00', $booking->invoice_snapshot['booking']['delivery_fee']);
         $this->get(route('bookings.invoice', $booking))->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertDownload('INV-'.$booking->booking_code.'.pdf');
         $html = view('bookings.invoice', ['booking' => $booking, 'invoice' => $booking->invoice_snapshot])->render();
-        $this->assertStringContainsString('Rp 655.000', $html);
+        $this->assertStringContainsString('Rp 635.000', $html);
         $this->assertStringNotContainsString('Changed Owner', $html);
         $this->actingAs($owner)->patch(route('incoming-bookings.cancel', $booking), ['cancellation_reason' => 'Tidak dapat mengirim.'])->assertSessionHasNoErrors();
         $this->assertSame($booking->invoice_snapshot, $booking->fresh()->invoice_snapshot);
@@ -306,12 +307,12 @@ class BookingLifecycleTest extends TestCase
         $this->patch(route('incoming-bookings.quote-delivery', $booking), ['delivery_fee' => 20000])
             ->assertRedirect()
             ->assertSessionHasErrors([
-                'payment_method' => 'Tambahkan metode pembayaran aktif sebelum mengirim tawaran ongkir.',
+                'payment_method' => 'Tambahkan rekening atau e-wallet pencairan aktif pada Metode Pembayaran. QRIS saja tidak cukup untuk tujuan pencairan.',
             ]);
 
         $this->get(route('incoming-bookings.show', $booking))
             ->assertOk()
-            ->assertSee('Tambahkan metode pembayaran aktif sebelum mengirim tawaran ongkir.');
+            ->assertSee('Tambahkan rekening atau e-wallet aktif sebagai tujuan pencairan');
     }
 
     /** @return array{Booking, User, User, Item} */
@@ -321,6 +322,7 @@ class BookingLifecycleTest extends TestCase
         $owner = User::factory()->create();
         $renter = User::factory()->create();
         UserPaymentMethod::factory()->for($owner)->create(['is_primary' => true]);
+        UserPaymentMethod::factory()->for(User::factory()->admin())->create(['is_platform' => true]);
         $item = Item::factory()->for($owner)->create([
             'quantity' => $quantity, 'daily_price' => 100000, 'deposit_amount' => 10000,
             'address' => 'Jalan Pemilik Rahasia 99', 'delivery_enabled' => $delivery, 'free_delivery' => $free,
@@ -342,7 +344,10 @@ class BookingLifecycleTest extends TestCase
 
     private function markAsPaid(Booking $booking): void
     {
+        $snapshot = $booking->fulfillment_snapshot;
+        unset($snapshot['inspection_policy']);
         $booking->update([
+            'fulfillment_snapshot' => $snapshot,
             'status' => BookingStatus::Approved,
             'approved_at' => now(),
             'payment_verified_at' => now(),

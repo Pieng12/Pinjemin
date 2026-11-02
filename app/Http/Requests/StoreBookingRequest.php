@@ -23,6 +23,7 @@ class StoreBookingRequest extends FormRequest
             'start_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.now(Booking::RentalTimezone)->toDateString()],
             'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date'],
             'quantity' => ['required', 'integer', 'min:1'],
+            'requirements_accepted' => ($this->route('item')?->requires_condition_photos || $this->route('item')?->requires_identity_verification) ? ['required', 'accepted'] : ['sometimes', 'accepted'],
             'renter_note' => ['nullable', 'string', 'max:1000'],
             'fulfillment_method' => ['sometimes', Rule::in([Booking::Pickup, Booking::Delivery])],
             'recipient_name' => ['exclude_unless:fulfillment_method,delivery', 'required', 'string', 'max:255'],
@@ -55,6 +56,8 @@ class StoreBookingRequest extends FormRequest
             'start_date.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
             'end_date.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
             'quantity.min' => 'Jumlah unit minimal 1.',
+            'requirements_accepted.required' => 'Setujui persyaratan barang sebelum mengajukan booking.',
+            'requirements_accepted.accepted' => 'Setujui persyaratan barang sebelum mengajukan booking.',
         ];
     }
 }

@@ -48,6 +48,11 @@
 
                     <div class="mt-8 grid gap-7 text-sm leading-7 text-zinc-700">
                         <div>
+                            <h2 class="font-semibold text-zinc-950">Persyaratan penyewa</h2>
+                            <p class="mt-2">{{ $item->requires_condition_photos ? 'Foto kondisi wajib dari pemilik dan penyewa saat penyerahan serta pengembalian.' : 'Foto kondisi opsional; dokumentasi sukarela tetap diperbolehkan.' }}</p>
+                            <p>{{ $item->requires_identity_verification ? 'Penyewa wajib memiliki verifikasi KTP/SIM melalui admin sebelum booking diterima. Pemilik hanya melihat status.' : 'Verifikasi identitas tidak diwajibkan untuk barang ini.' }}</p>
+                        </div>
+                        <div>
                             <h2 class="font-semibold text-zinc-950">Deskripsi</h2>
                             <p class="mt-2 whitespace-pre-line">{{ $item->description }}</p>
                         </div>
@@ -99,6 +104,11 @@
                                 data-today="{{ now(\App\Models\Booking::RentalTimezone)->toDateString() }}"
                             >
                                 @csrf
+                                <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm leading-6"><strong>Persyaratan barang</strong><p>Foto kondisi: {{ $item->requires_condition_photos ? 'Wajib dari pemilik dan penyewa saat penyerahan serta pengembalian.' : 'Opsional; kedua pihak tetap boleh mendokumentasikan kondisi.' }}</p><p>Identitas: {{ $item->requires_identity_verification ? 'Penyewa wajib terverifikasi admin sebelum booking diterima. Pemilik tidak menerima dokumen identitas.' : 'Tidak diwajibkan untuk barang ini.' }}</p><p>Penyerahan dan pengembalian menggunakan checklist serta konfirmasi kedua pihak.</p></div>
+                                @if($item->requires_condition_photos || $item->requires_identity_verification)
+                                    <label class="flex items-start gap-3 text-sm"><input type="checkbox" name="requirements_accepted" value="1" required @checked(old('requirements_accepted')) class="mt-1 h-4 w-4 accent-brand"><span>Saya menyetujui persyaratan foto dan identitas barang ini.</span></label>
+                                    @error('requirements_accepted')<p class="field-error">{{ $message }}</p>@enderror
+                                @endif
                                 <div data-booking-calendar hidden>
                                     <label for="rental-range" class="field-label">Periode sewa</label>
                                     <div class="mb-3 flex items-center gap-2">
@@ -153,7 +163,7 @@
                                     <dl class="grid gap-3 text-sm">
                                         <div class="flex justify-between gap-4"><dt class="text-zinc-500">Durasi</dt><dd class="font-semibold text-zinc-950" data-rental-days>0 hari</dd></div>
                                         <div class="flex justify-between gap-4"><dt class="text-zinc-500" data-price-formula>Rp 0 x 0 hari x 1 unit</dt><dd class="font-semibold text-zinc-950" data-subtotal>Rp 0</dd></div>
-                                        <div class="flex justify-between gap-4"><dt class="text-zinc-500">Uang muka (DP)</dt><dd class="font-semibold text-zinc-950" data-deposit-total>Rp 0</dd></div>
+                                        @if($item->allow_deposit_payment)<div class="flex justify-between gap-4"><dt class="text-zinc-500">Pilihan DP (bagian dari total)</dt><dd class="font-semibold text-zinc-950" data-deposit-total>Rp 0</dd></div>@else<span data-deposit-total hidden></span>@endif
                                         <div class="flex justify-between gap-4 border-t border-zinc-200 pt-3 text-base"><dt class="font-semibold text-zinc-950">Total Estimasi</dt><dd class="text-xl font-semibold text-blue-700" data-total>Rp 0</dd></div>
                                     </dl>
                                     <p class="mt-3 text-sm text-zinc-600" data-availability-message>Pilih tanggal untuk melihat ketersediaan.</p>

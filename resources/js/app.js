@@ -1,6 +1,11 @@
+import './inspections';
 import {
     ArrowRight,
+    BadgeCheck,
+    Wallet,
     Download,
+    Eye,
+    EyeOff,
     ArrowLeft,
     ArrowUpRight,
     CalendarDays,
@@ -30,14 +35,17 @@ import {
 } from 'lucide';
 import { initializeBookingForm } from './booking';
 
-const formatRupiah = (value) => `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(Number(value || 0))}`;
-const onlyDigits = (value) => String(value || '').replace(/\D/g, '');
+const formatRupiah = (value) => `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0))}`;
 
 document.addEventListener('DOMContentLoaded', () => {
     createIcons({
         icons: {
             ArrowRight,
+            BadgeCheck,
+            Wallet,
             Download,
+            Eye,
+            EyeOff,
             ArrowLeft,
             ArrowUpRight,
             CalendarDays,
@@ -64,6 +72,23 @@ document.addEventListener('DOMContentLoaded', () => {
             UserCheck,
             X,
         },
+    });
+
+    document.querySelectorAll('[data-password-field]').forEach(field => {
+        const input = field.querySelector('input');
+        const button = field.querySelector('[data-password-toggle]');
+        const setVisible = visible => {
+            input.type = visible ? 'text' : 'password';
+            button.setAttribute('aria-pressed', String(visible));
+            const label = field.querySelector('label').textContent.toLowerCase();
+            button.setAttribute('aria-label', `${visible ? 'Sembunyikan' : 'Tampilkan'} ${label}`);
+            button.title = button.getAttribute('aria-label');
+            button.querySelector('[data-password-show]').toggleAttribute('hidden', visible);
+            button.querySelector('[data-password-hide]').toggleAttribute('hidden', !visible);
+        };
+        button.classList.replace('hidden', 'inline-flex');
+        button.addEventListener('click', () => setVisible(input.type === 'password'));
+        window.addEventListener('pageshow', () => setVisible(false));
     });
 
     document.querySelectorAll('[data-item-photo]').forEach((image) => {
@@ -359,16 +384,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = document.querySelector(button.dataset.mobileMenuToggle);
         if (!target) return;
 
+        const menuHeader = target.closest('[data-site-header]');
+        const syncMenuViewport = () => {
+            if (!menuHeader) return;
+            const availableHeight = Math.max(0, window.innerHeight - menuHeader.getBoundingClientRect().bottom - 16);
+            target.style.setProperty('--site-menu-max-height', `${availableHeight}px`);
+        };
         const setOpen = (isOpen) => {
+            if (isOpen) syncMenuViewport();
             target.dataset.open = String(isOpen);
             button.setAttribute('aria-expanded', String(isOpen));
             button.setAttribute('aria-label', isOpen ? 'Tutup menu' : 'Buka menu');
             target.classList.toggle('hidden', !isOpen);
             target.classList.toggle('flex', isOpen);
-            header?.classList.toggle('has-open-menu', isOpen);
+            menuHeader?.classList.toggle('has-open-menu', isOpen);
         };
-        mobileMenus.push({ button, target, setOpen });
+        mobileMenus.push({ button, target, setOpen, syncMenuViewport });
         button.addEventListener('click', () => {
+            closeDropdowns();
             setOpen(target.dataset.open !== 'true');
         });
         target.querySelectorAll('a').forEach((link) => {
@@ -392,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
             event.stopPropagation();
             const isHidden = menu.classList.contains('hidden');
             closeDropdowns();
+            mobileMenus.forEach(({ setOpen }) => setOpen(false));
             menu.classList.toggle('hidden', !isHidden);
             trigger.setAttribute('aria-expanded', String(isHidden));
         });
@@ -416,8 +450,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    window.matchMedia('(min-width: 1024px)').addEventListener('change', (event) => {
-        if (event.matches) mobileMenus.forEach(({ setOpen }) => setOpen(false));
+    window.addEventListener('resize', () => {
+        mobileMenus.forEach(({ button, target, setOpen, syncMenuViewport }) => {
+            if (target.dataset.open !== 'true') return;
+            if (!button.getClientRects().length) setOpen(false);
+            else syncMenuViewport();
+        });
+    }, { passive: true });
+
+    window.addEventListener('pageshow', () => {
+        closeDropdowns();
+        mobileMenus.forEach(({ setOpen }) => setOpen(false));
     });
 
     document.querySelectorAll('[data-faq-group]').forEach((group) => {
@@ -431,20 +474,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.querySelectorAll('[data-currency-display]').forEach((display) => {
-        const raw = document.getElementById(display.dataset.target);
-        if (!raw) return;
-
+    document.querySelectorAll('[data-currency-input]').forEach(raw => {
+        const display = raw.cloneNode();
+        display.removeAttribute('name');
+        display.removeAttribute('data-currency-input');
+        display.setAttribute('data-currency-display', '');
+        display.type = 'text';
+        display.id = `${raw.id}_display`;
+        const minimum = Number(raw.min || 0);
+        const maximum = raw.max ? Number(raw.max) : Infinity;
+        raw.parentElement.querySelector('label').htmlFor = display.id;
+        display.value = raw.value ? formatRupiah(raw.value) : '';
+        raw.type = 'hidden';
+        raw.required = false;
+        raw.after(display);
         const sync = () => {
-            const digits = onlyDigits(display.value);
-            raw.value = digits;
-            display.value = digits ? formatRupiah(digits) : '';
+            const value = display.value.trim().replace(/^Rp\s*/i, '');
+            let canonical = value;
+            if (/^\d{1,3}(?:\.\d{3})+(?:,\d{0,2})?$/.test(value) || /^\d+(?:,\d{0,2})?$/.test(value)) {
+                canonical = value.replaceAll('.', '').replace(',', '.');
+            }
+            const valid = value === '' || (/^\d+(?:\.\d{0,2})?$/.test(canonical) && Number(canonical) >= minimum && Number(canonical) <= maximum);
+            display.setCustomValidity(valid ? '' : 'Masukkan nominal yang valid, maksimal dua angka desimal.');
+            raw.value = valid ? canonical : '';
+            return valid;
         };
-
-        display.value = raw.value || display.value;
-        sync();
         display.addEventListener('input', sync);
-        display.addEventListener('blur', sync);
+        display.addEventListener('blur', () => {
+            if (sync() && raw.value !== '') display.value = formatRupiah(raw.value);
+        });
+    });
+
+    document.querySelectorAll('[data-payment-form]').forEach(form => {
+        const update = () => {
+            const plan = form.querySelector('[name="payment_plan"]:checked')?.value || form.dataset.plan;
+            const amount = Number(form.dataset.verified) > 0 ? form.dataset.remaining : plan === 'full_transfer' ? form.dataset.total : form.dataset.deposit;
+            form.querySelector('[data-payment-amount]').textContent = formatRupiah(amount);
+        };
+        form.querySelectorAll('[name="payment_plan"]').forEach(input => input.addEventListener('change', update));
+        update();
     });
 
     let pendingConfirmForm = null;
@@ -526,9 +594,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     loading.classList.remove('hidden');
                     loading.classList.add('inline-flex');
                     button.disabled = true;
+                    button.dataset.submitBusy = 'true';
                 });
             });
         });
+    });
+
+    window.addEventListener('pageshow', () => {
+        document.querySelectorAll('[data-submit-busy]').forEach(button => {
+            button.disabled = false;
+            delete button.dataset.submitBusy;
+            button.querySelector('[data-submit-label]')?.classList.remove('hidden');
+            button.querySelector('[data-submit-loading]')?.classList.add('hidden');
+            button.querySelector('[data-submit-loading]')?.classList.remove('inline-flex');
+        });
+        document.querySelectorAll('form[data-confirmed]').forEach(form => delete form.dataset.confirmed);
+        closeModal();
     });
 
     if ('IntersectionObserver' in window) {
@@ -896,17 +977,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const image = preview?.querySelector('img');
         if (!input || !preview || !image) return;
         let objectUrl;
-        input.addEventListener('change', () => {
+        const error = document.createElement('p');
+        error.className = 'field-error';
+        error.setAttribute('role', 'alert');
+        input.after(error);
+        const releasePreview = () => {
             if (objectUrl) URL.revokeObjectURL(objectUrl);
+            objectUrl = null;
+        };
+        const render = () => {
+            releasePreview();
+            error.textContent = '';
+            input.setCustomValidity('');
             const file = input.files?.[0];
-            if (!file || !file.type.startsWith('image/')) {
+            if (!file) {
+                preview.hidden = true;
+                return;
+            }
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+                error.textContent = 'Pilih JPG, PNG, atau WebP dengan ukuran maksimal 5 MB.';
+                input.setCustomValidity(error.textContent);
                 preview.hidden = true;
                 return;
             }
             objectUrl = URL.createObjectURL(file);
             image.src = objectUrl;
             preview.hidden = false;
+        };
+        image.addEventListener('error', () => {
+            preview.hidden = true;
+            error.textContent = 'Preview gambar gagal dimuat. Pilih gambar lain.';
+            input.setCustomValidity(error.textContent);
         });
+        input.addEventListener('change', render);
+        window.addEventListener('pagehide', releasePreview);
+        window.addEventListener('pageshow', event => { if (event.persisted) render(); });
     });
     initializeBookingForm(document.querySelector('[data-booking-form]'));
 });

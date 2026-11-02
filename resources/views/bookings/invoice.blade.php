@@ -6,10 +6,10 @@
     <style>
         @page { margin: 36px; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #27272a; line-height: 1.6; letter-spacing: 0; }
-        h1 { font-size: 26px; margin: 0; color: #1d4ed8; }
+        h1 { font-size: 26px; margin: 0; color: #005f73; }
         h2 { font-size: 13px; margin: 0 0 8px; }
         p { margin: 3px 0; overflow-wrap: break-word; }
-        .header { border-bottom: 2px solid #2563eb; padding-bottom: 18px; margin-bottom: 24px; }
+        .header { border-bottom: 2px solid #005f73; padding-bottom: 18px; margin-bottom: 24px; }
         .muted { color: #71717a; }
         .cancelled { color: #b91c1c; background: #fef2f2; padding: 10px; margin-bottom: 16px; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -18,7 +18,7 @@
         .costs { margin-top: 18px; }
         .costs td { border-bottom: 1px solid #e4e4e7; }
         .amount { text-align: right; width: 32%; }
-        .total { font-weight: bold; color: #1d4ed8; font-size: 14px; }
+        .total { font-weight: bold; color: #005f73; font-size: 14px; }
         .section { margin-top: 22px; }
         .note { margin-top: 28px; border-top: 1px solid #e4e4e7; padding-top: 14px; font-size: 10px; color: #71717a; }
     </style>
@@ -46,15 +46,15 @@
     </div>
     <table class="costs">
         <tr><td>Sewa: {{ $money($details['daily_price']) }} x {{ $details['rental_days'] }} hari x {{ $details['quantity'] }} unit</td><td class="amount">{{ $money($details['subtotal']) }}</td></tr>
-        <tr><td>Uang muka (DP)</td><td class="amount">{{ $money($details['deposit_amount']) }}</td></tr>
+        <tr><td>{{ ($invoice['pricing_version'] ?? 1) >= 2 ? 'DP (bagian dari total, bukan biaya tambahan)' : 'DP sesuai perhitungan pengajuan lama' }}</td><td class="amount">{{ $money($details['deposit_amount']) }}</td></tr>
         <tr><td>Ongkir ke penyewa</td><td class="amount">{{ $money($details['delivery_fee']) }}</td></tr>
         <tr class="total"><td>Total</td><td class="amount">{{ $money($details['total_amount']) }}</td></tr>
     </table>
-    <div class="section"><h2>Status Pembayaran</h2><p>Terverifikasi: {{ $money($booking->verifiedAmount()) }}</p><p>Sisa pembayaran: {{ $money($booking->remainingAmount()) }}</p></div>
+    <div class="section"><h2>Status Pembayaran</h2>@if($booking->payment_legacy)<p>Lunas - data lama. Rincian transaksi pembayaran tidak tercatat.</p>@else<p>Terverifikasi: {{ $money($booking->verifiedAmount()) }}</p>@endif<p>Sisa pembayaran: {{ $money($booking->remainingAmount()) }}</p>@if($booking->refund_status)<p>Refund: {{ $booking->refund_status === 'refunded' ? 'Sudah dicatat' : 'Menunggu pengembalian dana' }}</p>@endif</div>
     @if($details['fulfillment_method'] === 'delivery')
         <div class="section"><h2>Tujuan Pengiriman</h2><p>{{ $invoice['recipient']['name'] ?? 'Belum tercatat' }} / {{ $invoice['recipient']['phone'] ?? '' }}</p><p style="white-space: pre-line">{{ $invoice['recipient']['address'] ?? 'Belum tercatat' }}</p><p>{{ $invoice['recipient']['city'] ?? '' }}</p></div>
     @endif
     <div class="section"><h2>Lokasi Pengambilan / Pengembalian</h2><p style="white-space: pre-line">{{ $invoice['pickup']['address'] ?? 'Alamat belum tercatat' }}</p><p>{{ $invoice['pickup']['city'] ?? '' }}</p></div>
-    <div class="note">Tagihan ini mencatat biaya penyewaan dan bukan bukti pembayaran. Verifikasi pembayaran dilakukan manual oleh pemilik, bukan oleh bank atau payment gateway. @if($details['fulfillment_method'] === 'delivery')Ongkir hanya mencakup pengiriman ke penyewa; pengembalian menjadi tanggung jawab penyewa.@endif @if($invoice['legacy'] ?? false)Dokumen booking lama menggunakan data yang tersedia saat fitur invoice ditambahkan.@endif</div>
+    <div class="note">Tagihan ini mencatat biaya penyewaan dan bukan bukti pembayaran. Verifikasi pembayaran dilakukan manual oleh {{ ($invoice['payment_collection'] ?? null) === 'platform' ? 'admin Pinjemin. Pembayaran ditujukan ke rekening Pinjemin sesuai instruksi booking' : 'pemilik' }}, bukan oleh bank atau payment gateway. @if($details['fulfillment_method'] === 'delivery')Ongkir hanya mencakup pengiriman ke penyewa; pengembalian menjadi tanggung jawab penyewa.@endif @if($invoice['legacy'] ?? false)Dokumen booking lama menggunakan data yang tersedia saat fitur invoice ditambahkan.@endif</div>
 </body>
 </html>

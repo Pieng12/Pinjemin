@@ -29,11 +29,16 @@
                 <p class="promo-hero-tagline landing-reveal" style="transition-delay: 120ms">Butuh sesekali?<br>Temukan, sewa, mulai ceritamu.</p>
                 <p class="promo-hero-description landing-reveal" style="transition-delay: 180ms">Pinjemin mempertemukan kebutuhan sementara dengan barang yang jarang digunakan di sekitar kita.</p>
                 <div class="landing-reveal mt-6 flex flex-wrap justify-center gap-3" style="transition-delay: 240ms">
+                    @if(config('features.marketplace_enabled'))
+                        <a href="{{ route('browse') }}" class="btn btn-primary home-action">Menyewa Barang <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i></a>
+                        <a href="{{ route('rent-out') }}" class="btn btn-secondary">Sewakan Barang</a>
+                    @else
                     <a href="https://www.instagram.com/pinjemin911/" target="_blank" rel="noopener noreferrer" class="btn btn-primary home-action">
                         Ikuti @pinjemin911
                         <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
                     </a>
                     <a href="#tentang" class="btn btn-secondary">Kenali Pinjemin</a>
+                    @endif
                 </div>
             </div>
         </div>

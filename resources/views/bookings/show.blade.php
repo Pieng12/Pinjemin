@@ -45,12 +45,14 @@
                             <x-button type="submit">Terima</x-button>
                         </form>
                     @endif
-                    @if($booking->status === \App\BookingStatus::Approved && !$booking->handed_over_at && $booking->start_date->toDateString() <= now(\App\Models\Booking::RentalTimezone)->toDateString())
+                    @can('handOver', $booking)
+                    @if($booking->start_date->toDateString() <= now(\App\Models\Booking::RentalTimezone)->toDateString())
                         <form method="POST" action="{{ route('incoming-bookings.hand-over', $booking) }}" data-confirm data-confirm-title="Barang sudah diserahkan?" data-confirm-message="Setelah penyerahan, booking tidak dapat dibatalkan. Stok dibebaskan setelah barang kembali." data-confirm-button="Ya, Sudah Diserahkan">
                             @csrf @method('PATCH')
                             <x-button type="submit">Barang Diserahkan</x-button>
                         </form>
                     @endif
+                    @endcan
                     @can('complete', $booking)
                         <form method="POST" action="{{ route('incoming-bookings.complete', $booking) }}" data-confirm data-confirm-title="Semua barang sudah kembali?" data-confirm-message="Konfirmasi ini berlaku untuk seluruh unit booking dan membebaskan sisa reservasi." data-confirm-button="Konfirmasi Kembali">
                             @csrf @method('PATCH')
@@ -95,14 +97,14 @@
                 </div>
 
                 @php
-                    $reviewedAt = $booking->payments->whereNotNull('reviewed_at')->sortByDesc('reviewed_at')->first()?->reviewed_at;
+                    $submittedAt = $booking->payments->sortByDesc('submitted_at')->first()?->submitted_at;
                     $depositPayment = $booking->payments->first(fn ($payment) => $payment->kind === 'deposit' && $payment->status === \App\BookingPaymentStatus::Verified);
                     $showDepositStep = $booking->payment_plan && $booking->payment_plan !== \App\PaymentPlan::FullTransfer;
                     $timeline = [
                         ['Pengajuan dikirim', $booking->created_at, true, $booking->status === \App\BookingStatus::Pending],
                         ['Booking diterima', $booking->accepted_at, (bool) $booking->accepted_at, false],
-                        ['Menunggu pembayaran', $booking->accepted_at, $booking->payments->isNotEmpty(), $booking->status === \App\BookingStatus::AwaitingPayment],
-                        ['Bukti pembayaran diperiksa', $reviewedAt, (bool) $reviewedAt, $booking->status === \App\BookingStatus::PaymentReview],
+                        ['Menunggu pembayaran', $booking->accepted_at, $booking->payments->isNotEmpty(), $booking->effectiveStatus() === \App\BookingStatus::AwaitingPayment],
+                        ['Bukti pembayaran diperiksa', $submittedAt, (bool) $submittedAt, $booking->effectiveStatus() === \App\BookingStatus::PaymentReview],
                     ];
                     if ($showDepositStep) {
                         $timeline[] = ['DP diterima', $depositPayment?->reviewed_at, (bool) $depositPayment, $booking->status === \App\BookingStatus::PartiallyPaid];
@@ -156,7 +158,7 @@
                         @endif
                     </div>
                 @elseif($booking->effectiveStatus() === \App\BookingStatus::Expired)
-                    <p class="mt-6 rounded-md bg-zinc-100 p-4 text-sm text-zinc-600">Tawaran sudah kedaluwarsa. Ajukan booking baru untuk memilih periode yang tersedia.</p>
+                    <p class="mt-6 rounded-md bg-zinc-100 p-4 text-sm text-zinc-600">{{ $booking->payment_due_at ? 'Batas pembayaran sudah berakhir.' : 'Tawaran ongkir sudah kedaluwarsa.' }} Ajukan booking baru untuk memilih periode yang tersedia.</p>
                 @endif
 
                 <div class="mt-6 rounded-md bg-zinc-50 p-4">
@@ -170,11 +172,17 @@
                             <dd class="font-medium text-zinc-950"><x-price :amount="$booking->subtotal" suffix="" /></dd>
                         </div>
                         <div class="flex justify-between gap-4">
-                            <dt class="text-zinc-600">Uang muka (DP)</dt>
+                            <dt class="text-zinc-600">{{ $booking->usesAdvancePaymentPricing() ? 'Pilihan DP (bagian dari total)' : 'DP sesuai perhitungan pengajuan lama' }}</dt>
                             <dd class="font-medium text-zinc-950"><x-price :amount="$booking->deposit_amount" suffix="" /></dd>
                         </div>
                         @if($booking->fulfillment_method === 'delivery')
-                            <div class="flex justify-between gap-4"><dt class="text-zinc-600">Ongkir ke penyewa</dt><dd class="font-medium text-zinc-950">@if($booking->status === \App\BookingStatus::Pending && !($booking->fulfillment_snapshot['free_delivery'] ?? false))Menunggu tawaran @else<x-price :amount="$booking->delivery_fee" suffix="" />@endif</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-zinc-600">Ongkir ke penyewa</dt><dd class="font-medium text-zinc-950">
+                                @if($booking->status === \App\BookingStatus::Pending && !($booking->fulfillment_snapshot['free_delivery'] ?? false))
+                                    Menunggu tawaran
+                                @else
+                                    <x-price :amount="$booking->delivery_fee" suffix="" />
+                                @endif
+                            </dd></div>
                         @endif
                         <div class="flex justify-between gap-4 border-t border-zinc-200 pt-3 text-base">
                             <dt class="font-bold text-zinc-950">Total</dt>
@@ -184,6 +192,8 @@
                 </div>
 
                 @include('bookings.partials.payment', ['booking' => $booking, 'viewer' => $viewer])
+                @include('bookings.partials.payout', ['booking' => $booking, 'viewer' => $viewer])
+                @include('bookings.partials.inspections', ['booking' => $booking])
 
                 @if($viewer === 'owner' && $booking->status === \App\BookingStatus::Pending && $booking->fulfillment_method === 'delivery' && !($booking->fulfillment_snapshot['free_delivery'] ?? false))
                     <section class="mt-6 border-t border-zinc-200 pt-6" aria-labelledby="delivery-quote-title">
@@ -202,7 +212,7 @@
                         @else
                             <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
                                 <p class="text-sm font-semibold text-amber-950">Metode pembayaran belum tersedia</p>
-                                <p class="mt-1 text-sm leading-6 text-amber-900">Tambahkan dan aktifkan minimal satu rekening atau e-wallet agar penyewa mengetahui tujuan pembayaran setelah menyetujui ongkir.</p>
+                                <p class="mt-1 text-sm leading-6 text-amber-900">{{ $booking->collectsViaPlatform() ? 'Tambahkan rekening atau e-wallet aktif sebagai tujuan pencairan. Penyewa membayar ke Pinjemin, dan admin mencairkan hak pemilik setelah sewa selesai.' : 'Tambahkan dan aktifkan minimal satu rekening atau e-wallet agar penyewa mengetahui tujuan pembayaran setelah menyetujui ongkir.' }}</p>
                                 <x-button :href="route('payment-methods.index')" variant="outline" class="mt-4">Atur Metode Pembayaran</x-button>
                             </div>
                         @endif

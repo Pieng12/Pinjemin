@@ -28,6 +28,7 @@ class DashboardController extends Controller
             'pendingBookings' => Booking::query()->where(function ($query): void {
                 $query->whereIn('status', [BookingStatus::Pending->value, BookingStatus::PaymentReview->value])
                     ->orWhere('refund_status', 'pending');
+                $query->orWhereHas('conditionSessions', fn ($query) => $query->where('status', 'disputed'));
             })->count(),
             'approvedBookings' => Booking::query()->where('status', BookingStatus::Approved->value)->count(),
             'cancelledBookings' => Booking::query()->where('status', BookingStatus::Cancelled->value)->count(),

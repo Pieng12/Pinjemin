@@ -85,7 +85,7 @@ class BookingController extends Controller
     {
         Gate::authorize('viewAsRenter', $booking);
 
-        $booking->load(['item.category', 'item.primaryPhoto', 'item.user', 'renter', 'payments.reviewer', 'refund']);
+        $booking->load(['item.category', 'item.primaryPhoto', 'item.user', 'renter', 'payments.reviewer', 'refund', 'payout', 'conditionSessions.reports.user']);
 
         return view('bookings.show', [
             'booking' => $booking,
@@ -107,7 +107,7 @@ class BookingController extends Controller
         Gate::authorize('confirmDelivery', $booking);
         $bookings->confirmDelivery($booking);
 
-        return redirect()->route('my-bookings.show', $booking)->with('status', 'Total biaya disetujui. Booking sudah dikonfirmasi.');
+        return redirect()->route('my-bookings.show', $booking)->with('status', 'Total biaya disetujui. Silakan lanjutkan pembayaran sebelum batas waktu.');
     }
 
     public function declineDelivery(Booking $booking, BookingService $bookings): RedirectResponse

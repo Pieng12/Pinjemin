@@ -48,6 +48,7 @@ class BookingFactory extends Factory
             'subtotal' => $pricing['subtotal'],
             'deposit_amount' => $pricing['deposit_total'],
             'total_amount' => $pricing['total_amount'],
+            'fulfillment_snapshot' => ['pricing_version' => 2],
             'status' => BookingStatus::Pending->value,
             'renter_note' => fake()->optional()->sentence(),
         ];

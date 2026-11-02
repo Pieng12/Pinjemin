@@ -8,6 +8,7 @@
             <x-breadcrumb :items="['Admin' => null]" />
             <h1 class="mt-6 text-3xl font-semibold tracking-tight text-zinc-950">Admin Dashboard</h1>
             <p class="mt-2 text-zinc-600">Ringkasan operasional Pinjemin.</p>
+            <div class="mt-4 flex flex-wrap gap-2"><x-button :href="route('admin.finance')">Keuangan &amp; Pencairan</x-button><x-button :href="route('admin.payment-methods.index')" variant="outline">Atur Rekening Pinjemin</x-button></div>
         </div>
 
         <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">

@@ -37,7 +37,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'quote_expires_at', 'renter_confirmed_at', 'expired_at', 'handed_over_at',
     'cancelled_by', 'cancellation_reason', 'invoice_snapshot',
     'accepted_at', 'payment_due_at', 'payment_plan', 'payment_methods_snapshot',
-    'payment_receipt_snapshot', 'payment_verified_at', 'payment_legacy', 'refund_status',
+    'payment_receipt_snapshot', 'payment_verified_at', 'payment_legacy', 'refund_status', 'refund_destination',
+    'refund_claimed_by_user_id', 'refund_claimed_at',
+    'identity_verification_id', 'returned_at',
 ])]
 class Booking extends Model
 {
@@ -74,6 +76,42 @@ class Booking extends Model
         return $this->hasOne(BookingRefund::class);
     }
 
+    public function payout(): HasOne
+    {
+        return $this->hasOne(BookingPayout::class);
+    }
+
+    public function collectsViaPlatform(): bool
+    {
+        return ($this->fulfillment_snapshot['payment_collection'] ?? null) === 'platform';
+    }
+
+    public function usesConditionInspections(): bool
+    {
+        return ($this->fulfillment_snapshot['inspection_policy']['version'] ?? 0) >= 1;
+    }
+
+    public function conditionSessions(): HasMany
+    {
+        return $this->hasMany(ConditionSession::class)->orderBy('id');
+    }
+
+    public function identityVerification(): BelongsTo
+    {
+        return $this->belongsTo(IdentityVerification::class);
+    }
+
+    public function inspectionsSettled(): bool
+    {
+        if (! $this->usesConditionInspections()) {
+            return true;
+        }
+        $sessions = $this->conditionSessions->groupBy('stage')->map(fn ($group) => $group->sortByDesc('attempt')->first());
+
+        return $this->returned_at !== null && isset($sessions['handover'], $sessions['return'])
+            && $sessions['handover']->isSettled() && $sessions['return']->isSettled();
+    }
+
     public function verifiedPayments(): HasMany
     {
         return $this->payments()->where('status', BookingPaymentStatus::Verified->value);
@@ -90,7 +128,16 @@ class Booking extends Model
 
     public function remainingAmount(): float
     {
+        if ($this->payment_legacy) {
+            return 0;
+        }
+
         return max(0, round((float) $this->total_amount - $this->verifiedAmount(), 2));
+    }
+
+    public function usesAdvancePaymentPricing(): bool
+    {
+        return ($this->fulfillment_snapshot['pricing_version'] ?? 1) >= 2;
     }
 
     public function statusLabel(): string
@@ -126,7 +173,7 @@ class Booking extends Model
 
     public function returnNotice(): ?string
     {
-        if ($this->status !== BookingStatus::Approved) {
+        if ($this->status !== BookingStatus::Approved || $this->returned_at) {
             return null;
         }
 
@@ -142,7 +189,7 @@ class Booking extends Model
     public function scopeReserving(Builder $query): Builder
     {
         return $query->where(function (Builder $query): void {
-            $query->where('status', BookingStatus::Approved->value)
+            $query->where(fn (Builder $query) => $query->where('status', BookingStatus::Approved->value)->whereNull('returned_at'))
                 ->orWhere('status', BookingStatus::PaymentReview->value)
                 ->orWhere('status', BookingStatus::PartiallyPaid->value)
                 ->orWhere(function (Builder $query): void {
@@ -211,6 +258,7 @@ class Booking extends Model
             'renter_confirmed_at' => 'datetime',
             'expired_at' => 'datetime',
             'handed_over_at' => 'datetime',
+            'returned_at' => 'datetime',
             'accepted_at' => 'datetime',
             'payment_due_at' => 'datetime',
             'payment_plan' => PaymentPlan::class,
@@ -218,6 +266,8 @@ class Booking extends Model
             'payment_receipt_snapshot' => 'array',
             'payment_verified_at' => 'datetime',
             'payment_legacy' => 'boolean',
+            'refund_destination' => 'array',
+            'refund_claimed_at' => 'datetime',
         ];
     }
 }

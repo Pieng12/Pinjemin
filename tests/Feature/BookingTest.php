@@ -92,7 +92,7 @@ class BookingTest extends TestCase
         );
 
         $this->assertSame('600000.00', $booking->subtotal);
-        $this->assertSame('1000000.00', $booking->total_amount);
+        $this->assertSame('600000.00', $booking->total_amount);
     }
 
     public function test_deposit_is_calculated_per_unit(): void
@@ -336,6 +336,7 @@ class BookingTest extends TestCase
         $this->travelTo('2026-09-16');
         $owner ??= User::factory()->create();
         $renter ??= User::factory()->create();
+        UserPaymentMethod::factory()->for(User::factory()->admin())->create(['is_platform' => true]);
         UserPaymentMethod::factory()->for($owner)->create(['is_primary' => true]);
         $item = Item::factory()->for($owner)->create(array_merge([
             'daily_price' => 100000,

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\BookingStatus;
 use App\Models\Booking;
 use App\Models\Item;
+use App\Models\UserPaymentMethod;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +40,7 @@ class BookingConcurrencyTest extends TestCase
             config(['database.connections.booking_mysql_test' => $mysql, 'database.default' => 'booking_mysql_test']);
             Artisan::call('migrate', ['--database' => 'booking_mysql_test', '--force' => true, '--no-interaction' => true]);
             $item = Item::factory()->create(['quantity' => 1]);
+            UserPaymentMethod::factory()->for($item->user)->create(['is_primary' => true]);
             $date = now(Booking::RentalTimezone)->addDays(2)->toDateString();
             $bookings = Booking::factory()->count(2)->for($item)->create(['start_date' => $date, 'end_date' => $date, 'quantity' => 1]);
             $environment = [
@@ -70,7 +72,7 @@ class BookingConcurrencyTest extends TestCase
             }
             sort($exitCodes);
             $this->assertSame([0, 3], $exitCodes);
-            $this->assertSame(1, Booking::query()->where('status', BookingStatus::Approved->value)->count());
+            $this->assertSame(1, Booking::query()->where('status', BookingStatus::AwaitingPayment->value)->count());
             $this->assertSame(1, Booking::query()->where('status', BookingStatus::Pending->value)->count());
         } finally {
             foreach ($workers as $worker) {

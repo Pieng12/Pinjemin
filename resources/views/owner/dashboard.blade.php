@@ -15,7 +15,7 @@
 
         <div class="mt-7 grid grid-cols-3 gap-2 sm:gap-4">
             <x-stat-card class="owner-stat-card" label="Barang Aktif" :value="$activeItemsCount" description="Tampil di marketplace" :href="route('my-items.index')" />
-            <x-stat-card class="owner-stat-card" label="Perlu Tindakan" :value="$pendingBookingsCount" description="Booking, pembayaran, atau refund" :href="route('incoming-bookings.index')" />
+            <x-stat-card class="owner-stat-card" label="Perlu Tindakan" :value="$pendingBookingsCount" description="Booking masuk dan transaksi lama" :href="route('incoming-bookings.index')" />
             <x-stat-card class="owner-stat-card" label="Total Barang" :value="$totalItemsCount" description="{{ $inactiveItemsCount }} tidak aktif" :href="route('my-items.index')" />
         </div>
 

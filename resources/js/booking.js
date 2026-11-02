@@ -37,7 +37,7 @@ export function initializeBookingForm(form) {
         form.querySelector('[data-price-formula]').textContent = `${money(price)} x ${days} hari x ${units()} unit`;
         form.querySelector('[data-subtotal]').textContent = money(price * days * units());
         form.querySelector('[data-deposit-total]').textContent = money(deposit);
-        form.querySelector('[data-total]').textContent = money(price * days * units() + deposit);
+        form.querySelector('[data-total]').textContent = money(price * days * units());
     };
     const checkAvailability = async () => {
         estimateRequest?.abort();

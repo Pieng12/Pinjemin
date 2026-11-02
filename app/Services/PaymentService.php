@@ -6,10 +6,14 @@ use App\BookingPaymentStatus;
 use App\BookingStatus;
 use App\Models\Booking;
 use App\Models\BookingPayment;
+use App\Models\BookingPayout;
 use App\Models\User;
+use App\Models\UserPaymentMethod;
 use App\PaymentPlan;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -18,17 +22,30 @@ class PaymentService
 {
     public function __construct(private AvailabilityService $availability) {}
 
-    public function beginPayment(Booking $booking): void
+    /** @param array<int, string> $copiedPaths */
+    public function beginPayment(Booking $booking, array &$copiedPaths): void
     {
-        $methods = $booking->item->user->paymentMethods()->where('is_active', true)->limit(11)->get();
-        if ($methods->isEmpty()) {
-            throw ValidationException::withMessages(['payment_method' => 'Tambahkan minimal satu metode pembayaran aktif sebelum menerima booking.']);
-        }
-        if ($methods->count() > 10) {
-            throw ValidationException::withMessages(['payment_method' => 'Nonaktifkan metode pembayaran hingga maksimal 10 metode aktif.']);
+        $this->ensureDestinationsAvailable($booking);
+        $methods = $this->destinationMethods($booking)->limit(10)->lockForUpdate()->get();
+
+        if ($booking->collectsViaPlatform()) {
+            $destination = $booking->item->user->paymentMethods()->where('is_active', true)
+                ->where('type', '!=', 'qris')->whereNotNull('account_identifier')->where('account_identifier', '!=', '')->lockForUpdate()->first();
+            if (! $destination) {
+                throw ValidationException::withMessages(['payment_method' => 'Rekening pencairan pemilik berubah. Muat ulang dan periksa kembali tujuan pencairan.']);
+            }
+            $rate = (float) ($booking->fulfillment_snapshot['commission_rate'] ?? 5);
+            $commission = round((float) $booking->subtotal * $rate / 100, 2);
+            $booking->payout()->create([
+                'status' => 'pending', 'commission_rate' => $rate,
+                'commission_amount' => $commission,
+                'amount' => round((float) $booking->total_amount - $commission, 2),
+                'destination_snapshot' => $destination->snapshot(),
+                'events' => [],
+            ]);
         }
 
-        $snapshots = $methods->map(function ($method) use ($booking): array {
+        $snapshots = $methods->map(function ($method) use ($booking, &$copiedPaths): array {
             $qrisPath = null;
             if ($method->qris_path) {
                 $extension = pathinfo($method->qris_path, PATHINFO_EXTENSION) ?: 'jpg';
@@ -36,6 +53,7 @@ class PaymentService
                 if (! Storage::disk('local')->copy($method->qris_path, $qrisPath)) {
                     throw ValidationException::withMessages(['payment_method' => 'Gambar QRIS tidak dapat disalin. Perbarui metode pembayaran.']);
                 }
+                $copiedPaths[] = $qrisPath;
             }
 
             return $method->snapshot($qrisPath);
@@ -51,6 +69,33 @@ class PaymentService
         $booking->save();
     }
 
+    public function ensureDestinationsAvailable(Booking $booking): void
+    {
+        $methods = $this->destinationMethods($booking)->limit(11)->get();
+        if ($methods->isEmpty()) {
+            $message = $booking->collectsViaPlatform()
+                ? 'Rekening penerimaan Pinjemin belum tersedia. Hubungi admin sebelum menerima booking.'
+                : 'Tambahkan minimal satu metode pembayaran aktif sebelum menerima booking.';
+            throw ValidationException::withMessages(['payment_method' => $message]);
+        }
+        if ($methods->count() > 10) {
+            throw ValidationException::withMessages(['payment_method' => 'Nonaktifkan metode pembayaran hingga maksimal 10 metode aktif.']);
+        }
+
+        if ($booking->collectsViaPlatform() && ! $booking->item->user->paymentMethods()
+            ->where('is_active', true)->where('type', '!=', 'qris')->whereNotNull('account_identifier')->where('account_identifier', '!=', '')->exists()) {
+            throw ValidationException::withMessages(['payment_method' => 'Tambahkan rekening atau e-wallet pencairan aktif pada Metode Pembayaran. QRIS saja tidak cukup untuk tujuan pencairan.']);
+        }
+    }
+
+    private function destinationMethods(Booking $booking): Builder
+    {
+        return UserPaymentMethod::query()->where('is_active', true)
+            ->when($booking->collectsViaPlatform(), fn (Builder $query) => $query->where('is_platform', true),
+                fn (Builder $query) => $query->where('is_platform', false)->where('user_id', $booking->item->user_id))
+            ->orderByDesc('is_primary')->orderBy('sort_order')->orderBy('id');
+    }
+
     /** @param array<string, mixed> $data */
     public function submit(Booking $booking, User $renter, string $proofPath, array $data): BookingPayment
     {
@@ -61,6 +106,7 @@ class PaymentService
             $booking->setRelation('item', $item);
             if ($booking->paymentHasExpired()) {
                 $booking->update(['status' => BookingStatus::Expired, 'expired_at' => now()]);
+                $booking->payout()->update(['status' => 'cancelled']);
                 $expired = true;
 
                 return null;
@@ -126,22 +172,36 @@ class PaymentService
         return $payment;
     }
 
-    public function review(Booking $booking, BookingPayment $payment, User $owner, string $decision, ?string $comment): Booking
+    public function review(Booking $booking, BookingPayment $payment, User $owner, string $decision, ?string $comment, ?string $transactionReference = null): Booking
     {
-        return DB::transaction(function () use ($booking, $payment, $owner, $decision, $comment): Booking {
+        return DB::transaction(function () use ($booking, $payment, $owner, $decision, $comment, $transactionReference): Booking {
             $item = $booking->item()->lockForUpdate()->firstOrFail();
             $booking = Booking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
             $payment = BookingPayment::query()->whereKey($payment->id)->lockForUpdate()->firstOrFail();
             $booking->setRelation('item', $item);
+            Gate::forUser($owner)->authorize('reviewPayment', $booking);
             if ($payment->booking_id !== $booking->id || $payment->status !== BookingPaymentStatus::Submitted || $booking->status !== BookingStatus::PaymentReview) {
                 throw ValidationException::withMessages(['payment' => 'Bukti pembayaran ini sudah diproses atau status booking berubah.']);
             }
 
+            $transactionKey = null;
+            if ($booking->collectsViaPlatform() && $decision === 'verify') {
+                if (! filled($transactionReference)) {
+                    throw ValidationException::withMessages(['transaction_reference' => 'Isi referensi transaksi dari mutasi rekening yang sudah diperiksa.']);
+                }
+                $destination = $payment->method_snapshot;
+                $transactionKey = hash('sha256', mb_strtolower(trim(($destination['type'] ?? '').'|'.($destination['provider'] ?? '').'|'.($destination['account_identifier'] ?? $destination['account_name']).'|'.$transactionReference)));
+                if (BookingPayment::query()->where('transaction_key', $transactionKey)->exists()) {
+                    throw ValidationException::withMessages(['transaction_reference' => 'Transaksi masuk ini sudah dipakai untuk pembayaran lain.']);
+                }
+            }
             $payment->update([
                 'status' => $decision === 'verify' ? BookingPaymentStatus::Verified : BookingPaymentStatus::Rejected,
                 'reviewed_by_user_id' => $owner->id,
                 'owner_comment' => $comment,
                 'reviewed_at' => now(),
+                'transaction_reference' => $transactionKey ? trim($transactionReference) : null,
+                'transaction_key' => $transactionKey,
             ]);
             $verified = (float) $booking->verifiedPayments()->sum('amount');
             if ($decision === 'verify' && $verified >= (float) $booking->total_amount) {
@@ -150,6 +210,7 @@ class PaymentService
                 $booking->update(['status' => BookingStatus::PartiallyPaid]);
             } elseif ($booking->payment_due_at?->lte(now())) {
                 $booking->update(['status' => BookingStatus::Expired, 'expired_at' => now()]);
+                $booking->payout()->update(['status' => 'cancelled']);
             } else {
                 $booking->update(['status' => BookingStatus::AwaitingPayment]);
             }
@@ -164,6 +225,7 @@ class PaymentService
             $item = $booking->item()->lockForUpdate()->firstOrFail();
             $booking = Booking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
             $booking->setRelation('item', $item);
+            Gate::forUser($owner)->authorize('cashAndHandOver', $booking);
             if ($booking->status !== BookingStatus::PartiallyPaid || $booking->payment_plan !== PaymentPlan::DepositCash || $booking->fulfillment_method !== Booking::Pickup) {
                 throw ValidationException::withMessages(['payment' => 'Booking ini tidak menggunakan pelunasan tunai saat pengambilan.']);
             }
@@ -199,6 +261,13 @@ class PaymentService
         return DB::transaction(function () use ($booking, $owner, $proofPath, $data): Booking {
             $booking->item()->lockForUpdate()->firstOrFail();
             $booking = Booking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($owner)->authorize('recordRefund', $booking);
+            if ($booking->collectsViaPlatform() && ! $booking->refund_destination) {
+                throw ValidationException::withMessages(['refund' => 'Penyewa harus mengisi rekening tujuan refund terlebih dahulu.']);
+            }
+            if ($booking->collectsViaPlatform() && $booking->refund_claimed_by_user_id !== $owner->id) {
+                throw ValidationException::withMessages(['refund' => 'Mulai proses refund terlebih dahulu. Hanya admin yang menangani refund ini dapat mencatat transfernya.']);
+            }
             if ($booking->status !== BookingStatus::Cancelled || $booking->refund_status !== 'pending' || $booking->refund()->exists()) {
                 throw ValidationException::withMessages(['refund' => 'Refund tidak diperlukan atau sudah dicatat.']);
             }
@@ -212,6 +281,7 @@ class PaymentService
                 'proof_path' => $proofPath,
                 'refunded_at' => $refundedAt,
                 'note' => $data['note'] ?? null,
+                'destination_snapshot' => $booking->refund_destination,
             ]);
             $booking->update(['refund_status' => 'refunded']);
 
@@ -221,15 +291,22 @@ class PaymentService
 
     public function expireAwaitingPayments(): int
     {
-        return Booking::query()
+        $expired = Booking::query()
             ->where('status', BookingStatus::AwaitingPayment->value)
             ->where('payment_due_at', '<=', now())
             ->whereDoesntHave('payments', fn ($query) => $query->where('status', BookingPaymentStatus::Verified->value))
             ->update(['status' => BookingStatus::Expired->value, 'expired_at' => now()]);
+        BookingPayout::query()->where('status', 'pending')
+            ->whereHas('booking', fn (Builder $query) => $query->where('status', BookingStatus::Expired))->update(['status' => 'cancelled']);
+
+        return $expired;
     }
 
     private function validatePlan(Booking $booking, PaymentPlan $plan): void
     {
+        if ($booking->collectsViaPlatform() && $plan === PaymentPlan::DepositCash) {
+            throw ValidationException::withMessages(['payment_plan' => 'Pelunasan booking ini harus ditransfer ke Pinjemin.']);
+        }
         if ($plan === PaymentPlan::FullTransfer) {
             return;
         }
@@ -258,6 +335,7 @@ class PaymentService
                 'transferred_at' => $payment->transferred_at?->toIso8601String(),
                 'reviewed_at' => $payment->reviewed_at?->toIso8601String(),
                 'reviewer' => $payment->reviewer?->name,
+                'transaction_reference' => $payment->transaction_reference,
             ])->all(),
         ];
         $booking->save();

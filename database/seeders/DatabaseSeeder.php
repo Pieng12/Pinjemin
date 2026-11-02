@@ -43,11 +43,11 @@ class DatabaseSeeder extends Seeder
             );
         });
 
-        $admin = User::query()->firstOrNew(['email' => 'admin@pinjemin.test']);
+        $admin = User::query()->firstOrNew(['email' => 'admin@pinjemin.com']);
 
         $admin->forceFill([
             'name' => 'Administrator Pinjemin',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('Suk53sb4reng!'),
             'role' => User::RoleAdmin,
         ])->save();
 

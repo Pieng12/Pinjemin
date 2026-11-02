@@ -10,8 +10,10 @@ use App\Models\User;
 use Closure;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class BookingService
 {
@@ -19,6 +21,7 @@ class BookingService
         private AvailabilityService $availability,
         private RentalPriceCalculator $calculator,
         private PaymentService $payments,
+        private IdentityVerificationService $identities,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -32,6 +35,9 @@ class BookingService
                 throw ValidationException::withMessages(['fulfillment_method' => 'Pemilik tidak menyediakan pengiriman untuk barang ini.']);
             }
             $pricing = $this->calculator->calculate($item, $data['start_date'], $data['end_date'], (int) $data['quantity']);
+            if (($item->requires_condition_photos || $item->requires_identity_verification) && ! ($data['requirements_accepted'] ?? false)) {
+                throw ValidationException::withMessages(['requirements_accepted' => 'Setujui persyaratan foto dan identitas barang sebelum mengajukan booking.']);
+            }
             $this->ensureTotalFits($pricing['total_amount']);
 
             return Booking::create([
@@ -50,6 +56,10 @@ class BookingService
                 'renter_note' => $data['renter_note'] ?? null,
                 'fulfillment_method' => $method,
                 'fulfillment_snapshot' => [
+                    'pricing_version' => 2,
+                    'payment_collection' => 'platform',
+                    'commission_rate' => 5,
+                    'inspection_policy' => ['version' => 1, 'terms_version' => 'rental-evidence-1', 'photos_required' => (bool) $item->requires_condition_photos, 'identity_required' => (bool) $item->requires_identity_verification, 'item_rules' => $item->rules, 'accepted_at' => now()->toIso8601String()],
                     'item_name' => $item->name,
                     'owner' => ['name' => $item->user->name, 'email' => $item->user->email, 'phone' => $item->user->phone],
                     'renter' => ['name' => $renter->name, 'email' => $renter->email, 'phone' => $renter->phone],
@@ -61,7 +71,7 @@ class BookingService
                     ] : null,
                     'payment_policy' => [
                         'allow_deposit' => $item->allow_deposit_payment,
-                        'allow_cash_balance' => $item->allow_deposit_payment && $item->allow_cash_balance,
+                        'allow_cash_balance' => false,
                     ],
                 ],
             ]);
@@ -70,13 +80,13 @@ class BookingService
 
     public function approve(Booking $booking): Booking
     {
-        return $this->locked($booking, function (Booking $booking): void {
+        return $this->locked($booking, function (Booking $booking, array &$copiedPaths): void {
             $this->ensureStatus($booking, BookingStatus::Pending);
             if ($booking->fulfillment_method === Booking::Delivery && ! ($booking->fulfillment_snapshot['free_delivery'] ?? false)) {
                 throw ValidationException::withMessages(['delivery_fee' => 'Kirim tawaran ongkir untuk disetujui penyewa terlebih dahulu.']);
             }
             $this->ensureApprovalAvailable($booking);
-            $this->payments->beginPayment($booking);
+            $this->payments->beginPayment($booking, $copiedPaths);
         });
     }
 
@@ -88,10 +98,8 @@ class BookingService
                 throw ValidationException::withMessages(['booking' => 'Booking ini tidak memerlukan tawaran ongkir.']);
             }
             $this->ensureApprovalAvailable($booking);
-            if (! $booking->item->user->paymentMethods()->where('is_active', true)->exists()) {
-                throw ValidationException::withMessages(['payment_method' => 'Tambahkan metode pembayaran aktif sebelum mengirim tawaran ongkir.']);
-            }
-            $total = round((float) $booking->subtotal + (float) $booking->deposit_amount + $deliveryFee, 2);
+            $this->payments->ensureDestinationsAvailable($booking);
+            $total = round((float) $booking->subtotal + ($booking->usesAdvancePaymentPricing() ? 0 : (float) $booking->deposit_amount) + $deliveryFee, 2);
             $this->ensureTotalFits($total);
             $expires = now()->addHours(24)->min(Carbon::parse($booking->start_date->toDateString(), Booking::RentalTimezone)->endOfDay()->utc());
             $booking->update([
@@ -104,11 +112,11 @@ class BookingService
 
     public function confirmDelivery(Booking $booking): Booking
     {
-        return $this->locked($booking, function (Booking $booking): void {
+        return $this->locked($booking, function (Booking $booking, array &$copiedPaths): void {
             $this->ensureStatus($booking, BookingStatus::AwaitingRenterConfirmation);
             $this->ensureApprovalAvailable($booking);
             $booking->renter_confirmed_at = now();
-            $this->payments->beginPayment($booking);
+            $this->payments->beginPayment($booking, $copiedPaths);
         });
     }
 
@@ -141,6 +149,13 @@ class BookingService
                 'cancellation_reason' => $reason,
                 'refund_status' => $booking->verifiedAmount() > 0 ? 'pending' : null,
             ]);
+            if ($booking->collectsViaPlatform()) {
+                $booking->payout()->update(['status' => 'cancelled']);
+            }
+            foreach ($booking->conditionSessions()->lockForUpdate()->get() as $session) {
+                $session->update(['status' => 'cancelled', 'closed_at' => now(), 'events' => [...($session->events ?? []),
+                    ['actor_id' => $actor?->id, 'actor_name' => $actor?->name ?? 'Sistem', 'action' => 'booking_cancelled', 'at' => now()->toIso8601String(), 'note' => $reason]]]);
+            }
         });
     }
 
@@ -148,6 +163,9 @@ class BookingService
     {
         return $this->locked($booking, function (Booking $booking): void {
             $this->ensureStatus($booking, BookingStatus::Approved);
+            if ($booking->usesConditionInspections()) {
+                throw ValidationException::withMessages(['inspection' => 'Gunakan pemeriksaan penyerahan dua pihak untuk booking ini.']);
+            }
             if ($booking->handed_over_at || $booking->start_date->toDateString() > now(Booking::RentalTimezone)->toDateString()) {
                 throw ValidationException::withMessages(['booking' => 'Penyerahan hanya dapat dicatat sekali, pada atau setelah tanggal mulai.']);
             }
@@ -162,6 +180,9 @@ class BookingService
     {
         return $this->locked($booking, function (Booking $booking): void {
             $this->ensureStatus($booking, BookingStatus::Approved);
+            if ($booking->usesConditionInspections()) {
+                throw ValidationException::withMessages(['inspection' => 'Gunakan pemeriksaan pengembalian dua pihak untuk booking ini.']);
+            }
             if (! $booking->handed_over_at) {
                 throw ValidationException::withMessages(['booking' => 'Catat penyerahan barang sebelum mengonfirmasi pengembalian.']);
             }
@@ -179,24 +200,36 @@ class BookingService
         return $quotes + $this->payments->expireAwaitingPayments();
     }
 
-    /** @param Closure(Booking): void $operation */
+    /** @param Closure(Booking, array<int, string>): void $operation */
     private function locked(Booking $booking, Closure $operation): Booking
     {
-        $result = DB::transaction(function () use ($booking, $operation): Booking {
-            $item = Item::query()->whereKey($booking->item_id)->lockForUpdate()->firstOrFail();
-            $booking = Booking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
-            $booking->setRelation('item', $item);
-            if ($booking->quoteHasExpired() || $booking->paymentHasExpired()) {
-                $booking->update(['status' => BookingStatus::Expired, 'expired_at' => now()]);
-            } else {
-                $operation($booking);
-            }
+        $copiedPaths = [];
+        try {
+            $result = DB::transaction(function () use ($booking, $operation, &$copiedPaths): Booking {
+                Storage::disk('local')->delete($copiedPaths);
+                $copiedPaths = [];
+                $item = Item::query()->whereKey($booking->item_id)->lockForUpdate()->firstOrFail();
+                $booking = Booking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
+                $booking->setRelation('item', $item);
+                if ($booking->quoteHasExpired() || $booking->paymentHasExpired()) {
+                    $booking->update(['status' => BookingStatus::Expired, 'expired_at' => now()]);
+                    $booking->payout()->update(['status' => 'cancelled']);
+                } else {
+                    $operation($booking, $copiedPaths);
+                }
 
-            return $booking->refresh();
-        }, attempts: 3);
+                return $booking->refresh();
+            }, attempts: 3);
+        } catch (Throwable $exception) {
+            Storage::disk('local')->delete($copiedPaths);
+            throw $exception;
+        }
 
         if ($result->status === BookingStatus::Expired) {
-            throw ValidationException::withMessages(['booking' => 'Tawaran ongkir sudah kedaluwarsa. Silakan ajukan booking baru.']);
+            $message = $result->payment_due_at
+                ? 'Batas pembayaran sudah berakhir. Silakan ajukan booking baru.'
+                : 'Tawaran ongkir sudah kedaluwarsa. Silakan ajukan booking baru.';
+            throw ValidationException::withMessages(['booking' => $message]);
         }
 
         return $result;
@@ -211,6 +244,7 @@ class BookingService
 
     private function ensureApprovalAvailable(Booking $booking): void
     {
+        $this->identities->ensureForApproval($booking);
         $item = $booking->item;
         if (! $item->is_active || $item->status !== ItemStatus::Available || ! filled($item->address)) {
             throw ValidationException::withMessages(['booking' => 'Aktifkan barang dan lengkapi lokasi pengambilan sebelum menyetujui booking.']);

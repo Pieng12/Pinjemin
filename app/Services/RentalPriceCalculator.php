@@ -31,7 +31,7 @@ class RentalPriceCalculator
             'rental_days' => $rentalDays,
             'subtotal' => $subtotal,
             'deposit_total' => $depositTotal,
-            'total_amount' => round($subtotal + $depositTotal, 2),
+            'total_amount' => $subtotal,
         ];
     }
 

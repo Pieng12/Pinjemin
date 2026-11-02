@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\ItemController as AdminItemController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -12,8 +13,10 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingInvoiceController;
 use App\Http\Controllers\BookingPaymentController;
 use App\Http\Controllers\BookingPaymentReceiptController;
+use App\Http\Controllers\ConditionInspectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\IncomingBookingController;
 use App\Http\Controllers\IncomingPaymentController;
 use App\Http\Controllers\ItemController;
@@ -47,8 +50,18 @@ Route::middleware('marketplace')->group(function (): void {
     });
 
     Route::middleware('auth')->group(function (): void {
+        Route::get('/identity', [IdentityVerificationController::class, 'index'])->name('identity.index');
+        Route::post('/identity', [IdentityVerificationController::class, 'store'])->middleware('throttle:10,1')->name('identity.store');
+        Route::get('/identity/{verification}', [IdentityVerificationController::class, 'show'])->name('identity.show');
+        Route::get('/identity/{verification}/document', [IdentityVerificationController::class, 'image'])->name('identity.document');
+        Route::post('/identity/{verification}/withdraw', [IdentityVerificationController::class, 'withdraw'])->name('identity.withdraw');
+        Route::post('/bookings/{booking:booking_code}/inspections/{stage}', [ConditionInspectionController::class, 'store'])->middleware('throttle:60,1')->whereIn('stage', ['handover', 'return'])->name('inspections.store');
+        Route::get('/bookings/{booking:booking_code}/inspection-status', [ConditionInspectionController::class, 'status'])->name('inspections.status');
+        Route::get('/bookings/{booking:booking_code}/inspections/{session}/document', [ConditionInspectionController::class, 'document'])->name('inspections.document');
+        Route::get('/bookings/{booking:booking_code}/evidence/{report}/{photo}', [ConditionInspectionController::class, 'photo'])->name('inspections.photo');
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::get('/owner', OwnerDashboardController::class)->name('owner.dashboard');
+        Route::get('/owner/payouts', [FinanceController::class, 'ownerIndex'])->name('owner.payouts');
         Route::post('/items/{item:slug}/bookings', [BookingController::class, 'store'])->name('items.bookings.store');
 
         Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings.index');
@@ -62,6 +75,10 @@ Route::middleware('marketplace')->group(function (): void {
         Route::get('/bookings/{booking:booking_code}/payment-methods/{index}/image', [PrivatePaymentImageController::class, 'bookingMethod'])->whereNumber('index')->name('bookings.payment-method-image');
         Route::get('/bookings/{booking:booking_code}/payments/{payment}/proof', [PrivatePaymentImageController::class, 'proof'])->name('bookings.payment-proof');
         Route::get('/bookings/{booking:booking_code}/refund-proof', [PrivatePaymentImageController::class, 'refund'])->name('bookings.refund-proof');
+        Route::get('/bookings/{booking:booking_code}/payout-proof', [PrivatePaymentImageController::class, 'payout'])->name('bookings.payout-proof');
+        Route::get('/bookings/{booking:booking_code}/payout-receipt', [FinanceController::class, 'document'])->name('bookings.payout-receipt');
+        Route::patch('/bookings/{booking:booking_code}/payout', [FinanceController::class, 'payout'])->name('bookings.payout');
+        Route::put('/my-bookings/{booking:booking_code}/refund-destination', [FinanceController::class, 'refundDestination'])->name('my-bookings.refund-destination');
 
         Route::get('/incoming-bookings', [IncomingBookingController::class, 'index'])->name('incoming-bookings.index');
         Route::get('/incoming-bookings/{booking:booking_code}', [IncomingBookingController::class, 'show'])->name('incoming-bookings.show');
@@ -84,6 +101,7 @@ Route::middleware('marketplace')->group(function (): void {
         Route::get('/my-items/create', [MyItemController::class, 'create'])->name('my-items.create');
         Route::resource('my-items', MyItemController::class)->parameters(['my-items' => 'item'])->except(['create']);
         Route::patch('/my-items/{item}/toggle-status', [MyItemController::class, 'toggleStatus'])->name('my-items.toggle-status');
+        Route::patch('/my-items/{item}/requirements', [MyItemController::class, 'updateRequirements'])->name('my-items.requirements');
         Route::delete('/my-items/{item}/photos/{photo}', [MyItemPhotoController::class, 'destroy'])->name('my-items.photos.destroy');
         Route::patch('/my-items/{item}/photos/{photo}/primary', [MyItemPhotoController::class, 'primary'])->name('my-items.photos.primary');
 
@@ -96,6 +114,16 @@ Route::middleware('marketplace')->group(function (): void {
         ->middleware(['auth', 'admin'])
         ->group(function (): void {
             Route::get('/', AdminDashboardController::class)->name('dashboard');
+            Route::get('identity', [IdentityVerificationController::class, 'adminIndex'])->name('identity.index');
+            Route::post('identity/{verification}/review', [IdentityVerificationController::class, 'review'])->name('identity.review');
+            Route::get('finance', [FinanceController::class, 'index'])->name('finance');
+            Route::get('payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
+            Route::post('payment-methods', [PaymentMethodController::class, 'store'])->name('payment-methods.store');
+            Route::put('payment-methods/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('payment-methods.update');
+            Route::delete('payment-methods/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
+            Route::patch('bookings/{booking:booking_code}/payments/{payment}/review', [IncomingPaymentController::class, 'review'])->name('payments.review');
+            Route::post('bookings/{booking:booking_code}/refund', [IncomingPaymentController::class, 'refund'])->name('refund');
+            Route::post('bookings/{booking:booking_code}/claim-refund', [FinanceController::class, 'claimRefund'])->name('claim-refund');
             Route::resource('categories', CategoryController::class)->except(['show']);
             Route::get('bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
             Route::get('bookings/{booking:booking_code}', [AdminBookingController::class, 'show'])->name('bookings.show');

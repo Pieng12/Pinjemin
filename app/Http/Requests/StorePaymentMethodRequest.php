@@ -9,9 +9,27 @@ use Illuminate\Validation\Validator;
 
 class StorePaymentMethodRequest extends FormRequest
 {
+    public function formKey(): string
+    {
+        return 'method-'.($this->route('paymentMethod')?->id ?? 'new');
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->errorBag = $this->formKey();
+        $this->merge(['_payment_method_form' => $this->formKey()]);
+    }
+
     public function authorize(): bool
     {
         $method = $this->route('paymentMethod');
+        $platform = $this->routeIs('admin.payment-methods.*');
+        if ($platform && ! $this->user()?->isAdmin()) {
+            return false;
+        }
+        if ($method && (bool) $method->is_platform !== $platform) {
+            return false;
+        }
 
         return $method ? $this->user()?->can('update', $method) ?? false : $this->user() !== null;
     }

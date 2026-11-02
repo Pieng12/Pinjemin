@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePaymentMethodRequest;
+use App\Models\User;
 use App\Models\UserPaymentMethod;
 use App\PaymentMethodType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -21,8 +23,9 @@ class PaymentMethodController extends Controller
         Gate::authorize('viewAny', UserPaymentMethod::class);
 
         return view('payment-methods.index', [
-            'methods' => request()->user()->paymentMethods()->get(),
-            'activeMethodsCount' => request()->user()->paymentMethods()->where('is_active', true)->count(),
+            'methods' => $this->methods(request()->user())->get(),
+            'activeMethodsCount' => $this->methods(request()->user())->where('is_active', true)->count(),
+            'platform' => request()->routeIs('admin.payment-methods.*'),
             'types' => PaymentMethodType::options(),
         ]);
     }
@@ -30,22 +33,25 @@ class PaymentMethodController extends Controller
     public function store(StorePaymentMethodRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $willBeActive = $request->boolean('is_active') || $request->boolean('is_primary');
-        if ($willBeActive && $user->paymentMethods()->where('is_active', true)->count() >= 10) {
-            throw ValidationException::withMessages(['type' => 'Maksimal 10 metode pembayaran aktif per akun.']);
-        }
         $data = $this->data($request);
+        $data['is_platform'] = $request->routeIs('admin.payment-methods.*');
+        $data['user_id'] = $user->id;
         $path = $request->hasFile('qris_image') ? $request->file('qris_image')->store('payment-methods/'.$user->id, 'local') : null;
+        if ($path === false) {
+            throw ValidationException::withMessages(['qris_image' => 'Gambar QRIS gagal disimpan. Coba lagi.'])->errorBag($request->formKey());
+        }
         $data['qris_path'] = $path;
         try {
-            DB::transaction(function () use ($user, $data): void {
+            DB::transaction(function () use ($user, $data, $request): void {
+                $this->lockMethods($user);
+                if ($data['is_active'] && $this->methods($user)->where('is_active', true)->count() >= 10) {
+                    throw ValidationException::withMessages(['type' => 'Maksimal 10 metode pembayaran aktif per akun.'])->errorBag($request->formKey());
+                }
                 if ($data['is_primary']) {
-                    $user->paymentMethods()->update(['is_primary' => false]);
+                    $this->methods($user)->update(['is_primary' => false]);
                 }
-                $method = $user->paymentMethods()->create($data);
-                if ($method->is_active && ! $user->paymentMethods()->where('is_primary', true)->exists()) {
-                    $method->update(['is_primary' => true]);
-                }
+                UserPaymentMethod::create($data);
+                $this->syncPrimary($user);
             });
         } catch (Throwable $exception) {
             if ($path) {
@@ -59,24 +65,31 @@ class PaymentMethodController extends Controller
 
     public function update(StorePaymentMethodRequest $request, UserPaymentMethod $paymentMethod): RedirectResponse
     {
-        $willBeActive = $request->boolean('is_active') || $request->boolean('is_primary');
-        if ($willBeActive && ! $paymentMethod->is_active && $request->user()->paymentMethods()->where('is_active', true)->count() >= 10) {
-            throw ValidationException::withMessages(['type' => 'Maksimal 10 metode pembayaran aktif per akun.']);
-        }
         $data = $this->data($request);
         $oldPath = $paymentMethod->qris_path;
         $newPath = $request->hasFile('qris_image') ? $request->file('qris_image')->store('payment-methods/'.$request->user()->id, 'local') : null;
+        if ($newPath === false) {
+            throw ValidationException::withMessages(['qris_image' => 'Gambar QRIS gagal disimpan. Coba lagi.'])->errorBag($request->formKey());
+        }
         if ($newPath) {
             $data['qris_path'] = $newPath;
         } elseif ($data['type'] !== PaymentMethodType::Qris->value) {
             $data['qris_path'] = null;
         }
         try {
-            DB::transaction(function () use ($request, $paymentMethod, $data): void {
+            DB::transaction(function () use ($request, $paymentMethod, $data, &$oldPath): void {
+                $user = $request->user();
+                $this->lockMethods($user);
+                $paymentMethod->refresh();
+                $oldPath = $paymentMethod->qris_path;
+                if ($data['is_active'] && ! $paymentMethod->is_active && $this->methods($user)->where('is_active', true)->count() >= 10) {
+                    throw ValidationException::withMessages(['type' => 'Maksimal 10 metode pembayaran aktif per akun.'])->errorBag($request->formKey());
+                }
                 if ($data['is_primary']) {
-                    $request->user()->paymentMethods()->whereKeyNot($paymentMethod->id)->update(['is_primary' => false]);
+                    $this->methods($user)->whereKeyNot($paymentMethod->id)->update(['is_primary' => false]);
                 }
                 $paymentMethod->update($data);
+                $this->syncPrimary($user);
             });
         } catch (Throwable $exception) {
             if ($newPath) {
@@ -94,10 +107,19 @@ class PaymentMethodController extends Controller
     public function destroy(UserPaymentMethod $paymentMethod): RedirectResponse
     {
         Gate::authorize('delete', $paymentMethod);
-        if ($paymentMethod->is_primary && $paymentMethod->user->paymentMethods()->whereKeyNot($paymentMethod->id)->exists()) {
-            throw ValidationException::withMessages(['payment_method' => 'Pilih metode utama lain sebelum menghapus metode ini.']);
+        abort_unless((bool) $paymentMethod->is_platform === request()->routeIs('admin.payment-methods.*'), 403);
+        $path = null;
+        DB::transaction(function () use ($paymentMethod, &$path): void {
+            $user = request()->user();
+            $this->lockMethods($user);
+            $paymentMethod->refresh();
+            $path = $paymentMethod->qris_path;
+            $paymentMethod->delete();
+            $this->syncPrimary($user);
+        });
+        if ($path) {
+            Storage::disk('local')->delete($path);
         }
-        $paymentMethod->delete();
 
         return back()->with('status', 'Metode pembayaran dihapus. Snapshot booking lama tetap tersimpan.');
     }
@@ -115,5 +137,33 @@ class PaymentMethodController extends Controller
         }
 
         return $data;
+    }
+
+    private function syncPrimary(User $user): void
+    {
+        $primary = $this->methods($user)->where('is_active', true)->first();
+        $this->methods($user)->where('is_primary', true)->update(['is_primary' => false]);
+        $primary?->update(['is_primary' => true]);
+    }
+
+    private function methods(User $user): Builder
+    {
+        $platform = request()->routeIs('admin.payment-methods.*');
+        abort_if($platform && ! $user->isAdmin(), 403);
+
+        return UserPaymentMethod::query()->where('is_platform', $platform)
+            ->when(! $platform, fn (Builder $query) => $query->where('user_id', $user->id))
+            ->orderByDesc('is_primary')->orderBy('sort_order')->orderBy('id');
+    }
+
+    private function lockMethods(User $user): void
+    {
+        $query = User::query();
+        if (request()->routeIs('admin.payment-methods.*')) {
+            $query->where('role', User::RoleAdmin)->orderBy('id');
+        } else {
+            $query->whereKey($user->id);
+        }
+        $query->lockForUpdate()->firstOrFail();
     }
 }

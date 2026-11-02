@@ -24,6 +24,9 @@
                 <a href="{{ route('admin.categories.index') }}" class="btn btn-ghost justify-start">Kategori</a>
                 <a href="{{ route('admin.items.index') }}" class="btn btn-ghost justify-start">Barang</a>
                 <a href="{{ route('admin.bookings.index') }}" class="btn btn-ghost justify-start">Booking</a>
+                <a href="{{ route('admin.finance') }}" class="btn btn-ghost justify-start">Keuangan &amp; Pencairan</a>
+                <a href="{{ route('admin.identity.index') }}" class="btn btn-ghost justify-start">Verifikasi Identitas</a>
+                <a href="{{ route('admin.payment-methods.index') }}" class="btn btn-ghost justify-start">Rekening Pinjemin</a>
             </nav>
             <div class="grid gap-2 border-t border-zinc-100 p-4">
                 <a href="{{ route('home') }}" class="btn btn-outline justify-start">Kembali ke Marketplace</a>
@@ -46,6 +49,9 @@
                     <a href="{{ route('admin.categories.index') }}" class="btn btn-ghost justify-start">Kategori</a>
                     <a href="{{ route('admin.items.index') }}" class="btn btn-ghost justify-start">Barang</a>
                     <a href="{{ route('admin.bookings.index') }}" class="btn btn-ghost justify-start">Booking</a>
+                    <a href="{{ route('admin.finance') }}" class="btn btn-ghost justify-start">Keuangan &amp; Pencairan</a>
+                    <a href="{{ route('admin.identity.index') }}" class="btn btn-ghost justify-start">Verifikasi Identitas</a>
+                    <a href="{{ route('admin.payment-methods.index') }}" class="btn btn-ghost justify-start">Rekening Pinjemin</a>
                 </nav>
                 <div class="mt-auto grid gap-2 border-t border-zinc-100 pt-4">
                     <a href="{{ route('home') }}" class="btn btn-outline justify-start">Kembali ke Marketplace</a>
@@ -74,11 +80,9 @@
                     </div>
                 @endif
 
-                @if ($errors->any())
+                @if (collect($errors->getBags())->contains(fn ($bag) => $bag->any()))
                     <div class="page-shell pb-0">
-                        <div class="reveal rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 shadow-sm">
-                            Periksa kembali data yang kamu masukkan.
-                        </div>
+                        <x-validation-summary />
                     </div>
                 @endif
 

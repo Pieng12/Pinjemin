@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'free_delivery',
     'allow_deposit_payment',
     'allow_cash_balance',
+    'requires_condition_photos', 'requires_identity_verification',
 ])]
 class Item extends Model
 {
@@ -99,6 +100,7 @@ class Item extends Model
     protected function casts(): array
     {
         return [
+            'requires_condition_photos' => 'boolean', 'requires_identity_verification' => 'boolean',
             'condition' => ItemCondition::class,
             'status' => ItemStatus::class,
             'daily_price' => 'decimal:2',
