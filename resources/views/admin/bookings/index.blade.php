@@ -17,67 +17,83 @@
             </div>
         </div>
 
-        <form method="GET" class="soft-card mt-6 grid gap-3 p-3 md:grid-cols-[1fr_220px_auto]">
-            <input name="q" value="{{ $filters['q'] ?? '' }}" placeholder="Cari kode, barang, atau penyewa" class="input">
-            <select name="status" class="input">
-                <option value="">Semua Status</option>
-                @foreach ($statuses as $value => $label)
-                    <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-            <x-button type="submit">Filter</x-button>
-        </form>
+        @php
+            $filterSelects = ['status' => ['label' => 'Status', 'all' => 'Semua status', 'options' => $statuses]];
+        @endphp
+        <x-list-filters :action="route('admin.bookings.index')" :filters="$filters" search-label="Cari booking" placeholder="Kode, barang, pemilik, atau penyewa" :selects="$filterSelects" />
+        <x-list-results :results="$bookings" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('admin.bookings.index')" empty-title="Belum ada booking" empty-description="Booking pengguna akan tampil di sini." />
 
-        <div class="mt-8 table-shell">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-zinc-200 text-sm">
-                    <thead class="table-head">
-                        <tr>
-                            <th class="px-4 py-3">Kode</th>
-                            <th class="px-4 py-3">Barang</th>
-                            <th class="px-4 py-3">Pemilik</th>
-                            <th class="px-4 py-3">Penyewa</th>
-                            <th class="px-4 py-3">Tanggal</th>
-                            <th class="px-4 py-3">Qty</th>
-                            <th class="px-4 py-3">Total</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3 text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-200">
-                        @forelse ($bookings as $booking)
-                            <tr class="table-row">
-                                <td class="px-4 py-3 font-medium text-zinc-950">{{ $booking->booking_code }}</td>
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-3">
-                                        <x-item-image :item="$booking->item" class="h-14 max-w-20" />
-                                        <span class="font-medium text-zinc-950">{{ $booking->item->name }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-zinc-600">{{ $booking->item->user->name }}</td>
-                                <td class="px-4 py-3 text-zinc-600">{{ $booking->renter->name }}</td>
-                                <td class="px-4 py-3 text-zinc-600">{{ $booking->start_date->format('d M Y') }} - {{ $booking->end_date->format('d M Y') }}</td>
-                                <td class="px-4 py-3 text-zinc-600">{{ $booking->quantity }}</td>
-                                <td class="px-4 py-3">
-                                    <x-price :amount="$booking->total_amount" suffix="" />
-                                    @if($booking->accepted_at || $booking->payments->isNotEmpty())
-                                        <p class="mt-1 text-xs text-zinc-500">Terverifikasi <x-price :amount="$booking->verifiedAmount()" suffix="" /> / sisa <x-price :amount="$booking->remainingAmount()" suffix="" /></p>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></td>
-                                <td class="px-4 py-3 text-right"><x-button href="{{ route('admin.bookings.show', $booking) }}" variant="outline">Detail</x-button></td>
-                            </tr>
-                        @empty
+        @if ($bookings->isNotEmpty())
+            <div class="mt-8 table-shell">
+                <div class="hidden overflow-x-auto lg:block">
+                    <table class="min-w-full divide-y divide-zinc-200 text-sm">
+                        <thead class="table-head">
                             <tr>
-                                <td colspan="9" class="px-4 py-10">
-                                    <x-empty-state title="Belum ada booking" description="Booking pengguna akan tampil di sini." />
-                                </td>
+                                <th class="px-4 py-3">Kode</th>
+                                <th class="px-4 py-3">Barang</th>
+                                <th class="px-4 py-3">Pemilik</th>
+                                <th class="px-4 py-3">Penyewa</th>
+                                <th class="px-4 py-3">Tanggal</th>
+                                <th class="px-4 py-3">Jumlah</th>
+                                <th class="px-4 py-3">Total</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3 text-right">Aksi</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-200">
+                            @foreach ($bookings as $booking)
+                                <tr class="table-row">
+                                    <td class="px-4 py-3 font-medium text-zinc-950">{{ $booking->booking_code }}</td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-3">
+                                            <x-item-image :item="$booking->item" class="h-14 max-w-20" />
+                                            <span class="font-medium text-zinc-950">{{ $booking->item->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-zinc-600">{{ $booking->item->user->name }}</td>
+                                    <td class="px-4 py-3 text-zinc-600">{{ $booking->renter->name }}</td>
+                                    <td class="px-4 py-3 text-zinc-600">{{ $booking->start_date->format('d M Y') }} - {{ $booking->end_date->format('d M Y') }}</td>
+                                    <td class="px-4 py-3 text-zinc-600">{{ $booking->quantity }}</td>
+                                    <td class="px-4 py-3">
+                                        <x-price :amount="$booking->total_amount" suffix="" />
+                                        @if($booking->accepted_at || $booking->payments->isNotEmpty())
+                                            <p class="mt-1 text-xs text-zinc-500">Terverifikasi <x-price :amount="$booking->verifiedAmount()" suffix="" /> / sisa <x-price :amount="$booking->remainingAmount()" suffix="" /></p>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></td>
+                                    <td class="px-4 py-3 text-right"><x-button href="{{ route('admin.bookings.show', $booking) }}" variant="outline">Detail</x-button></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="divide-y divide-zinc-200 lg:hidden">
+                    @foreach ($bookings as $booking)
+                        <article class="space-y-4 p-4">
+                            <div class="flex items-start gap-3">
+                                <x-item-image :item="$booking->item" class="h-20 max-w-24 shrink-0" />
+                                <div class="min-w-0 space-y-2">
+                                    <p class="break-all text-xs font-semibold text-zinc-500">{{ $booking->booking_code }}</p>
+                                    <h2 class="break-words font-semibold text-zinc-950">{{ $booking->item->name }}</h2>
+                                    <x-booking-status-badge :status="$booking->status" :booking="$booking" />
+                                </div>
+                            </div>
+                            <dl class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="min-w-0"><dt class="text-zinc-500">Pemilik</dt><dd class="break-words text-zinc-700">{{ $booking->item->user->name }}</dd></div>
+                                <div class="min-w-0"><dt class="text-zinc-500">Penyewa</dt><dd class="break-words text-zinc-700">{{ $booking->renter->name }}</dd></div>
+                                <div class="col-span-2"><dt class="text-zinc-500">Tanggal</dt><dd class="text-zinc-700">{{ $booking->start_date->format('d M Y') }} - {{ $booking->end_date->format('d M Y') }}</dd></div>
+                                <div><dt class="text-zinc-500">Jumlah</dt><dd class="text-zinc-700">{{ $booking->quantity }} unit</dd></div>
+                                <div><dt class="text-zinc-500">Total</dt><dd><x-price :amount="$booking->total_amount" suffix="" /></dd></div>
+                            </dl>
+                            @if ($booking->accepted_at || $booking->payments->isNotEmpty())
+                                <p class="text-xs text-zinc-500">Terverifikasi <x-price :amount="$booking->verifiedAmount()" suffix="" /> / sisa <x-price :amount="$booking->remainingAmount()" suffix="" /></p>
+                            @endif
+                            <x-button :href="route('admin.bookings.show', $booking)" variant="outline">Detail</x-button>
+                        </article>
+                    @endforeach
+                </div>
             </div>
-        </div>
+        @endif
 
         <div class="mt-6">{{ $bookings->links() }}</div>
     </section>

@@ -17,12 +17,19 @@
             </div>
             <div class="flex flex-wrap gap-2">
                 @can('downloadInvoice', $booking)
-                    <x-button :href="route('bookings.invoice', $booking)" variant="outline"><i data-lucide="download" class="h-4 w-4"></i>Tagihan</x-button>
+                    <x-button :href="route('bookings.invoice', $booking)" variant="outline"><i data-lucide="download" class="h-4 w-4"></i>Unduh Tagihan</x-button>
                 @endcan
-                @can('downloadPaymentReceipt', $booking)<x-button :href="route('bookings.payment-receipt', $booking)" variant="outline"><i data-lucide="receipt-text" class="h-4 w-4"></i>Konfirmasi Pembayaran</x-button>@endcan
+                @can('downloadPaymentReceipt', $booking)<x-button :href="route('bookings.payment-receipt', $booking)" variant="outline"><i data-lucide="receipt-text" class="h-4 w-4"></i>Unduh Konfirmasi Pembayaran</x-button>@endcan
                 @if ($viewer === 'renter')
                     <x-button href="{{ route('my-bookings.index') }}" variant="outline">Kembali</x-button>
                     @if ($booking->canBeCancelledByRenter())
+                        @php
+                            $bookingFormKey = 'booking-form-1';
+                            $bookingFormErrors = $errors;
+                            $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                            $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                            $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                        @endphp
                         <form
                             method="POST"
                             action="{{ route('my-bookings.cancel', $booking) }}"
@@ -30,38 +37,26 @@
                             data-confirm-title="Batalkan booking?"
                             data-confirm-message="Permintaan sewa ini akan dibatalkan dan pemilik akan melihat status terbarunya."
                             data-confirm-button="Batalkan Booking"
-                        >
+                         data-form-id="booking-form-1">
+                            <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                            <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
+
                             @csrf
                             @method('PATCH')
                             <x-button type="submit" variant="danger">Batalkan Booking</x-button>
                         </form>
+                        @php
+                            $errors = $bookingFormErrors;
+                        @endphp
+
                     @endif
                 @else
                     <x-button href="{{ route('incoming-bookings.index') }}" variant="outline">Kembali</x-button>
-                    @if ($booking->status === \App\BookingStatus::Pending && ($booking->fulfillment_method !== 'delivery' || ($booking->fulfillment_snapshot['free_delivery'] ?? false)))
-                        <form method="POST" action="{{ route('incoming-bookings.approve', $booking) }}">
-                            @csrf
-                            @method('PATCH')
-                            <x-button type="submit">Terima</x-button>
-                        </form>
-                    @endif
-                    @can('handOver', $booking)
-                    @if($booking->start_date->toDateString() <= now(\App\Models\Booking::RentalTimezone)->toDateString())
-                        <form method="POST" action="{{ route('incoming-bookings.hand-over', $booking) }}" data-confirm data-confirm-title="Barang sudah diserahkan?" data-confirm-message="Setelah penyerahan, booking tidak dapat dibatalkan. Stok dibebaskan setelah barang kembali." data-confirm-button="Ya, Sudah Diserahkan">
-                            @csrf @method('PATCH')
-                            <x-button type="submit">Barang Diserahkan</x-button>
-                        </form>
-                    @endif
-                    @endcan
-                    @can('complete', $booking)
-                        <form method="POST" action="{{ route('incoming-bookings.complete', $booking) }}" data-confirm data-confirm-title="Semua barang sudah kembali?" data-confirm-message="Konfirmasi ini berlaku untuk seluruh unit booking dan membebaskan sisa reservasi." data-confirm-button="Konfirmasi Kembali">
-                            @csrf @method('PATCH')
-                            <x-button type="submit">Konfirmasi Barang Kembali</x-button>
-                        </form>
-                    @endcan
                 @endif
             </div>
         </div>
+
+        <x-booking-next-action :action="$nextAction" />
 
         @if($stockConflict ?? false)
             <p class="mt-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800" role="alert">Ada konflik stok pada periode booking ini, termasuk kemungkinan barang terlambat kembali. Periksa pengembalian sebelum menyerahkan barang kepada penyewa.</p>
@@ -101,44 +96,6 @@
                     </dl>
                 </div>
 
-                @php
-                    $submittedAt = $booking->payments->sortByDesc('submitted_at')->first()?->submitted_at;
-                    $depositPayment = $booking->payments->first(fn ($payment) => $payment->kind === 'deposit' && $payment->status === \App\BookingPaymentStatus::Verified);
-                    $showDepositStep = $booking->payment_plan && $booking->payment_plan !== \App\PaymentPlan::FullTransfer;
-                    $timeline = [
-                        ['Pengajuan dikirim', $booking->created_at, true, $booking->status === \App\BookingStatus::Pending],
-                        ['Booking diterima', $booking->accepted_at, (bool) $booking->accepted_at, false],
-                        ['Menunggu pembayaran', $booking->accepted_at, $booking->payments->isNotEmpty(), $booking->effectiveStatus() === \App\BookingStatus::AwaitingPayment],
-                        ['Bukti pembayaran diperiksa', $submittedAt, (bool) $submittedAt, $booking->effectiveStatus() === \App\BookingStatus::PaymentReview],
-                    ];
-                    if ($showDepositStep) {
-                        $timeline[] = ['DP diterima', $depositPayment?->reviewed_at, (bool) $depositPayment, $booking->status === \App\BookingStatus::PartiallyPaid];
-                    }
-                    $timeline[] = ['Pembayaran lunas', $booking->payment_verified_at, (bool) $booking->payment_verified_at, $booking->status === \App\BookingStatus::Approved && ! $booking->handed_over_at];
-                    $timeline[] = ['Barang diserahkan', $booking->handed_over_at, (bool) $booking->handed_over_at, (bool) $booking->handed_over_at && ! $booking->completed_at];
-                    $timeline[] = ['Penyewaan selesai', $booking->completed_at, (bool) $booking->completed_at, $booking->status === \App\BookingStatus::Completed];
-                @endphp
-                <div class="soft-card card-pad">
-                    <div class="flex items-center justify-between gap-3">
-                        <h2 class="font-bold text-zinc-950">Alur Booking</h2>
-                        <span class="text-xs font-semibold text-zinc-500">{{ $booking->effectiveStatus()->label() }}</span>
-                    </div>
-                    <ol class="mt-5 grid gap-0 text-sm">
-                        @foreach($timeline as [$label, $timestamp, $completed, $current])
-                            <li class="relative flex min-h-14 gap-3 pb-4 last:min-h-0 last:pb-0">
-                                @unless($loop->last)<span class="absolute left-[5px] top-3 h-full w-px {{ $completed ? 'bg-blue-200' : 'bg-zinc-200' }}" aria-hidden="true"></span>@endunless
-                                <span class="relative mt-1 h-3 w-3 shrink-0 rounded-full border-2 {{ $completed ? 'border-blue-700 bg-blue-700' : ($current ? 'border-amber-500 bg-amber-100' : 'border-zinc-300 bg-white') }}" aria-hidden="true"></span>
-                                <div class="min-w-0">
-                                    <p class="font-semibold {{ $completed || $current ? 'text-zinc-950' : 'text-zinc-500' }}">{{ $label }}</p>
-                                    <p class="mt-0.5 text-xs text-zinc-500">{{ $timestamp ? $timestamp->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i').' WIB' : ($current ? 'Sedang berlangsung' : 'Belum tercatat') }}</p>
-                                </div>
-                            </li>
-                        @endforeach
-                        @if($booking->status === \App\BookingStatus::Cancelled)
-                            <li class="mt-3 flex gap-3 border-t border-red-100 pt-4"><span class="mt-1 h-3 w-3 shrink-0 rounded-full bg-red-600"></span><div><p class="font-semibold text-red-700">Booking dibatalkan</p><p class="mt-0.5 text-xs text-zinc-500">{{ $booking->cancelled_at?->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB</p></div></li>
-                        @endif
-                    </ol>
-                </div>
             </aside>
 
             <div class="card card-pad">
@@ -152,13 +109,41 @@
                 @include('bookings.partials.fulfillment', ['booking' => $booking, 'showPickup' => $booking->invoice_snapshot !== null])
 
                 @if($booking->effectiveStatus() === \App\BookingStatus::AwaitingRenterConfirmation)
-                    <div class="mt-6 border-l-2 border-blue-600 bg-blue-50 p-4 text-sm text-blue-950">
+                    <div id="booking-delivery" tabindex="-1" class="mt-6 scroll-mt-24 border-l-2 border-blue-600 bg-blue-50 p-4 text-sm text-blue-950">
                         <p class="font-semibold">{{ $viewer === 'renter' ? 'Tawaran ongkir menunggu persetujuanmu' : 'Menunggu persetujuan total dari penyewa' }}</p>
                         <p class="mt-2 leading-6">Stok ditahan sampai {{ $booking->quote_expires_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB. Setelah batas ini, tawaran kedaluwarsa dan stok dibebaskan.</p>
                         @if($viewer === 'renter')
                             <div class="mt-4 flex flex-wrap gap-2">
-                                <form method="POST" action="{{ route('my-bookings.confirm-delivery', $booking) }}">@csrf @method('PATCH')<x-button type="submit">Setujui Total</x-button></form>
-                                <form method="POST" action="{{ route('my-bookings.decline-delivery', $booking) }}" data-confirm data-confirm-title="Tolak tawaran ongkir?" data-confirm-message="Booking akan dibatalkan dan stok tidak lagi ditahan untukmu." data-confirm-button="Tolak dan Batalkan">@csrf @method('PATCH')<x-button type="submit" variant="outline">Tolak dan Batalkan</x-button></form>
+                                @php
+                                    $bookingFormKey = 'booking-form-2';
+                                    $bookingFormErrors = $errors;
+                                    $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                                    $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                                    $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                                @endphp
+                                <form method="POST" action="{{ route('my-bookings.confirm-delivery', $booking) }}" data-form-id="booking-form-2">
+                                    <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                                    <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
+@csrf @method('PATCH')<x-button type="submit">Setujui Total</x-button></form>
+                                @php
+                                    $errors = $bookingFormErrors;
+                                @endphp
+
+                                @php
+                                    $bookingFormKey = 'booking-form-3';
+                                    $bookingFormErrors = $errors;
+                                    $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                                    $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                                    $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                                @endphp
+                                <form method="POST" action="{{ route('my-bookings.decline-delivery', $booking) }}" data-confirm data-confirm-title="Tolak tawaran ongkir?" data-confirm-message="Booking akan dibatalkan dan stok tidak lagi ditahan untukmu." data-confirm-button="Tolak dan Batalkan" data-form-id="booking-form-3">
+                                    <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                                    <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
+@csrf @method('PATCH')<x-button type="submit" variant="outline">Tolak dan Batalkan</x-button></form>
+                                @php
+                                    $errors = $bookingFormErrors;
+                                @endphp
+
                             </div>
                         @endif
                     </div>
@@ -196,10 +181,80 @@
                     </dl>
                 </div>
 
-                @include('bookings.partials.payment', ['booking' => $booking, 'viewer' => $viewer])
-                @include('bookings.partials.payout', ['booking' => $booking, 'viewer' => $viewer])
-                @include('bookings.partials.inspections', ['booking' => $booking])
+            </div>
+        </div>
+        @if($viewer === 'owner')
+            <section id="booking-owner-actions" tabindex="-1" class="card card-pad mt-6 scroll-mt-24" aria-label="Tindakan pemilik">
+                <h2 class="text-lg font-semibold">Tinjau &amp; Kelola Booking</h2>
+                @if($approvalBlocker ?? null)
+                    <p class="mt-3 rounded-md bg-amber-50 p-4 text-sm leading-6 text-amber-900">{{ $approvalBlocker['message'] }}</p>
+                @else
+                    <div class="mt-4 flex flex-wrap gap-3">
+                    @if ($booking->status === \App\BookingStatus::Pending && ($booking->fulfillment_method !== 'delivery' || ($booking->fulfillment_snapshot['free_delivery'] ?? false)))
+                        @php
+                            $bookingFormKey = 'booking-form-4';
+                            $bookingFormErrors = $errors;
+                            $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                            $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                            $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                        @endphp
+                        <form method="POST" action="{{ route('incoming-bookings.approve', $booking) }}" data-form-id="booking-form-4">
+                            <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                            <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
 
+                            @csrf
+                            @method('PATCH')
+                            <x-button type="submit">Terima</x-button>
+                        </form>
+                        @php
+                            $errors = $bookingFormErrors;
+                        @endphp
+
+                    @endif
+                    @can('handOver', $booking)
+                    @if(!($handoverBlocker ?? null))
+                        @php
+                            $bookingFormKey = 'booking-form-5';
+                            $bookingFormErrors = $errors;
+                            $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                            $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                            $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                        @endphp
+                        <form method="POST" action="{{ route('incoming-bookings.hand-over', $booking) }}" data-confirm data-confirm-title="Barang sudah diserahkan?" data-confirm-message="Setelah penyerahan, booking tidak dapat dibatalkan. Stok dibebaskan setelah barang kembali." data-confirm-button="Ya, Sudah Diserahkan" data-form-id="booking-form-5">
+                            <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                            <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
+
+                            @csrf @method('PATCH')
+                            <x-button type="submit">Barang Diserahkan</x-button>
+                        </form>
+                        @php
+                            $errors = $bookingFormErrors;
+                        @endphp
+
+                    @endif
+                    @endcan
+                    @can('complete', $booking)
+                        @php
+                            $bookingFormKey = 'booking-form-6';
+                            $bookingFormErrors = $errors;
+                            $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                            $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                            $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                        @endphp
+                        <form method="POST" action="{{ route('incoming-bookings.complete', $booking) }}" data-confirm data-confirm-title="Semua barang sudah kembali?" data-confirm-message="Konfirmasi ini berlaku untuk seluruh unit booking dan membebaskan sisa reservasi." data-confirm-button="Konfirmasi Kembali" data-form-id="booking-form-6">
+                            <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                            <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
+
+                            @csrf @method('PATCH')
+                            <x-button type="submit">Konfirmasi Barang Kembali</x-button>
+                        </form>
+                        @php
+                            $errors = $bookingFormErrors;
+                        @endphp
+
+                    @endcan
+                    </div>
+                @endif
                 @if($viewer === 'owner' && $booking->status === \App\BookingStatus::Pending && $booking->fulfillment_method === 'delivery' && !($booking->fulfillment_snapshot['free_delivery'] ?? false))
                     <section class="mt-6 border-t border-zinc-200 pt-6" aria-labelledby="delivery-quote-title">
                         <h2 id="delivery-quote-title" class="font-semibold text-zinc-950">Tawaran Ongkir</h2>
@@ -207,13 +262,27 @@
                             <div class="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{ $message }}</div>
                         @enderror
 
-                        @if($hasActivePaymentMethod)
-                            <form method="POST" action="{{ route('incoming-bookings.quote-delivery', $booking) }}" class="mt-2">
+                        @if($hasActivePaymentMethod && !($approvalBlocker ?? null))
+                            @php
+                                $bookingFormKey = 'booking-form-7';
+                                $bookingFormErrors = $errors;
+                                $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                                $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                                $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                            @endphp
+                            <form method="POST" action="{{ route('incoming-bookings.quote-delivery', $booking) }}" class="mt-2" data-form-id="booking-form-7">
+                                <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                                <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
+
                                 @csrf @method('PATCH')
                                 <p class="text-sm leading-6 text-zinc-600">Biaya sekali untuk pengiriman ke alamat penyewa. Rp 0 diperbolehkan; total tetap perlu disetujui penyewa.</p>
-                                <div class="mt-4"><x-currency-input name="delivery_fee" label="Ongkir" :value="old('delivery_fee', 0)" required /></div>
+                                <div class="mt-4"><x-currency-input name="delivery_fee" label="Ongkir" :value="$bookingOld('delivery_fee', 0)" required /></div>
                                 <x-button type="submit" class="mt-4">Kirim Tawaran Ongkir</x-button>
                             </form>
+                            @php
+                                $errors = $bookingFormErrors;
+                            @endphp
+
                         @else
                             <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
                                 <p class="text-sm font-semibold text-amber-950">Metode pembayaran belum tersedia</p>
@@ -224,6 +293,52 @@
                     </section>
                 @endif
 
+            </section>
+        @endif
+        @include('bookings.partials.payment', ['booking' => $booking, 'viewer' => $viewer])
+        @include('bookings.partials.inspections', ['booking' => $booking])
+        @include('bookings.partials.payout', ['booking' => $booking, 'viewer' => $viewer])
+                @php
+                    $submittedAt = $booking->payments->sortByDesc('submitted_at')->first()?->submitted_at;
+                    $depositPayment = $booking->payments->first(fn ($payment) => $payment->kind === 'deposit' && $payment->status === \App\BookingPaymentStatus::Verified);
+                    $showDepositStep = $booking->payment_plan && $booking->payment_plan !== \App\PaymentPlan::FullTransfer;
+                    $timeline = [
+                        ['Pengajuan dikirim', $booking->created_at, true, $booking->status === \App\BookingStatus::Pending],
+                        ['Booking diterima', $booking->accepted_at, (bool) $booking->accepted_at, false],
+                        ['Menunggu pembayaran', $booking->accepted_at, $booking->payments->isNotEmpty(), $booking->effectiveStatus() === \App\BookingStatus::AwaitingPayment],
+                        ['Bukti pembayaran diperiksa', $submittedAt, (bool) $submittedAt, $booking->effectiveStatus() === \App\BookingStatus::PaymentReview],
+                    ];
+                    if ($showDepositStep) {
+                        $timeline[] = ['DP diterima', $depositPayment?->reviewed_at, (bool) $depositPayment, $booking->status === \App\BookingStatus::PartiallyPaid];
+                    }
+                    $timeline[] = ['Pembayaran lunas', $booking->payment_verified_at, (bool) $booking->payment_verified_at, $booking->status === \App\BookingStatus::Approved && ! $booking->handed_over_at];
+                    $timeline[] = ['Barang diserahkan', $booking->handed_over_at, (bool) $booking->handed_over_at, (bool) $booking->handed_over_at && ! $booking->completed_at];
+                    $timeline[] = ['Penyewaan selesai', $booking->completed_at, (bool) $booking->completed_at, $booking->status === \App\BookingStatus::Completed];
+                @endphp
+                <details class="card card-pad mt-6" id="booking-history">
+                    <summary class="cursor-pointer font-semibold">Alur Booking &amp; Riwayat</summary>
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="font-bold text-zinc-950">Alur Booking</h2>
+                        <span class="text-xs font-semibold text-zinc-500">{{ $booking->effectiveStatus()->label() }}</span>
+                    </div>
+                    <ol class="mt-5 grid gap-0 text-sm">
+                        @foreach($timeline as [$label, $timestamp, $completed, $current])
+                            <li class="relative flex min-h-14 gap-3 pb-4 last:min-h-0 last:pb-0">
+                                @unless($loop->last)<span class="absolute left-[5px] top-3 h-full w-px {{ $completed ? 'bg-blue-200' : 'bg-zinc-200' }}" aria-hidden="true"></span>@endunless
+                                <span class="relative mt-1 h-3 w-3 shrink-0 rounded-full border-2 {{ $completed ? 'border-blue-700 bg-blue-700' : ($current ? 'border-amber-500 bg-amber-100' : 'border-zinc-300 bg-white') }}" aria-hidden="true"></span>
+                                <div class="min-w-0">
+                                    <p class="font-semibold {{ $completed || $current ? 'text-zinc-950' : 'text-zinc-500' }}">{{ $label }}</p>
+                                    <p class="mt-0.5 text-xs text-zinc-500">{{ $timestamp ? $timestamp->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i').' WIB' : ($current ? 'Sedang berlangsung' : 'Belum tercatat') }}</p>
+                                </div>
+                            </li>
+                        @endforeach
+                        @if($booking->status === \App\BookingStatus::Cancelled)
+                            <li class="mt-3 flex gap-3 border-t border-red-100 pt-4"><span class="mt-1 h-3 w-3 shrink-0 rounded-full bg-red-600"></span><div><p class="font-semibold text-red-700">Booking dibatalkan</p><p class="mt-0.5 text-xs text-zinc-500">{{ $booking->cancelled_at?->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB</p></div></li>
+                        @endif
+                    </ol>
+                </details>
+        <div class="mt-6 grid gap-4">
+            <div class="card card-pad">
                 @if($booking->handed_over_at)
                     <p class="mt-5 text-sm text-zinc-600">Barang diserahkan: {{ $booking->handed_over_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB.</p>
                 @endif
@@ -238,11 +353,25 @@
                     @can('cancelAsOwner', $booking)
                         <details class="mt-6 border-t border-zinc-200 pt-5">
                             <summary class="cursor-pointer text-sm font-semibold text-red-600">Batalkan Booking</summary>
-                            <form method="POST" action="{{ route('incoming-bookings.cancel', $booking) }}" class="mt-4 grid gap-3" data-confirm data-confirm-title="Batalkan booking ini?" data-confirm-message="Penyewa akan melihat alasan pembatalan dan reservasi stok akan dibebaskan." data-confirm-button="Batalkan Booking">
+                            @php
+                                $bookingFormKey = 'booking-form-8';
+                                $bookingFormErrors = $errors;
+                                $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                                $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                                $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                            @endphp
+                            <form method="POST" action="{{ route('incoming-bookings.cancel', $booking) }}" class="mt-4 grid gap-3" data-confirm data-confirm-title="Batalkan booking ini?" data-confirm-message="Penyewa akan melihat alasan pembatalan dan reservasi stok akan dibebaskan." data-confirm-button="Batalkan Booking" data-form-id="booking-form-8">
+                                <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                                <x-validation-summary :form-id="$bookingFormKey" :field-ids="['cancellation_reason' => 'booking-form-8-cancellation_reason']" />
+
                                 @csrf @method('PATCH')
-                                <label class="block"><span class="field-label">Alasan pembatalan</span><textarea name="cancellation_reason" rows="3" maxlength="1000" required class="input">{{ old('cancellation_reason') }}</textarea></label>
+                                <label class="block"><span class="field-label">Alasan pembatalan</span><textarea name="cancellation_reason" rows="3" maxlength="1000" required class="input" id="booking-form-8-cancellation_reason" aria-describedby="booking-form-8-cancellation_reason-error" aria-invalid="{{ $errors->has('cancellation_reason') ? 'true' : 'false' }}">{{ $bookingOld('cancellation_reason') }}</textarea>@error('cancellation_reason')<span id="booking-form-8-cancellation_reason-error" data-error-field="cancellation_reason" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
                                 <x-button type="submit" variant="danger">Batalkan Booking</x-button>
                             </form>
+                            @php
+                                $errors = $bookingFormErrors;
+                            @endphp
+
                         </details>
                     @endcan
                 @endif
@@ -261,13 +390,27 @@
                 </div>
 
                 @if ($viewer === 'owner' && $booking->status === \App\BookingStatus::Pending)
-                    <form method="POST" action="{{ route('incoming-bookings.reject', $booking) }}" class="mt-6 rounded-md border border-red-100 bg-red-50 p-4">
+                    @php
+                        $bookingFormKey = 'booking-form-9';
+                        $bookingFormErrors = $errors;
+                        $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                        $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                        $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                    @endphp
+                    <form method="POST" action="{{ route('incoming-bookings.reject', $booking) }}" class="mt-6 rounded-md border border-red-100 bg-red-50 p-4" data-form-id="booking-form-9">
+                        <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                        <x-validation-summary :form-id="$bookingFormKey" :field-ids="['owner_note' => 'owner_note']" />
+
                         @csrf
                         @method('PATCH')
                         <label class="field-label text-red-950" for="owner_note">Alasan penolakan</label>
-                        <textarea name="owner_note" id="owner_note" rows="3" class="input mt-2 border-red-200 focus:border-red-400 focus:ring-red-200">{{ old('owner_note') }}</textarea>
+                        <textarea name="owner_note" id="owner_note" rows="3" class="input mt-2 border-red-200 focus:border-red-400 focus:ring-red-200" aria-describedby="owner_note-error" aria-invalid="{{ $errors->has('owner_note') ? 'true' : 'false' }}">{{ $bookingOld('owner_note') }}</textarea>@error('owner_note')<span id="owner_note-error" data-error-field="owner_note" class="field-error" role="alert">{{ $message }}</span>@enderror
                         <x-button type="submit" variant="danger" class="mt-3">Tolak Booking</x-button>
                     </form>
+                    @php
+                        $errors = $bookingFormErrors;
+                    @endphp
+
                 @endif
             </div>
         </div>

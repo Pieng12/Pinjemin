@@ -1,10 +1,14 @@
 @if($booking->collectsViaPlatform())
     @can('viewPayout', $booking)
-        <section class="mt-7 rounded-lg border border-zinc-200 bg-white p-5" aria-labelledby="payout-title">
+        <section id="booking-payout" tabindex="-1" class="mt-7 scroll-mt-24 rounded-lg border border-zinc-200 bg-white p-5" aria-labelledby="payout-title">
             <div class="flex flex-wrap items-center justify-between gap-3"><h2 id="payout-title" class="text-lg font-semibold">Pencairan Pemilik</h2><span class="badge bg-blue-50 text-blue-700">{{ $booking->payout?->statusLabel() ?? 'Belum diterima pemilik' }}</span></div>
             <p class="mt-2 text-sm leading-6 text-zinc-600">Komisi {{ $booking->fulfillment_snapshot['commission_rate'] }}% dari biaya sewa, di luar ongkir. DP bagian dari total. Transfer manual setelah pengembalian terkonfirmasi dan masalah selesai; target maksimal 1×24 jam. Pemilik membiayai ongkir lebih dahulu, lalu menerima penggantiannya bersama pencairan.</p>
-            @php($payout = $booking->payout)
-            @php($fee = $payout?->commission_amount ?? round((float)$booking->subtotal * (float)$booking->fulfillment_snapshot['commission_rate'] / 100, 2))
+            @php
+$payout = $booking->payout;
+@endphp
+            @php
+$fee = $payout?->commission_amount ?? round((float)$booking->subtotal * (float)$booking->fulfillment_snapshot['commission_rate'] / 100, 2);
+@endphp
             <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-3">
                 <div><dt class="text-zinc-500">Total booking</dt><dd class="mt-1 font-semibold"><x-price :amount="$booking->total_amount" suffix="" /></dd></div>
                 <div><dt class="text-zinc-500">{{ $payout?->status === 'cancelled' ? 'Komisi dibatalkan' : 'Komisi platform' }}</dt><dd class="mt-1 font-semibold"><x-price :amount="$payout?->status === 'cancelled' ? 0 : $fee" suffix="" /></dd></div>
@@ -20,26 +24,82 @@
                 @can('managePayout', $booking)
                     <div class="mt-5 grid gap-4">
                         @if($payout->status === 'pending' && $payout->isEligible())
-                            <form method="POST" action="{{ route('bookings.payout', $booking) }}">@csrf @method('PATCH')<input type="hidden" name="action" value="start"><x-button type="submit">Mulai Proses Pencairan</x-button></form>
+                            @php
+                                $bookingFormKey = 'payout-form-1';
+                                $bookingFormErrors = $errors;
+                                $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                                $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                                $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                            @endphp
+                            <form method="POST" action="{{ route('bookings.payout', $booking) }}" data-form-id="payout-form-1">
+                                <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                                <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
+@csrf @method('PATCH')<input type="hidden" name="action" value="start"><x-button type="submit">Mulai Proses Pencairan</x-button></form>
+                            @php
+                                $errors = $bookingFormErrors;
+                            @endphp
+
                         @endif
                         @if(in_array($payout->status, ['pending', 'on_hold'], true))
-                            <form method="POST" action="{{ route('bookings.payout', $booking) }}" class="grid gap-3">@csrf @method('PATCH')<input type="hidden" name="action" value="{{ $payout->status === 'on_hold' ? 'release' : 'hold' }}"><label><span class="field-label">{{ $payout->status === 'on_hold' ? 'Alasan penyelesaian masalah' : 'Alasan menahan pencairan' }}</span><textarea name="note" required maxlength="1000" rows="2" class="input"></textarea></label><x-button type="submit" variant="outline" class="w-fit">{{ $payout->status === 'on_hold' ? 'Selesaikan Masalah & Lepas Penahanan' : 'Tahan Pencairan' }}</x-button></form>
+                            @php
+                                $bookingFormKey = 'payout-form-2';
+                                $bookingFormErrors = $errors;
+                                $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                                $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                                $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                            @endphp
+                            <form method="POST" action="{{ route('bookings.payout', $booking) }}" class="grid gap-3" data-form-id="payout-form-2">
+                                <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                                <x-validation-summary :form-id="$bookingFormKey" :field-ids="['note' => 'payout-form-2-note']" />
+@csrf @method('PATCH')<input type="hidden" name="action" value="{{ $payout->status === 'on_hold' ? 'release' : 'hold' }}"><label><span class="field-label">{{ $payout->status === 'on_hold' ? 'Alasan penyelesaian masalah' : 'Alasan menahan pencairan' }}</span><textarea name="note" required maxlength="1000" rows="2" class="input" id="payout-form-2-note" aria-describedby="payout-form-2-note-error" aria-invalid="{{ $errors->has('note') ? 'true' : 'false' }}">{{ $bookingOld('note') }}</textarea>@error('note')<span id="payout-form-2-note-error" data-error-field="note" class="field-error" role="alert">{{ $message }}</span>@enderror</label><x-button type="submit" variant="outline" class="w-fit">{{ $payout->status === 'on_hold' ? 'Selesaikan Masalah & Lepas Penahanan' : 'Tahan Pencairan' }}</x-button></form>
+                            @php
+                                $errors = $bookingFormErrors;
+                            @endphp
+
                         @endif
                         @if($payout->status === 'processing')
                             @if($payout->processed_by_user_id === auth()->id())
-                                <form method="POST" action="{{ route('bookings.payout', $booking) }}" enctype="multipart/form-data" class="grid gap-3" data-private-image-upload data-confirm data-confirm-title="Catat transfer pencairan?" data-confirm-message="Pastikan transfer ke rekening tujuan sudah berhasil dan nominal sesuai hak pemilik. Jangan transfer ulang jika pencatatan gagal." data-confirm-button="Catat Transfer">
+                                @php
+                                    $bookingFormKey = 'payout-form-3';
+                                    $bookingFormErrors = $errors;
+                                    $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                                    $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                                    $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                                @endphp
+                                <form method="POST" action="{{ route('bookings.payout', $booking) }}" enctype="multipart/form-data" class="grid gap-3" data-private-image-upload data-confirm data-confirm-title="Catat transfer pencairan?" data-confirm-message="Pastikan transfer ke rekening tujuan sudah berhasil dan nominal sesuai hak pemilik. Jangan transfer ulang jika pencatatan gagal." data-confirm-button="Catat Transfer" data-form-id="payout-form-3">
+                                    <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                                    <x-validation-summary :form-id="$bookingFormKey" :field-ids="['paid_at' => 'payout-form-3-paid_at', 'transaction_reference' => 'payout-form-3-transaction_reference', 'proof' => 'payout-form-3-proof', 'note' => 'payout-form-3-note']" />
+
                                     @csrf @method('PATCH')<input type="hidden" name="action" value="paid"><p class="text-sm font-semibold">Transfer tepat <x-price :amount="$payout->amount" suffix="" /> ke tujuan di atas, lalu catat buktinya.</p>
-                                    <label><span class="field-label">Waktu transfer (WIB)</span><input type="datetime-local" name="paid_at" value="{{ old('paid_at', now(\App\Models\Booking::RentalTimezone)->format('Y-m-d\TH:i')) }}" required class="input"></label>
-                                    <label><span class="field-label">Referensi transfer</span><input name="transaction_reference" value="{{ old('transaction_reference') }}" required maxlength="150" class="input"></label>
-                                    <label><span class="field-label">Bukti transfer</span><input type="file" name="proof" required accept="image/jpeg,image/png,image/webp" class="photo-file-input" data-private-image-input><span class="field-help">JPG, PNG, atau WebP maksimal 5 MB.</span></label><div data-private-image-preview hidden><img alt="Preview bukti pencairan" class="max-h-80 w-full object-contain"></div>
-                                    <label><span class="field-label">Catatan</span><textarea name="note" maxlength="1000" rows="2" class="input">{{ old('note') }}</textarea></label><x-button type="submit" class="w-fit">Catat Transfer Berhasil</x-button>
+                                    <label><span class="field-label">Waktu transfer (WIB)</span><input type="datetime-local" name="paid_at" value="{{ $bookingOld('paid_at', now(\App\Models\Booking::RentalTimezone)->format('Y-m-d\TH:i')) }}" required class="input" id="payout-form-3-paid_at" aria-describedby="payout-form-3-paid_at-error" aria-invalid="{{ $errors->has('paid_at') ? 'true' : 'false' }}">@error('paid_at')<span id="payout-form-3-paid_at-error" data-error-field="paid_at" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
+                                    <label><span class="field-label">Referensi transfer</span><input name="transaction_reference" value="{{ $bookingOld('transaction_reference') }}" required maxlength="150" class="input" id="payout-form-3-transaction_reference" aria-describedby="payout-form-3-transaction_reference-error" aria-invalid="{{ $errors->has('transaction_reference') ? 'true' : 'false' }}">@error('transaction_reference')<span id="payout-form-3-transaction_reference-error" data-error-field="transaction_reference" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
+                                    <label><span class="field-label">Bukti transfer</span><input type="file" name="proof" required accept="image/jpeg,image/png,image/webp" class="photo-file-input" data-private-image-input id="payout-form-3-proof" aria-describedby="payout-form-3-proof-error" aria-invalid="{{ $errors->has('proof') ? 'true' : 'false' }}">@error('proof')<span id="payout-form-3-proof-error" data-error-field="proof" class="field-error" role="alert">{{ $message }}</span>@enderror<span class="field-help">JPG, PNG, atau WebP maksimal 5 MB.</span></label><div data-private-image-preview hidden><img alt="Preview bukti pencairan" class="max-h-80 w-full object-contain"></div>
+                                    <label><span class="field-label">Catatan</span><textarea name="note" maxlength="1000" rows="2" class="input" id="payout-form-3-note" aria-describedby="payout-form-3-note-error" aria-invalid="{{ $errors->has('note') ? 'true' : 'false' }}">{{ $bookingOld('note') }}</textarea>@error('note')<span id="payout-form-3-note-error" data-error-field="note" class="field-error" role="alert">{{ $message }}</span>@enderror</label><x-button type="submit" class="w-fit">Catat Transfer Berhasil</x-button>
                                 </form>
+                                @php
+                                    $errors = $bookingFormErrors;
+                                @endphp
+
                             @else<p class="text-sm text-amber-800">Sedang ditangani admin #{{ $payout->processed_by_user_id }}. Koordinasikan sebelum melakukan transfer agar tidak terjadi pembayaran ganda.</p>@endif
                         @endif
                     </div>
                 @endcan
                 @if($viewer === 'owner' && $payout->status === 'paid' && !$payout->received_at)
-                    <form method="POST" action="{{ route('bookings.payout', $booking) }}" class="mt-4">@csrf @method('PATCH')<input type="hidden" name="action" value="receive"><x-button type="submit">Konfirmasi Dana Diterima</x-button></form>
+                    @php
+                        $bookingFormKey = 'payout-form-4';
+                        $bookingFormErrors = $errors;
+                        $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+                        $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+                        $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+                    @endphp
+                    <form method="POST" action="{{ route('bookings.payout', $booking) }}" class="mt-4" data-form-id="payout-form-4">
+                        <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+                        <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
+@csrf @method('PATCH')<input type="hidden" name="action" value="receive"><x-button type="submit">Konfirmasi Dana Diterima</x-button></form>
+                    @php
+                        $errors = $bookingFormErrors;
+                    @endphp
+
                 @endif
                 @if($payout->events)
                     <details class="mt-5 border-t border-zinc-100 pt-4"><summary class="cursor-pointer text-sm font-semibold">Riwayat pencairan</summary><ol class="mt-3 grid gap-3 text-sm">@foreach($payout->events as $event)<li><strong>{{ match($event['action']) {'hold', 'report' => 'Dana ditahan', 'release' => 'Penahanan dilepas', 'start' => 'Pencairan dimulai', 'paid' => 'Transfer dicatat', 'receive' => 'Dana diterima', default => $event['action']} }}</strong> · {{ $event['actor_name'] }} · {{ \Illuminate\Support\Carbon::parse($event['at'])->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB @if($event['note'])<p class="mt-1 text-zinc-600">{{ $event['note'] }}</p>@endif</li>@endforeach</ol></details>
@@ -49,7 +109,21 @@
     @endcan
     @can('reportPaymentIssue', $booking)
         @if($booking->payout && in_array($booking->payout->status, ['pending', 'on_hold'], true))
-            <details class="mt-5 rounded-md border border-amber-200 p-4"><summary class="cursor-pointer text-sm font-semibold">Laporkan Masalah Transaksi</summary><form method="POST" action="{{ route('bookings.payout', $booking) }}" class="mt-3 grid gap-3">@csrf @method('PATCH')<input type="hidden" name="action" value="report"><p class="text-sm text-zinc-600">Laporan menahan pencairan sampai admin menyelesaikan pemeriksaan.</p><label><span class="field-label">Jelaskan masalah</span><textarea name="note" required rows="3" maxlength="1000" class="input"></textarea></label><x-button type="submit" variant="outline" class="w-fit">Kirim Laporan</x-button></form></details>
+            <details class="mt-5 rounded-md border border-amber-200 p-4"><summary class="cursor-pointer text-sm font-semibold">Laporkan Masalah Transaksi</summary>@php
+    $bookingFormKey = 'payout-form-5';
+    $bookingFormErrors = $errors;
+    $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;
+    $errors = $bookingFormMatches ? $bookingFormErrors : new \Illuminate\Support\ViewErrorBag;
+    $bookingOld = fn ($name, $default = null) => $bookingFormMatches ? old($name, $default) : $default;
+@endphp
+<form method="POST" action="{{ route('bookings.payout', $booking) }}" class="mt-3 grid gap-3" data-form-id="payout-form-5">
+<input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
+<x-validation-summary :form-id="$bookingFormKey" :field-ids="['note' => 'payout-form-5-note']" />
+@csrf @method('PATCH')<input type="hidden" name="action" value="report"><p class="text-sm text-zinc-600">Laporan menahan pencairan sampai admin menyelesaikan pemeriksaan.</p><label><span class="field-label">Jelaskan masalah</span><textarea name="note" required rows="3" maxlength="1000" class="input" id="payout-form-5-note" aria-describedby="payout-form-5-note-error" aria-invalid="{{ $errors->has('note') ? 'true' : 'false' }}">{{ $bookingOld('note') }}</textarea>@error('note')<span id="payout-form-5-note-error" data-error-field="note" class="field-error" role="alert">{{ $message }}</span>@enderror</label><x-button type="submit" variant="outline" class="w-fit">Kirim Laporan</x-button></form>
+@php
+$errors = $bookingFormErrors;
+@endphp
+</details>
         @endif
     @endcan
 @endif

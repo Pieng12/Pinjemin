@@ -6,17 +6,18 @@
     <section class="page-shell">
         <div>
             <x-breadcrumb :items="['Admin' => null]" />
-            <h1 class="mt-6 text-3xl font-semibold tracking-tight text-zinc-950">Admin Dashboard</h1>
+            <h1 class="mt-6 text-3xl font-semibold tracking-tight text-zinc-950">Dashboard Admin</h1>
             <p class="mt-2 text-zinc-600">Ringkasan operasional Pinjemin.</p>
             <div class="mt-4 flex flex-wrap gap-2"><x-button :href="route('admin.finance')">Keuangan &amp; Pencairan</x-button><x-button :href="route('admin.payment-methods.index')" variant="outline">Atur Rekening Pinjemin</x-button></div>
         </div>
 
+        <x-activity-list :activity="$activity" title="Antrean tindakan admin" />
         <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <x-stat-card label="Total User" :value="$totalUsers" />
+            <x-stat-card label="Total Pengguna" :value="$totalUsers" :href="route('admin.users.index')" />
             <x-stat-card label="Total Barang" :value="$totalItems" />
             <x-stat-card label="Barang Aktif" :value="$activeItems" />
             <x-stat-card label="Total Booking" :value="$totalBookings" />
-            <x-stat-card label="Perlu Tindakan" :value="$pendingBookings" />
+            <x-stat-card label="Booking Perlu Tindakan" :value="$activity['bookingCount']" />
         </div>
 
         <div class="mt-8 grid gap-4 md:grid-cols-2">

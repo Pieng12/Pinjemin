@@ -35,11 +35,17 @@ import {
 } from 'lucide';
 import { initializeBookingForm } from './booking';
 import { initializeLegalModal } from './legal-modal';
+import { initializeWorkspace } from './workspace';
+import { initializeFormAccessibility } from './form-accessibility';
+import { initializeTransactionUI } from './transaction-ui';
 
 const formatRupiah = (value) => `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0))}`;
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeLegalModal();
+    initializeWorkspace();
+    initializeFormAccessibility();
+    initializeTransactionUI();
     createIcons({
         icons: {
             ArrowRight,
@@ -183,80 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-catalog-sort]').forEach((select) => {
         select.addEventListener('change', () => select.form.requestSubmit());
     });
-
-    const ownerWorkspace = document.querySelector('[data-owner-workspace]');
-    if (ownerWorkspace) {
-        const sidebar = ownerWorkspace.querySelector('[data-owner-sidebar]');
-        const collapseButton = ownerWorkspace.querySelector('[data-owner-collapse]');
-        const openButton = ownerWorkspace.querySelector('[data-owner-open]');
-        const backdrop = ownerWorkspace.querySelector('[data-owner-backdrop]');
-        const content = ownerWorkspace.querySelector('.owner-content');
-        const desktop = window.matchMedia('(min-width: 1024px)');
-        let previousOverflow = document.body.style.overflow;
-
-        const syncCollapsed = () => {
-            const collapsed = document.documentElement.dataset.ownerCollapsed === 'true';
-            const label = collapsed ? 'Buka sidebar' : 'Ciutkan sidebar';
-            collapseButton.setAttribute('aria-expanded', String(!collapsed));
-            collapseButton.setAttribute('aria-label', label);
-            collapseButton.title = label;
-            collapseButton.querySelector('[data-collapse-icon]').toggleAttribute('hidden', collapsed);
-            collapseButton.querySelector('[data-expand-icon]').toggleAttribute('hidden', !collapsed);
-        };
-        syncCollapsed();
-        collapseButton.addEventListener('click', () => {
-            const collapsed = document.documentElement.dataset.ownerCollapsed !== 'true';
-            document.documentElement.dataset.ownerCollapsed = String(collapsed);
-            try { localStorage.setItem('pinjemin.ownerSidebarCollapsed', String(collapsed)); } catch {}
-            syncCollapsed();
-        });
-
-        const setDrawerOpen = (isOpen, restoreFocus = false) => {
-            const wasOpen = ownerWorkspace.dataset.drawerOpen === 'true';
-            const open = isOpen && !desktop.matches;
-            ownerWorkspace.dataset.drawerOpen = String(open);
-            openButton.setAttribute('aria-expanded', String(open));
-            sidebar.inert = !desktop.matches && !open;
-            content.inert = open;
-            backdrop.hidden = !open;
-            if (open) {
-                if (!wasOpen) previousOverflow = document.body.style.overflow;
-                document.body.style.overflow = 'hidden';
-                sidebar.setAttribute('role', 'dialog');
-                sidebar.setAttribute('aria-modal', 'true');
-                sidebar.querySelector('[data-owner-close]').focus();
-            } else {
-                document.body.style.overflow = previousOverflow;
-                sidebar.removeAttribute('role');
-                sidebar.removeAttribute('aria-modal');
-                if (restoreFocus) openButton.focus();
-            }
-        };
-        setDrawerOpen(false);
-        openButton.addEventListener('click', () => setDrawerOpen(true));
-        ownerWorkspace.querySelector('[data-owner-close]').addEventListener('click', () => setDrawerOpen(false, true));
-        backdrop.addEventListener('click', () => setDrawerOpen(false, true));
-        sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setDrawerOpen(false)));
-        desktop.addEventListener('change', () => setDrawerOpen(false));
-        document.addEventListener('keydown', event => {
-            if (ownerWorkspace.dataset.drawerOpen !== 'true') return;
-            if (event.key === 'Escape') {
-                setDrawerOpen(false, true);
-                return;
-            }
-            if (event.key !== 'Tab') return;
-            const focusable = [...sidebar.querySelectorAll('a, button')].filter(el => !el.disabled && el.getBoundingClientRect().width > 0);
-            const first = focusable[0];
-            const last = focusable.at(-1);
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus();
-            }
-        });
-    }
 
     document.querySelectorAll('[data-photo-upload]').forEach(upload => {
         const input = upload.querySelector('[data-photo-input]');
@@ -483,14 +415,13 @@ document.addEventListener('DOMContentLoaded', () => {
         display.setAttribute('data-currency-display', '');
         display.type = 'text';
         display.id = `${raw.id}_display`;
-        const minimum = Number(raw.min || 0);
-        const maximum = raw.max ? Number(raw.max) : Infinity;
         raw.parentElement.querySelector('label').htmlFor = display.id;
         display.value = raw.value ? formatRupiah(raw.value) : '';
         raw.type = 'hidden';
-        raw.required = false;
         raw.after(display);
         const sync = () => {
+            const minimum = Number(raw.min || 0);
+            const maximum = raw.max ? Number(raw.max) : Infinity;
             const value = display.value.trim().replace(/^Rp\s*/i, '');
             let canonical = value;
             if (/^\d{1,3}(?:\.\d{3})+(?:,\d{0,2})?$/.test(value) || /^\d+(?:,\d{0,2})?$/.test(value)) {
@@ -501,6 +432,10 @@ document.addEventListener('DOMContentLoaded', () => {
             raw.value = valid ? canonical : '';
             return valid;
         };
+        raw.addEventListener('currency-constraints-changed', () => {
+            display.required = raw.required;
+            sync();
+        });
         display.addEventListener('input', sync);
         display.addEventListener('blur', () => {
             if (sync() && raw.value !== '') display.value = formatRupiah(raw.value);

@@ -8,6 +8,7 @@ use App\ItemStatus;
 use App\Models\Booking;
 use App\Models\Item;
 use App\Services\AvailabilityService;
+use App\Services\BookingActionPresenter;
 use App\Services\BookingService;
 use App\Services\RentalPriceCalculator;
 use Illuminate\Http\JsonResponse;
@@ -61,14 +62,26 @@ class BookingController extends Controller
 
     public function index(Request $request): View
     {
+        if (is_string($request->query('q'))) {
+            $request->merge(['q' => trim($request->query('q'))]);
+        }
+
         $filters = $request->validate([
-            'status' => ['nullable', Rule::in(BookingStatus::values())],
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'string', Rule::in(BookingStatus::values())],
         ]);
 
         $bookings = $request->user()
             ->rentalBookings()
             ->with(['item.primaryPhoto', 'item.user', 'payments'])
             ->when($filters['status'] ?? null, fn ($query, string $status) => $query->withStatus($status))
+            ->when(filled($filters['q'] ?? null), function ($query) use ($filters): void {
+                $query->where(function ($query) use ($filters): void {
+                    $query->where('booking_code', 'like', '%'.$filters['q'].'%')
+                        ->orWhereHas('item', fn ($query) => $query->where('name', 'like', '%'.$filters['q'].'%'))
+                        ->orWhereHas('item.user', fn ($query) => $query->where('name', 'like', '%'.$filters['q'].'%'));
+                });
+            })
             ->latest()
             ->orderByDesc('id')
             ->paginate(10)
@@ -76,6 +89,7 @@ class BookingController extends Controller
 
         return view('bookings.index', [
             'bookings' => $bookings,
+            'totalCount' => $request->user()->rentalBookings()->count(),
             'statuses' => BookingStatus::options(),
             'filters' => $filters,
         ]);
@@ -88,6 +102,8 @@ class BookingController extends Controller
         $booking->load(['item.category', 'item.primaryPhoto', 'item.user', 'renter', 'payments.reviewer', 'refund', 'payout', 'conditionSessions.reports.user']);
 
         return view('bookings.show', [
+            'handoverBlocker' => app(BookingActionPresenter::class)->handoverBlocker($booking),
+            'nextAction' => app(BookingActionPresenter::class)->describe($booking, request()->user(), 'renter'),
             'booking' => $booking,
             'viewer' => 'renter',
         ]);

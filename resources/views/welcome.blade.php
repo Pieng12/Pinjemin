@@ -159,9 +159,9 @@
             <ol class="home-steps mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4" data-scroll-line>
                 @foreach ([
                     ['Temukan', 'Cari barang yang sesuai dengan kebutuhan, waktu, dan lokasimu.'],
-                    ['Terhubung', 'Sampaikan kebutuhan dan sepakati detail penyewaan bersama pemilik.'],
-                    ['Gunakan', 'Terima lalu gunakan barang sesuai durasi dan kesepakatan.'],
-                    ['Kembalikan', 'Kembalikan barang dengan baik setelah kebutuhan selesai.'],
+                    ['Ajukan & bayar', config('features.marketplace_enabled') ? 'Ajukan periode sewa. Setelah disepakati, bayar ke Pinjemin dan unggah bukti untuk diperiksa admin.' : 'Sampaikan kebutuhan dan sepakati detail penyewaan bersama pemilik.'],
+                    ['Terima & gunakan', config('features.marketplace_enabled') ? 'Setelah lunas, periksa kondisi bersama pemilik dan gunakan barang sesuai kesepakatan.' : 'Terima lalu gunakan barang sesuai durasi dan kesepakatan.'],
+                    ['Kembalikan', config('features.marketplace_enabled') ? 'Kembalikan barang, periksa kondisinya, dan selesaikan konfirmasi kedua pihak.' : 'Kembalikan barang dengan baik setelah kebutuhan selesai.'],
                 ] as [$title, $description])
                     <li class="landing-reveal pt-5" style="transition-delay: {{ $loop->index * 70 }}ms">
                         <span class="promo-step-number">0{{ $loop->iteration }}</span>

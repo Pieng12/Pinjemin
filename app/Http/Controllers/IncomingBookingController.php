@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\BookingStatus;
 use App\Models\Booking;
 use App\Services\AvailabilityService;
+use App\Services\BookingActionPresenter;
 use App\Services\BookingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,14 +17,26 @@ class IncomingBookingController extends Controller
 {
     public function index(Request $request): View
     {
+        if (is_string($request->query('q'))) {
+            $request->merge(['q' => trim($request->query('q'))]);
+        }
+
         $filters = $request->validate([
-            'status' => ['nullable', Rule::in(BookingStatus::values())],
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'string', Rule::in(BookingStatus::values())],
         ]);
 
         $bookings = Booking::query()
             ->whereHas('item', fn ($query) => $query->where('user_id', $request->user()->id))
             ->with(['item.primaryPhoto', 'renter', 'payments'])
             ->when($filters['status'] ?? null, fn ($query, string $status) => $query->withStatus($status))
+            ->when(filled($filters['q'] ?? null), function ($query) use ($filters): void {
+                $query->where(function ($query) use ($filters): void {
+                    $query->where('booking_code', 'like', '%'.$filters['q'].'%')
+                        ->orWhereHas('item', fn ($query) => $query->where('name', 'like', '%'.$filters['q'].'%'))
+                        ->orWhereHas('renter', fn ($query) => $query->where('name', 'like', '%'.$filters['q'].'%'));
+                });
+            })
             ->latest()
             ->orderByDesc('id')
             ->paginate(10)
@@ -31,6 +44,7 @@ class IncomingBookingController extends Controller
 
         return view('incoming-bookings.index', [
             'bookings' => $bookings,
+            'totalCount' => Booking::query()->whereHas('item', fn ($query) => $query->where('user_id', $request->user()->id))->count(),
             'statuses' => BookingStatus::options(),
             'filters' => $filters,
         ]);
@@ -43,6 +57,9 @@ class IncomingBookingController extends Controller
         $booking->load(['item.category', 'item.primaryPhoto', 'item.user', 'renter', 'payments.reviewer', 'refund', 'payout', 'conditionSessions.reports.user']);
 
         return view('bookings.show', [
+            'handoverBlocker' => app(BookingActionPresenter::class)->handoverBlocker($booking),
+            'nextAction' => app(BookingActionPresenter::class)->describe($booking, request()->user(), 'owner'),
+            'approvalBlocker' => $booking->status === BookingStatus::Pending ? app(BookingActionPresenter::class)->approvalBlocker($booking) : null,
             'booking' => $booking,
             'viewer' => 'owner',
             'hasActivePaymentMethod' => $booking->item->user->paymentMethods()

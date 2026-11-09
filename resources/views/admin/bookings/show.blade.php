@@ -17,12 +17,13 @@
                 <p class="mt-2 text-zinc-600">{{ $booking->item->name }} / {{ $booking->created_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                @can('downloadInvoice', $booking)<x-button :href="route('bookings.invoice', $booking)" variant="outline">Unduh Invoice</x-button>@endcan
-                @can('downloadPaymentReceipt', $booking)<x-button :href="route('bookings.payment-receipt', $booking)" variant="outline">Konfirmasi Pembayaran</x-button>@endcan
+                @can('downloadInvoice', $booking)<x-button :href="route('bookings.invoice', $booking)" variant="outline">Unduh Tagihan</x-button>@endcan
+                @can('downloadPaymentReceipt', $booking)<x-button :href="route('bookings.payment-receipt', $booking)" variant="outline">Unduh Konfirmasi Pembayaran</x-button>@endcan
                 <x-button href="{{ route('admin.bookings.index') }}" variant="outline">Kembali</x-button>
             </div>
         </div>
 
+        <x-booking-next-action :action="$nextAction" />
         <div class="mt-8 grid gap-8 lg:grid-cols-2">
             <div class="card card-pad">
                 <h2 class="text-lg font-bold text-zinc-950">Barang</h2>

@@ -6,6 +6,13 @@
 @section('content')
     <section class="page-shell">
         <x-breadcrumb :items="['Jelajahi' => route('browse'), $item->name => null]" />
+        <div class="mt-5 lg:hidden">
+            <p class="text-xs font-semibold text-brand-700">{{ $item->category->name }}</p>
+            <h1 class="mt-2 break-words text-2xl font-semibold">{{ $item->name }}</h1>
+            <p class="mt-2 text-sm text-zinc-600">{{ $item->city }} · {{ $item->conditionLabel() }}</p>
+            <x-price :amount="$item->daily_price" class="mt-3 block text-xl font-semibold text-brand-700" />
+            <x-button href="#rental-options" class="mt-4" variant="outline">{{ auth()->id() === $item->user_id ? 'Kelola barang' : 'Pilih tanggal sewa' }}</x-button>
+        </div>
 
         <div class="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_390px]">
             <div class="grid min-w-0 gap-8">
@@ -18,6 +25,7 @@
                         <x-item-image :item="$item" class="h-80 sm:h-[500px]" />
                     @endif
 
+                    @if($galleryPhotos->isNotEmpty())
                     <div class="mt-4 grid grid-cols-4 gap-3">
                         @forelse ($galleryPhotos as $photo)
                             <button type="button" data-gallery-thumb data-gallery-src="{{ $photo->url() }}" data-gallery-alt="{{ $item->name }}" class="overflow-hidden rounded-lg border border-zinc-200 transition hover:border-blue-300">
@@ -27,11 +35,12 @@
                             <div class="col-span-4 rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500">Foto belum tersedia.</div>
                         @endforelse
                     </div>
+                    @endif
                 </div>
 
                 <div>
                     <span class="badge bg-blue-50 text-blue-700">{{ $item->category->name }}</span>
-                    <h1 class="mt-4 text-3xl font-semibold tracking-tight text-zinc-950">{{ $item->name }}</h1>
+                    <h1 class="mt-4 hidden text-3xl font-semibold tracking-tight text-zinc-950 lg:block">{{ $item->name }}</h1>
                     <p class="mt-3 text-zinc-600">{{ $item->city }} / {{ $item->conditionLabel() }} / {{ $item->quantity }} unit terdaftar</p>
                     <div class="mt-5 flex flex-wrap gap-2 text-xs font-medium text-zinc-600">
                         <span class="rounded-md border border-zinc-200 px-3 py-2">Ambil sendiri di {{ $item->city }}</span>
@@ -77,7 +86,7 @@
                 </div>
             </div>
 
-            <aside class="h-fit min-w-0 lg:sticky lg:top-24">
+            <aside id="rental-options" tabindex="-1" class="h-fit min-w-0 scroll-mt-28 lg:sticky lg:top-24">
                 @auth
                     @if (auth()->id() === $item->user_id)
                         <div class="card card-pad">

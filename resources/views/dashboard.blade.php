@@ -9,6 +9,7 @@
             <h1 class="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">Halo, {{ $user->name }}</h1>
             <p class="mt-2 text-zinc-600">Pilih area kerja sesuai aktivitas yang ingin kamu lakukan.</p>
 
+            <x-activity-list :activity="$activity" />
             <div class="mt-8 grid gap-5 md:grid-cols-2">
                 <a href="{{ route('my-bookings.index') }}" class="card card-pad transition hover:border-blue-200 hover:shadow-md">
                     <p class="text-sm font-semibold text-blue-700">Sebagai Penyewa</p>
@@ -21,7 +22,7 @@
                     <p class="text-sm font-semibold text-blue-700">Sebagai Pemilik</p>
                     <h2 class="mt-3 text-2xl font-semibold tracking-tight text-zinc-950">Dashboard Pemilik</h2>
                     <p class="mt-2 text-sm leading-6 text-zinc-600">Kelola barang dan permintaan sewa dari workspace khusus pemilik.</p>
-                    <p class="mt-6 text-sm font-semibold text-zinc-950">{{ $activeItemsCount }} barang aktif / {{ $pendingIncomingCount }} perlu tindakan</p>
+                    <p class="mt-6 text-sm font-semibold text-zinc-950">{{ $activeItemsCount }} barang aktif / {{ $activity['ownerCount'] }} perlu tindakan</p>
                 </a>
             </div>
 

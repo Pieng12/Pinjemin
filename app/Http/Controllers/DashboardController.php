@@ -2,29 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\BookingStatus;
-use App\Models\Booking;
+use App\Services\ActivityService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, ActivityService $activities): View
     {
         $user = $request->user();
+        $activity = $activities->forUser($user);
 
         return view('dashboard', [
+            'activity' => $activity,
             'user' => $user,
             'rentalBookingsCount' => $user->rentalBookings()->count(),
             'totalItemsCount' => $user->items()->count(),
             'activeItemsCount' => $user->items()->marketplace()->count(),
-            'pendingIncomingCount' => Booking::query()
-                ->where(function ($query): void {
-                    $query->whereIn('status', [BookingStatus::Pending->value, BookingStatus::PaymentReview->value])
-                        ->orWhere('refund_status', 'pending');
-                })
-                ->whereHas('item', fn ($query) => $query->where('user_id', $user->id))
-                ->count(),
+            'pendingIncomingCount' => $activity['ownerCount'],
         ]);
     }
 }

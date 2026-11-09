@@ -72,7 +72,7 @@
                                         <a href="{{ route('identity.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Verifikasi Identitas</a>
                                         <a href="{{ route('legal.terms') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Aturan &amp; Privasi</a>
                                         @if (auth()->user()->isAdmin())
-                                            <a href="{{ route('admin.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">Admin Panel</a>
+                                            <a href="{{ route('admin.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">Dashboard Admin</a>
                                         @endif
                                         <form method="POST" action="{{ route('logout') }}" class="mt-1 border-t border-zinc-100 pt-1">
                                             @csrf
@@ -130,7 +130,7 @@
                                     <a href="{{ route('profile.edit') }}" class="site-mobile-link">Profil</a>
                                     <a href="{{ route('identity.index') }}" class="site-mobile-link">Verifikasi Identitas</a>
                                     @if (auth()->user()->isAdmin())
-                                        <a href="{{ route('admin.dashboard') }}" class="site-mobile-link">Admin Panel</a>
+                                        <a href="{{ route('admin.dashboard') }}" class="site-mobile-link">Dashboard Admin</a>
                                     @endif
                                 </div>
                                 <form method="POST" action="{{ route('logout') }}" class="mt-2">

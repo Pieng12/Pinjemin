@@ -16,23 +16,45 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
 
 class MyItemController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $items = request()->user()
-            ->items()
+        if (is_string($request->query('q'))) {
+            $request->merge(['q' => trim($request->query('q'))]);
+        }
+
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'string', Rule::in(['active', 'inactive'])],
+            'category' => ['nullable', 'string', Rule::exists('categories', 'slug')],
+        ]);
+
+        $items = $request->user()->items()
             ->with(['category', 'primaryPhoto'])
+            ->when(($filters['status'] ?? null) === 'active', fn ($query) => $query->marketplace())
+            ->when(($filters['status'] ?? null) === 'inactive', function ($query): void {
+                $query->where(fn ($query) => $query->where('is_active', false)->orWhere('status', ItemStatus::Inactive));
+            })
+            ->when(filled($filters['category'] ?? null), fn ($query) => $query->whereHas('category', fn ($query) => $query->where('slug', $filters['category'])))
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where('name', 'like', '%'.$filters['q'].'%'))
             ->latest()
             ->orderByDesc('id')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('my-items.index', [
             'items' => $items,
+            'totalCount' => $request->user()->items()->count(),
+            'categories' => Category::query()
+                ->whereHas('items', fn ($query) => $query->where('user_id', $request->user()->id))
+                ->orderBy('name')->get(['id', 'name', 'slug']),
+            'filters' => $filters,
         ]);
     }
 

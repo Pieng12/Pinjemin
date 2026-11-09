@@ -6,19 +6,41 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        if (is_string($request->query('q'))) {
+            $request->merge(['q' => trim($request->query('q'))]);
+        }
+
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'string', Rule::in(['active', 'inactive'])],
+        ]);
+
         return view('admin.categories.index', [
             'categories' => Category::query()
+                ->when(filled($filters['status'] ?? null), fn (Builder $query) => $query->where('is_active', $filters['status'] === 'active'))
+                ->when(filled($filters['q'] ?? null), function (Builder $query) use ($filters): void {
+                    $query->where(function (Builder $query) use ($filters): void {
+                        $query->where('name', 'like', '%'.$filters['q'].'%')
+                            ->orWhere('slug', 'like', '%'.$filters['q'].'%');
+                    });
+                })
                 ->orderByDesc('is_active')
                 ->orderBy('name')
-                ->paginate(10),
+                ->paginate(10)
+                ->withQueryString(),
+            'totalCount' => Category::query()->count(),
+            'filters' => $filters,
         ]);
     }
 

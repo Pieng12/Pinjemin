@@ -37,13 +37,13 @@ enum BookingStatus: string
             self::Pending => 'bg-amber-50 text-amber-700',
             self::AwaitingRenterConfirmation => 'bg-blue-50 text-blue-700',
             self::AwaitingPayment => 'bg-amber-50 text-amber-700',
-            self::PaymentReview => 'bg-violet-50 text-violet-700',
-            self::PartiallyPaid => 'bg-cyan-50 text-cyan-700',
+            self::PaymentReview => 'bg-blue-50 text-blue-700',
+            self::PartiallyPaid => 'bg-blue-100 text-blue-800',
             self::Expired => 'bg-zinc-100 text-zinc-600',
             self::Approved => 'bg-emerald-50 text-emerald-700',
             self::Rejected => 'bg-red-50 text-red-700',
             self::Cancelled => 'bg-zinc-100 text-zinc-600',
-            self::Completed => 'bg-sky-50 text-sky-700',
+            self::Completed => 'bg-emerald-50 text-emerald-700',
         };
     }
 

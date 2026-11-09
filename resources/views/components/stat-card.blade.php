@@ -5,7 +5,7 @@
     'href' => null,
 ])
 
-@php($classes = 'soft-card card-pad flex items-start justify-between gap-4 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md')
+@php($classes = 'soft-card card-pad flex items-start justify-between gap-4'.($href ? ' transition-colors hover:border-blue-200 hover:bg-brand-50/30' : ''))
 
 @if ($href)
     <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }}>
