@@ -25,8 +25,8 @@ class RegisterController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
             'terms_accepted' => ['required', 'accepted'],
         ], [
-            'password.confirmed' => 'Konfirmasi password tidak sama.',
-            'password.min' => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak sama.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
             'terms_accepted.required' => 'Setujui Syarat & Ketentuan dan Kebijakan Privasi sebelum membuat akun.',
             'terms_accepted.accepted' => 'Setujui Syarat & Ketentuan dan Kebijakan Privasi sebelum membuat akun.',
         ]);

@@ -22,7 +22,7 @@ class IdentityVerificationService
     {
         $path = 'identity-documents/'.$user->id.'/'.Str::uuid().'.enc';
         if (! Storage::disk('local')->put($path, Crypt::encryptString($document->get()))) {
-            throw ValidationException::withMessages(['document' => 'Dokumen gagal disimpan. Silakan coba lagi.']);
+            throw ValidationException::withMessages(['document' => 'Dokumen gagal disimpan. Silakan coba kembali.']);
         }
         try {
             return DB::transaction(function () use ($user, $data, $document, $path): IdentityVerification {
@@ -98,7 +98,7 @@ class IdentityVerificationService
         User::query()->whereKey($booking->renter_user_id)->lockForUpdate()->firstOrFail();
         $verification = $booking->renter->currentIdentity();
         if (! $verification?->isValid()) {
-            throw ValidationException::withMessages(['identity' => 'Penyewa harus menyelesaikan verifikasi identitas melalui admin sebelum booking diterima atau ongkir ditawarkan.']);
+            throw ValidationException::withMessages(['identity' => 'Penyewa harus menyelesaikan verifikasi identitas melalui administrator sebelum pemesanan diterima atau biaya pengiriman ditawarkan.']);
         }
         $this->rememberIdentity($booking, $verification);
     }
@@ -113,7 +113,7 @@ class IdentityVerificationService
         if (! $accepted || in_array($accepted->status, ['revoked', 'withdrawn'], true)) {
             $current = $booking->renter->currentIdentity();
             if (! $current?->isValid()) {
-                throw ValidationException::withMessages(['identity' => 'Verifikasi identitas dicabut atau belum terpenuhi. Hubungi admin sebelum menyerahkan barang.']);
+                throw ValidationException::withMessages(['identity' => 'Verifikasi identitas dicabut atau belum terpenuhi. Hubungi administrator sebelum menyerahkan barang.']);
             }
             $this->rememberIdentity($booking, $current);
         }
@@ -161,7 +161,7 @@ class IdentityVerificationService
                         return;
                     }
                     $activeCase = $this->hasActiveCase($verification);
-                    $systemHold = 'Booking atau sengketa terkait masih aktif; perlu peninjauan admin.';
+                    $systemHold = 'Pemesanan atau sengketa terkait masih aktif; perlu peninjauan administrator.';
                     if ($activeCase || ($verification->hold_reason && $verification->hold_reason !== $systemHold && $verification->hold_review_at?->isFuture())) {
                         if (! $verification->hold_reason) {
                             $verification->update(['hold_reason' => $systemHold, 'hold_review_at' => now()->addDays(30)]);

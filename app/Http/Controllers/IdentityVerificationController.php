@@ -26,7 +26,7 @@ class IdentityVerificationController extends Controller
     {
         $service->submit($request->user(), $request->validated(), $request->file('document'));
 
-        return redirect()->route('identity.index')->with('status', 'Identitas dikirim secara privat untuk diperiksa admin.');
+        return redirect()->route('identity.index')->with('status', 'Identitas dikirim secara privat untuk diperiksa administrator.');
     }
 
     public function adminIndex(Request $request): View

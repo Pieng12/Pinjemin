@@ -142,7 +142,7 @@ export function initializeBookingForm(form) {
             calendarReady = true;
             picker.redraw();
             if (selectedRangeIsBlocked()) {
-                error.textContent = 'Stok pada periode pilihanmu berubah. Pilih periode lain atau kurangi jumlah unit.';
+                error.textContent = 'Stok pada periode pilihan Anda berubah. Pilih periode lain atau kurangi jumlah unit.';
             }
             checkAvailability();
         } catch (exception) {

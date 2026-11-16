@@ -69,6 +69,6 @@ class ItemController extends Controller
             'status' => ItemStatus::Inactive,
         ]);
 
-        return back()->with('status', 'Barang berhasil dinonaktifkan oleh admin.');
+        return back()->with('status', 'Barang berhasil dinonaktifkan oleh administrator.');
     }
 }

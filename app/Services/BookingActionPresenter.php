@@ -34,17 +34,17 @@ class BookingActionPresenter
         ];
 
         if ($status === BookingStatus::Expired) {
-            return $action('Batas waktu sudah berakhir', $booking->payment_due_at ? 'Pembayaran tidak diterima dalam batas waktu. Pilih periode baru jika masih membutuhkan barang.' : 'Tawaran ongkir sudah kedaluwarsa. Pengajuan baru diperlukan.', $viewer === 'renter' ? route('items.show', $booking->item) : null, $viewer === 'renter' ? 'Lihat barang' : null);
+            return $action('Batas waktu sudah berakhir', $booking->payment_due_at ? 'Pembayaran tidak diterima dalam batas waktu. Pilih periode baru jika masih membutuhkan barang.' : 'Tawaran biaya pengiriman sudah kedaluwarsa. Pengajuan baru diperlukan.', $viewer === 'renter' ? route('items.show', $booking->item) : null, $viewer === 'renter' ? 'Lihat barang' : null);
         }
         if ($booking->refund_status === 'pending') {
             if ($viewer === 'renter' && $booking->collectsViaPlatform() && ! $booking->refund_destination) {
-                return $action('Lengkapi tujuan refund', 'Periksa nama dan nomor rekening sebelum menyimpan. Tujuan akan dikunci.', '#booking-payments', 'Isi tujuan refund');
+                return $action('Lengkapi tujuan pengembalian dana', 'Periksa nama dan nomor rekening sebelum menyimpan. Tujuan akan dikunci.', '#booking-payments', 'Isi tujuan pengembalian dana');
             }
             if ($gate->allows('recordRefund', $booking) && (! $booking->collectsViaPlatform() || ! $booking->refund_claimed_by_user_id || $booking->refund_claimed_by_user_id === $user->id)) {
-                return $action('Proses pengembalian dana', $booking->collectsViaPlatform() && ! $booking->refund_destination ? 'Menunggu penyewa mengisi tujuan refund.' : 'Periksa tujuan dan kembalikan seluruh pembayaran terverifikasi.', ! $booking->collectsViaPlatform() || $booking->refund_destination ? '#booking-payments' : null, 'Periksa refund');
+                return $action('Proses pengembalian dana', $booking->collectsViaPlatform() && ! $booking->refund_destination ? 'Menunggu penyewa mengisi tujuan pengembalian dana.' : 'Periksa tujuan dan kembalikan seluruh pembayaran terverifikasi.', ! $booking->collectsViaPlatform() || $booking->refund_destination ? '#booking-payments' : null, 'Periksa pengembalian dana');
             }
 
-            return $action('Menunggu pengembalian dana', 'Refund sedang menunggu tujuan atau diproses oleh pihak yang berwenang. Riwayat tetap tersedia.');
+            return $action('Menunggu pengembalian dana', 'Pengembalian dana sedang menunggu tujuan atau diproses oleh pihak yang berwenang. Riwayat tetap tersedia.');
         }
         if (in_array($status, [BookingStatus::Cancelled, BookingStatus::Rejected], true)) {
             return $action($status->label(), 'Tidak ada tindakan transaksi yang perlu dilakukan. Dokumen dan riwayat tetap dapat dibaca.');
@@ -54,7 +54,7 @@ class BookingActionPresenter
             if (($booking->fulfillment_snapshot['inspection_policy']['identity_required'] ?? false) && ! $identity?->isValid()) {
                 $waiting = $identity?->status === 'pending';
 
-                return $action($waiting ? 'Identitas menunggu pemeriksaan admin' : 'Verifikasi identitas diperlukan', 'Persyaratan pemilik harus dipenuhi sebelum pengajuan diterima atau ongkir ditawarkan.', $viewer === 'renter' && ! $waiting ? route('identity.index') : ($viewer === 'admin' && $waiting ? route('identity.show', $identity) : null), $viewer === 'admin' ? 'Periksa identitas' : 'Lengkapi verifikasi');
+                return $action($waiting ? 'Identitas menunggu pemeriksaan administrator' : 'Verifikasi identitas diperlukan', 'Persyaratan pemilik harus dipenuhi sebelum pengajuan diterima atau biaya pengiriman ditawarkan.', $viewer === 'renter' && ! $waiting ? route('identity.index') : ($viewer === 'admin' && $waiting ? route('identity.show', $identity) : null), $viewer === 'admin' ? 'Periksa identitas' : 'Lengkapi verifikasi');
             }
             if ($viewer === 'owner') {
                 if ($blocker = $this->approvalBlocker($booking)) {
@@ -62,16 +62,16 @@ class BookingActionPresenter
                 }
                 $delivery = $gate->allows('quoteDelivery', $booking);
 
-                return $action($delivery ? 'Tentukan tawaran ongkir' : 'Tinjau pengajuan sewa', $delivery ? 'Periksa alamat tujuan dan masukkan ongkir satu kali untuk booking ini.' : 'Periksa periode, jumlah unit, dan persyaratan sebelum menerima.', '#booking-owner-actions', $delivery ? 'Isi tawaran ongkir' : 'Tinjau pengajuan');
+                return $action($delivery ? 'Tentukan tawaran biaya pengiriman' : 'Tinjau pengajuan sewa', $delivery ? 'Periksa alamat tujuan dan masukkan biaya pengiriman satu kali untuk pemesanan ini.' : 'Periksa periode, jumlah unit, dan persyaratan sebelum menerima.', '#booking-owner-actions', $delivery ? 'Isi tawaran biaya pengiriman' : 'Tinjau pengajuan');
             }
 
             return $action('Menunggu keputusan pemilik', 'Pemilik sedang meninjau periode, jumlah barang, dan pilihan penerimaan.');
         }
         if ($status === BookingStatus::AwaitingRenterConfirmation) {
-            return $action($viewer === 'renter' ? 'Tinjau total dan ongkir' : 'Menunggu persetujuan penyewa', 'Total tawaran tidak berubah setelah dikirim. Persetujuan diperlukan sebelum pembayaran.', $viewer === 'renter' ? '#booking-delivery' : null, 'Tinjau tawaran', $booking->quote_expires_at);
+            return $action($viewer === 'renter' ? 'Tinjau total dan biaya pengiriman' : 'Menunggu persetujuan penyewa', 'Total tawaran tidak berubah setelah dikirim. Persetujuan diperlukan sebelum pembayaran.', $viewer === 'renter' ? '#booking-delivery' : null, 'Tinjau tawaran', $booking->quote_expires_at);
         }
         if ($status === BookingStatus::PaymentReview) {
-            return $action($gate->allows('reviewPayment', $booking) ? 'Periksa bukti pembayaran' : 'Bukti sedang diperiksa', $gate->allows('reviewPayment', $booking) ? 'Cocokkan bukti dengan mutasi rekening sebelum memverifikasi atau menolak.' : 'Tunggu keputusan '.($booking->collectsViaPlatform() ? 'admin Pinjemin' : 'pemilik').'. Jangan mengirim pembayaran yang sama lagi.', $gate->allows('reviewPayment', $booking) ? '#booking-payments' : null, 'Periksa pembayaran');
+            return $action($gate->allows('reviewPayment', $booking) ? 'Periksa bukti pembayaran' : 'Bukti sedang diperiksa', $gate->allows('reviewPayment', $booking) ? 'Cocokkan bukti dengan mutasi rekening sebelum memverifikasi atau menolak.' : 'Tunggu keputusan '.($booking->collectsViaPlatform() ? 'administrator Pinjemin' : 'pemilik').'. Jangan mengirim pembayaran yang sama lagi.', $gate->allows('reviewPayment', $booking) ? '#booking-payments' : null, 'Periksa pembayaran');
         }
         if (in_array($status, [BookingStatus::AwaitingPayment, BookingStatus::PartiallyPaid], true)) {
             if ($gate->allows('submitPayment', $booking)) {
@@ -108,13 +108,13 @@ class BookingActionPresenter
         }
         if ($payout = $booking->payout) {
             if ($viewer === 'admin' && $payout->isEligible() && ($payout->status === 'pending' || ($payout->status === 'processing' && $payout->processed_by_user_id === $user->id))) {
-                return $action('Proses pencairan pemilik', 'Periksa hak bersih, rekening snapshot, dan bukti transfer. Pencairan tetap mengikuti pemeriksaan backend.', '#booking-payout', 'Periksa pencairan');
+                return $action('Proses pencairan pemilik', 'Periksa jumlah bersih yang diterima pemilik, rekening yang tercatat, dan bukti transfer. Pencairan hanya dapat diproses setelah seluruh persyaratan terpenuhi.', '#booking-payout', 'Periksa pencairan');
             }
             if ($viewer === 'owner' && $payout->status === 'paid' && ! $payout->received_at) {
-                return $action('Periksa dana pencairan', 'Cocokkan transfer pada rekeningmu sebelum mengonfirmasi penerimaan.', '#booking-payout', 'Konfirmasi dana diterima');
+                return $action('Periksa dana pencairan', 'Cocokkan transfer pada rekening Anda sebelum mengonfirmasi penerimaan.', '#booking-payout', 'Konfirmasi dana diterima');
             }
             if ($payout->status === 'on_hold') {
-                return $action('Pencairan ditahan untuk pemeriksaan', $payout->hold_reason ?: 'Menunggu penyelesaian masalah oleh admin.', $viewer === 'admin' ? '#booking-payout' : null, 'Periksa penahanan');
+                return $action('Pencairan ditahan untuk pemeriksaan', $payout->hold_reason ?: 'Menunggu penyelesaian masalah oleh administrator.', $viewer === 'admin' ? '#booking-payout' : null, 'Periksa penahanan');
             }
         }
 
@@ -137,7 +137,7 @@ class BookingActionPresenter
         if (($booking->fulfillment_snapshot['inspection_policy']['identity_required'] ?? false)
             && (! $identity || in_array($identity->status, ['revoked', 'withdrawn'], true))
             && ! $booking->renter->identityVerifications->sortByDesc('id')->first()?->isValid()) {
-            return 'Verifikasi identitas dicabut atau belum terpenuhi. Hubungi admin sebelum penyerahan.';
+            return 'Verifikasi identitas dicabut atau belum terpenuhi. Hubungi administrator sebelum penyerahan.';
         }
         $today = now(Booking::RentalTimezone)->toDateString();
         if ($this->availability->getAvailableQuantity($booking->item, max($today, $booking->start_date->toDateString()), max($today, $booking->end_date->toDateString()), $booking) < $booking->quantity) {
@@ -154,7 +154,7 @@ class BookingActionPresenter
         $block = fn (string $message, ?string $href = null, ?string $label = null): array => compact('message', 'href', 'label');
         $identity = $booking->renter->identityVerifications->sortByDesc('id')->first();
         if (($booking->fulfillment_snapshot['inspection_policy']['identity_required'] ?? false) && ! $identity?->isValid()) {
-            return $block('Menunggu verifikasi identitas penyewa oleh admin.');
+            return $block('Menunggu verifikasi identitas penyewa oleh administrator.');
         }
         if (! $item->is_active || $item->status !== ItemStatus::Available || ! filled($item->address)) {
             return $block('Aktifkan barang dan lengkapi lokasi pengambilan terlebih dahulu.', route('my-items.edit', $item), 'Lengkapi barang');
@@ -204,7 +204,7 @@ class BookingActionPresenter
             return null;
         }
         if ($session?->status === 'disputed' || $session?->resolution_outcome === 'financial_review') {
-            return ['Menunggu pemeriksaan admin', 'Ada perbedaan kondisi. Bukti tetap tersimpan dan pencairan ditahan.'];
+            return ['Menunggu pemeriksaan administrator', 'Ada perbedaan kondisi. Bukti tetap tersimpan dan pencairan ditahan.'];
         }
         if ($stage === 'handover') {
             if (! $booking->handed_over_at && ($blocked = $this->handoverBlocker($booking))) {
@@ -215,25 +215,25 @@ class BookingActionPresenter
             }
             $identity = $booking->identityVerification;
             if (($booking->fulfillment_snapshot['inspection_policy']['identity_required'] ?? false) && (! $identity || in_array($identity->status, ['revoked', 'withdrawn'], true)) && ! $booking->renter->identityVerifications->sortByDesc('id')->first()?->isValid()) {
-                return ['Penyerahan menunggu identitas', 'Identitas belum memenuhi persyaratan atau telah dicabut. Hubungi admin.'];
+                return ['Penyerahan menunggu identitas', 'Identitas belum memenuhi persyaratan atau telah dicabut. Hubungi administrator.'];
             }
         }
         $mine = $session?->reports->where('kind', 'initial')->firstWhere('user_id', $user->id);
         if ($session?->bothSubmitted()) {
             if ($mine?->decision === 'agree') {
-                return ['Menunggu persetujuan pihak lain', 'Keputusanmu sudah tercatat. Pengembalian dan pencairan tetap mengikuti keputusan kedua pihak.'];
+                return ['Menunggu persetujuan pihak lain', 'Keputusan Anda sudah tercatat. Pengembalian dan pencairan tetap mengikuti keputusan kedua pihak.'];
             }
 
             return ['Tinjau bukti kedua pihak', 'Pilih kondisi sesuai atau jelaskan perbedaan yang ditemukan.', '#booking-inspections-'.$stage, 'Tinjau kondisi'];
         }
         if ($mine?->submitted_at && ! $session?->hasExpired()) {
-            return ['Menunggu bukti pihak lain', 'Bukti yang kamu kirim sudah dikunci. Tunggu pihak lain atau ajukan pemeriksaan jika ada masalah.'];
+            return ['Menunggu bukti pihak lain', 'Bukti yang Anda kirim sudah dikunci. Tunggu pihak lain atau ajukan pemeriksaan jika ada masalah.'];
         }
         $ready = $viewer === 'owner' ? $session?->owner_ready_at : $session?->renter_ready_at;
         if ($ready && $session?->status === 'waiting' && $booking->fulfillment_method === Booking::Pickup) {
             return ['Menunggu kesiapan pihak lain', 'Sesi unggah dibuka setelah kedua pihak siap.'];
         }
 
-        return [$stage === 'return' ? 'Dokumentasikan pengembalian' : 'Dokumentasikan penyerahan', 'Periksa fungsi, aksesori, dan kondisi barang. Foto mengikuti persyaratan booking.', '#booking-inspections-'.$stage, 'Buka pemeriksaan', $session?->hasExpired() ? null : $session?->expires_at];
+        return [$stage === 'return' ? 'Dokumentasikan pengembalian' : 'Dokumentasikan penyerahan', 'Periksa fungsi, aksesori, dan kondisi barang. Foto mengikuti persyaratan pemesanan.', '#booking-inspections-'.$stage, 'Buka pemeriksaan', $session?->hasExpired() ? null : $session?->expires_at];
     }
 }

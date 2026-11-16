@@ -5,7 +5,7 @@
 @section('content')
     <section class="page-shell">
         <x-breadcrumb :items="[
-            'Dashboard Pemilik' => route('owner.dashboard'),
+            'Dasbor Pemilik' => route('owner.dashboard'),
             'Barang Saya' => route('my-items.index'),
             $item->name => null,
         ]" />
@@ -20,7 +20,7 @@
                 <p class="mt-2 text-zinc-600">{{ $item->category->name }} / {{ $item->city }}</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                <x-button href="{{ route('items.show', $item) }}" variant="outline">Preview publik</x-button>
+                <x-button href="{{ route('items.show', $item) }}" variant="outline">Pratinjau publik</x-button>
                 <x-button href="{{ route('my-items.edit', $item) }}">Edit Barang</x-button>
             </div>
         </div>

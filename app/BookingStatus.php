@@ -19,7 +19,7 @@ enum BookingStatus: string
     {
         return match ($this) {
             self::Pending => 'Menunggu Persetujuan',
-            self::AwaitingRenterConfirmation => 'Konfirmasi Ongkir',
+            self::AwaitingRenterConfirmation => 'Konfirmasi Biaya Pengiriman',
             self::AwaitingPayment => 'Menunggu Pembayaran',
             self::PaymentReview => 'Pembayaran Diperiksa',
             self::PartiallyPaid => 'DP Terverifikasi',

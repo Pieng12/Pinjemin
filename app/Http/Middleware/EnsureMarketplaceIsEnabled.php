@@ -18,7 +18,7 @@ class EnsureMarketplaceIsEnabled
         if (! config('features.marketplace_enabled')) {
             return redirect()
                 ->route('home')
-                ->with('status', 'Halaman tersebut tidak tersedia. Kenali Pinjemin dan temukan informasi terbaru di beranda.');
+                ->with('status', 'Halaman tersebut tidak tersedia. Informasi layanan Pinjemin dapat diakses melalui beranda.');
         }
 
         return $next($request);

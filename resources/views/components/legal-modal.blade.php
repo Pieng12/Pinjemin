@@ -13,13 +13,13 @@
             <section id="legal-{{ $document }}-panel" role="tabpanel" data-legal-panel="{{ $document }}" aria-labelledby="legal-{{ $document }}-tab" tabindex="0" @if(!$loop->first) hidden @endif>
                 <div class="border-b border-zinc-100 py-5"><h3 data-legal-heading class="text-lg font-semibold text-zinc-950">{{ $label }}</h3><p data-legal-meta class="mt-2 text-xs leading-6 text-zinc-500"></p><p data-legal-summary class="mt-3 text-sm leading-6 text-zinc-600"></p></div>
                 <p data-legal-loading role="status" class="py-8 text-sm text-zinc-500">Memuat dokumen...</p>
-                <div data-legal-error hidden class="py-6 text-sm leading-6 text-zinc-600"><p>Dokumen belum bisa dimuat. Coba lagi atau baca halaman lengkap.</p><div class="mt-4 flex flex-wrap gap-3"><button type="button" data-legal-retry="{{ $document }}" class="btn btn-outline">Coba Lagi</button><a href="{{ route($document === 'terms' ? 'legal.terms' : 'legal.privacy') }}" data-legal-full-page target="_blank" rel="noopener noreferrer" class="btn btn-outline">Baca Halaman Lengkap</a></div></div>
+                <div data-legal-error hidden class="py-6 text-sm leading-6 text-zinc-600"><p>Dokumen belum dapat dimuat. Silakan ulangi atau buka halaman dokumen lengkap.</p><div class="mt-4 flex flex-wrap gap-3"><button type="button" data-legal-retry="{{ $document }}" class="btn btn-outline">Ulangi</button><a href="{{ route($document === 'terms' ? 'legal.terms' : 'legal.privacy') }}" data-legal-full-page target="_blank" rel="noopener noreferrer" class="btn btn-outline">Baca Halaman Lengkap</a></div></div>
                 <div data-legal-body></div>
             </section>
         @endforeach
     </div>
     <footer class="flex shrink-0 items-center justify-between gap-4 border-t border-zinc-100 bg-zinc-50 px-5 py-4 sm:px-6">
-        <p class="text-xs leading-5 text-zinc-500">Tutup untuk melanjutkan aktivitasmu.</p>
+        <p class="text-xs leading-5 text-zinc-500">Tutup untuk melanjutkan aktivitas Anda.</p>
         <button type="button" data-legal-close class="btn btn-primary shrink-0">Tutup</button>
     </footer>
 </dialog>

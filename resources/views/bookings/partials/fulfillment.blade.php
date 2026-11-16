@@ -8,7 +8,7 @@
             <p class="whitespace-pre-line break-words">{{ $snapshot['recipient']['address'] ?? 'Belum tercatat' }}</p>
             <p>{{ $snapshot['recipient']['city'] ?? 'Belum tercatat' }}</p>
         </div>
-        <p class="mt-3 text-xs leading-5 text-zinc-500">Ongkir hanya untuk pengiriman ke penyewa. Pengembalian ke lokasi pemilik menjadi tanggung jawab penyewa.</p>
+        <p class="mt-3 text-xs leading-5 text-zinc-500">Biaya pengiriman hanya untuk pengiriman ke penyewa. Pengembalian ke lokasi pemilik menjadi tanggung jawab penyewa.</p>
     @endif
     <p class="mt-3 font-medium text-zinc-700">Lokasi Pengambilan / Pengembalian</p>
     <p class="mt-1 text-zinc-600">{{ $snapshot['pickup']['city'] ?? $booking->item->city }}</p>

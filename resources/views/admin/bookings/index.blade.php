@@ -1,27 +1,27 @@
 @extends('layouts.admin')
 
-@section('title', 'Booking - Admin Pinjemin')
+@section('title', 'Pemesanan - Administrator Pinjemin')
 
 @section('content')
     <section class="page-shell">
         <x-breadcrumb :items="[
-            'Admin' => route('admin.dashboard'),
-            'Booking' => null,
+            'Administrator' => route('admin.dashboard'),
+            'Pemesanan' => null,
         ]" />
 
         <div class="page-header mt-6">
             <div>
                 <p class="eyebrow">Transaksi platform</p>
-                <h1 class="mt-2 text-3xl font-bold tracking-tight text-zinc-950">Booking</h1>
-                <p class="mt-2 text-zinc-600">Daftar booking dari seluruh pengguna Pinjemin.</p>
+                <h1 class="mt-2 text-3xl font-bold tracking-tight text-zinc-950">Pemesanan</h1>
+                <p class="mt-2 text-zinc-600">Daftar pemesanan dari seluruh pengguna Pinjemin.</p>
             </div>
         </div>
 
         @php
             $filterSelects = ['status' => ['label' => 'Status', 'all' => 'Semua status', 'options' => $statuses]];
         @endphp
-        <x-list-filters :action="route('admin.bookings.index')" :filters="$filters" search-label="Cari booking" placeholder="Kode, barang, pemilik, atau penyewa" :selects="$filterSelects" />
-        <x-list-results :results="$bookings" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('admin.bookings.index')" empty-title="Belum ada booking" empty-description="Booking pengguna akan tampil di sini." />
+        <x-list-filters :action="route('admin.bookings.index')" :filters="$filters" search-label="Cari pemesanan" placeholder="Kode, barang, pemilik, atau penyewa" :selects="$filterSelects" />
+        <x-list-results :results="$bookings" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('admin.bookings.index')" empty-title="Belum ada pemesanan" empty-description="Pemesanan pengguna akan tampil di sini." />
 
         @if ($bookings->isNotEmpty())
             <div class="mt-8 table-shell">

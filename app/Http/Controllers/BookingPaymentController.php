@@ -16,7 +16,7 @@ class BookingPaymentController extends Controller
     {
         $path = $request->file('proof')->store('payment-proofs/'.$booking->booking_code, 'local');
         if ($path === false) {
-            throw ValidationException::withMessages(['proof' => 'Bukti pembayaran gagal disimpan. Coba lagi.']);
+            throw ValidationException::withMessages(['proof' => 'Bukti pembayaran gagal disimpan. Silakan coba kembali.']);
         }
         try {
             $payments->submit($booking, $request->user(), $path, $request->validated());
@@ -25,6 +25,6 @@ class BookingPaymentController extends Controller
             throw $exception;
         }
 
-        return back()->with('status', $booking->collectsViaPlatform() ? 'Bukti pembayaran dikirim dan menunggu pemeriksaan admin Pinjemin.' : 'Bukti pembayaran dikirim dan menunggu pemeriksaan pemilik.');
+        return back()->with('status', $booking->collectsViaPlatform() ? 'Bukti pembayaran dikirim dan menunggu pemeriksaan administrator Pinjemin.' : 'Bukti pembayaran dikirim dan menunggu pemeriksaan pemilik.');
     }
 }

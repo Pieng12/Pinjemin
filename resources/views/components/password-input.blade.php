@@ -1,4 +1,4 @@
-@props(['name' => 'password', 'label' => 'Password', 'autocomplete' => 'current-password', 'help' => null])
+@props(['name' => 'password', 'label' => 'Kata Sandi', 'autocomplete' => 'current-password', 'help' => null])
 @php($inputId = $attributes->get('id', $name))
 <div data-password-field>
     <label for="{{ $inputId }}" class="field-label">{{ $label }}</label>

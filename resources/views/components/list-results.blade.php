@@ -23,7 +23,7 @@
         @if ($totalCount === 0)
             <x-empty-state :title="$emptyTitle" :description="$emptyDescription" :action-label="$emptyActionLabel" :action-url="$emptyActionUrl" />
         @elseif ($results->total() === 0)
-            <x-empty-state title="Tidak ada hasil yang cocok" description="Coba kata pencarian lain atau ubah filter untuk melihat hasil." action-label="Reset filter" :action-url="$action" />
+            <x-empty-state title="Tidak ada hasil yang cocok" description="Gunakan kata pencarian lain atau sesuaikan filter untuk melihat hasil." action-label="Reset filter" :action-url="$action" />
         @else
             <x-empty-state title="Halaman ini tidak berisi hasil" description="Kembali ke halaman pertama untuk melihat hasil pencarian." action-label="Halaman pertama" :action-url="request()->fullUrlWithoutQuery('page')" />
         @endif

@@ -13,15 +13,15 @@
             <div>
                 <p class="eyebrow">Aktivitas sewa</p>
                 <h1 class="mt-2 text-3xl font-bold tracking-tight text-zinc-950">Penyewaan Saya</h1>
-                <p class="mt-2 text-zinc-600">Riwayat barang yang kamu ajukan untuk disewa.</p>
+                <p class="mt-2 text-zinc-600">Riwayat barang yang Anda ajukan untuk disewa.</p>
             </div>
         </div>
 
         @php
             $filterSelects = ['status' => ['label' => 'Status', 'all' => 'Semua status', 'options' => $statuses]];
         @endphp
-        <x-list-filters :action="route('my-bookings.index')" :filters="$filters" search-label="Cari penyewaan" placeholder="Kode booking, barang, atau pemilik" :selects="$filterSelects" />
-        <x-list-results :results="$bookings" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('my-bookings.index')" empty-title="Belum ada penyewaan" empty-description="Pengajuan sewa yang kamu buat akan tampil di sini." />
+        <x-list-filters :action="route('my-bookings.index')" :filters="$filters" search-label="Cari penyewaan" placeholder="Kode pemesanan, barang, atau pemilik" :selects="$filterSelects" />
+        <x-list-results :results="$bookings" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('my-bookings.index')" empty-title="Belum ada penyewaan" empty-description="Pengajuan sewa yang Anda buat akan tampil di sini." />
 
         @if ($bookings->isNotEmpty())
             <div class="mt-8 table-shell">
@@ -29,7 +29,7 @@
                     <table class="min-w-full divide-y divide-zinc-200 text-sm">
                         <thead class="table-head">
                             <tr>
-                                <th class="px-4 py-3">Booking</th>
+                                <th class="px-4 py-3">Pemesanan</th>
                                 <th class="px-4 py-3">Barang</th>
                                 <th class="px-4 py-3">Pemilik</th>
                                 <th class="px-4 py-3">Tanggal</th>

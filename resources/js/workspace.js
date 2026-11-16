@@ -45,6 +45,7 @@ export function initializeWorkspace(root = document) {
             sidebar.inert = !desktop.matches && !state.drawerOpen;
 
             if (state.drawerOpen) {
+                if (!wasOpen) document.dispatchEvent(new CustomEvent('pinjemin:overlay-opening', { detail: { source: 'workspace' } }));
                 sidebar.setAttribute('role', 'dialog');
                 sidebar.setAttribute('aria-modal', 'true');
                 if (!wasOpen) {
@@ -104,7 +105,7 @@ export function initializeWorkspace(root = document) {
             if (desktop.matches && focusWasOnOpener) collapseButton.focus({ preventScroll: true });
         });
         document.addEventListener('keydown', (event) => {
-            if (!state.drawerOpen) return;
+            if (!state.drawerOpen || document.querySelector('[data-tutorial-dialog][open]')) return;
             if (event.key === 'Escape') {
                 event.preventDefault();
                 setDrawerOpen(false);
@@ -128,7 +129,7 @@ export function initializeWorkspace(root = document) {
             }
         });
         document.addEventListener('focusin', (event) => {
-            if (state.drawerOpen && !sidebar.contains(event.target)) {
+            if (state.drawerOpen && !document.querySelector('[data-tutorial-dialog][open]') && !sidebar.contains(event.target)) {
                 (focusableElements()[0] ?? sidebar).focus({ preventScroll: true });
             }
         });

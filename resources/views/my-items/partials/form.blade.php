@@ -5,7 +5,7 @@
     <p class="text-sm text-zinc-600">Tanda * berarti wajib. Persyaratan tambahan mengikuti pilihan publikasi dan pembayaran.</p>
     <aside class="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-zinc-600">
         <p class="font-semibold text-blue-950">Tanggung jawab pemilik barang</p>
-        <p class="mt-2">Pastikan kamu berhak menyewakan barang, jelaskan kondisi dan aksesori dengan jujur, serta tulis aturan penggunaannya. Komisi 5% dari biaya sewa dipotong saat pencairan; ongkir tidak dikenai komisi.</p>
+        <p class="mt-2">Pastikan Anda berhak menyewakan barang, jelaskan kondisi dan aksesori dengan jujur, serta tulis aturan penggunaannya. Komisi 5% dari biaya sewa dipotong saat pencairan; biaya pengiriman tidak dikenai komisi.</p>
         <a href="{{ route('legal.terms') }}#pemilik" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block font-semibold text-blue-700 underline underline-offset-2">Baca aturan untuk pemilik</a>
     </aside>
     <fieldset class="card card-pad min-w-0">
@@ -82,7 +82,7 @@
             <div class="lg:col-span-2">
                 <label for="address" class="field-label">Alamat lengkap pengambilan</label>
                 <textarea id="address" name="address" autocomplete="street-address" maxlength="1000" aria-describedby="address-help @error('address') address-error @enderror" rows="3" class="input" aria-invalid="{{ $errors->has('address') ? 'true' : 'false' }}">{{ old('address', $item?->address) }}</textarea>
-                <p id="address-help" class="field-help">Wajib untuk barang aktif. Alamat lengkap hanya tersedia setelah booking disetujui final.</p>
+                <p id="address-help" class="field-help">Wajib untuk barang aktif. Alamat lengkap hanya tersedia setelah pemesanan disetujui final.</p>
                 @error('address')<p id="address-error" data-error-field="address" class="field-error">{{ $message }}</p>@enderror
             </div>
         </div>
@@ -97,7 +97,7 @@
                 <input id="free_delivery" type="checkbox" name="free_delivery" value="1" @checked(old('free_delivery', $item?->free_delivery)) aria-invalid="{{ $errors->has('free_delivery') ? 'true' : 'false' }}" @error('free_delivery') aria-describedby="free_delivery-error" @enderror class="h-4 w-4 accent-blue-700" data-free-delivery>
                 Gratis Ongkir
             </label>
-            <p class="field-help">Pengambilan langsung selalu tersedia. Ongkir berbayar ditawarkan setelah alamat penyewa diterima.</p>
+            <p class="field-help">Pengambilan langsung selalu tersedia. Biaya pengiriman ditawarkan setelah alamat penyewa diterima.</p>
             @error('delivery_enabled')<p id="delivery_enabled-error" data-error-field="delivery_enabled" class="field-error">{{ $message }}</p>@enderror
             @error('free_delivery')<p id="free_delivery-error" data-error-field="free_delivery" class="field-error">{{ $message }}</p>@enderror
         </div>
@@ -128,11 +128,11 @@
         <legend class="px-1 text-lg font-semibold text-zinc-950">Aturan & Publikasi</legend>
         <div data-payment-policy>
             <h3 class="text-lg font-semibold text-zinc-950">Persyaratan Penyewa</h3>
-            <p class="mt-2 text-sm leading-6 text-zinc-600">Berlaku untuk booking berikutnya. Foto katalog tetap wajib untuk barang aktif. Foto kondisi sukarela tetap diperbolehkan jika kewajiban dimatikan.</p>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">Berlaku untuk pemesanan berikutnya. Foto katalog tetap wajib untuk barang aktif. Foto kondisi sukarela tetap diperbolehkan jika kewajiban dimatikan.</p>
             <div class="my-5 grid gap-4">
                 <input type="hidden" name="requires_condition_photos" value="0"><label for="requires_condition_photos" class="flex items-start gap-3 text-sm"><input id="requires_condition_photos" aria-invalid="{{ $errors->has('requires_condition_photos') ? 'true' : 'false' }}" @error('requires_condition_photos') aria-describedby="requires_condition_photos-error" @enderror type="checkbox" name="requires_condition_photos" value="1" @checked(old('requires_condition_photos', $item?->requires_condition_photos)) class="mt-1 h-4 w-4 accent-brand"><span>Wajib Foto Kondisi Saat Penyerahan &amp; Pengembalian</span></label>
                 @error('requires_condition_photos')<p id="requires_condition_photos-error" data-error-field="requires_condition_photos" class="field-error">{{ $message }}</p>@enderror
-                <input type="hidden" name="requires_identity_verification" value="0"><label for="requires_identity_verification" class="flex items-start gap-3 text-sm"><input id="requires_identity_verification" aria-invalid="{{ $errors->has('requires_identity_verification') ? 'true' : 'false' }}" @error('requires_identity_verification') aria-describedby="requires_identity_verification-error" @enderror type="checkbox" name="requires_identity_verification" value="1" @checked(old('requires_identity_verification', $item?->requires_identity_verification)) class="mt-1 h-4 w-4 accent-brand"><span>Wajib Verifikasi Identitas Penyewa melalui Admin<span class="mt-1 block text-zinc-500">Pemilik hanya melihat status, tanpa salinan KTP/SIM.</span></span></label>
+                <input type="hidden" name="requires_identity_verification" value="0"><label for="requires_identity_verification" class="flex items-start gap-3 text-sm"><input id="requires_identity_verification" aria-invalid="{{ $errors->has('requires_identity_verification') ? 'true' : 'false' }}" @error('requires_identity_verification') aria-describedby="requires_identity_verification-error" @enderror type="checkbox" name="requires_identity_verification" value="1" @checked(old('requires_identity_verification', $item?->requires_identity_verification)) class="mt-1 h-4 w-4 accent-brand"><span>Wajib Verifikasi Identitas Penyewa melalui Administrator<span class="mt-1 block text-zinc-500">Pemilik hanya melihat status, tanpa salinan KTP/SIM.</span></span></label>
                 @error('requires_identity_verification')<p id="requires_identity_verification-error" data-error-field="requires_identity_verification" class="field-error">{{ $message }}</p>@enderror
             </div>
             <h3 class="text-lg font-semibold text-zinc-950">Kebijakan Pembayaran</h3>
@@ -143,7 +143,7 @@
                     <span>Izinkan penyewa membayar DP lebih dahulu<span class="mt-1 block font-normal text-zinc-500">Nominal DP mengikuti nilai uang muka per unit pada bagian Harga &amp; Ketersediaan.</span></span>
                 </label>
                 <input type="hidden" name="allow_cash_balance" value="{{ $item?->allow_cash_balance ? 1 : 0 }}">
-                <p class="text-sm leading-6 text-zinc-500">Booking baru dibayar ke Pinjemin dan diperiksa admin. DP serta pelunasan melalui transfer; penyerahan setelah lunas. Komisi 5% dari biaya sewa dipotong saat pencairan, di luar ongkir. Ketentuan booking lama tetap berlaku.</p>
+                <p class="text-sm leading-6 text-zinc-500">Pemesanan baru dibayar ke Pinjemin dan diperiksa administrator. DP serta pelunasan melalui transfer; penyerahan setelah lunas. Komisi 5% dari biaya sewa dipotong saat pencairan, di luar biaya pengiriman. Ketentuan pemesanan lama tetap berlaku.</p>
                 @error('allow_deposit_payment')<p id="allow_deposit_payment-error" data-error-field="allow_deposit_payment" class="field-error">{{ $message }}</p>@enderror
                 @error('allow_cash_balance')<p id="allow_cash_balance-error" data-error-field="allow_cash_balance" class="field-error">{{ $message }}</p>@enderror
             </div>

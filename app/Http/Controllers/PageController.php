@@ -19,8 +19,8 @@ class PageController extends Controller
     {
         return view('pages.placeholder', [
             'title' => 'Sewakan Barang',
-            'heading' => 'Form penyewaan barang segera tersedia.',
-            'description' => 'Nanti kamu bisa menambahkan barang, foto, harga sewa, dan ketersediaan dari halaman ini.',
+            'heading' => 'Formulir penyewaan barang segera tersedia.',
+            'description' => 'Informasi pengelolaan barang tersedia melalui Dasbor Pemilik.',
         ]);
     }
 }

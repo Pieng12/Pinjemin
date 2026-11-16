@@ -74,8 +74,8 @@ class PaymentService
         $methods = $this->destinationMethods($booking)->limit(11)->get();
         if ($methods->isEmpty()) {
             $message = $booking->collectsViaPlatform()
-                ? 'Rekening penerimaan Pinjemin belum tersedia. Hubungi admin sebelum menerima booking.'
-                : 'Tambahkan minimal satu metode pembayaran aktif sebelum menerima booking.';
+                ? 'Rekening penerimaan Pinjemin belum tersedia. Hubungi administrator sebelum menerima pemesanan.'
+                : 'Tambahkan minimal satu metode pembayaran aktif sebelum menerima pemesanan.';
             throw ValidationException::withMessages(['payment_method' => $message]);
         }
         if ($methods->count() > 10) {
@@ -112,7 +112,7 @@ class PaymentService
                 return null;
             }
             if (! in_array($booking->status, [BookingStatus::AwaitingPayment, BookingStatus::PartiallyPaid], true)) {
-                throw ValidationException::withMessages(['payment' => 'Booking tidak sedang menerima bukti pembayaran.']);
+                throw ValidationException::withMessages(['payment' => 'Pemesanan tidak sedang menerima bukti pembayaran.']);
             }
             if ($booking->payments()->where('status', BookingPaymentStatus::Submitted->value)->exists()) {
                 throw ValidationException::withMessages(['payment' => 'Masih ada bukti pembayaran yang sedang diperiksa.']);
@@ -135,7 +135,7 @@ class PaymentService
             $methods = array_values($booking->payment_methods_snapshot ?? []);
             $method = $methods[(int) $data['method_index']] ?? null;
             if (! $method) {
-                throw ValidationException::withMessages(['method_index' => 'Metode pembayaran tidak tersedia pada snapshot booking.']);
+                throw ValidationException::withMessages(['method_index' => 'Metode pembayaran tidak tersedia pada salinan data pemesanan.']);
             }
             $amount = $verified > 0
                 ? round((float) $booking->total_amount - $verified, 2)
@@ -181,7 +181,7 @@ class PaymentService
             $booking->setRelation('item', $item);
             Gate::forUser($owner)->authorize('reviewPayment', $booking);
             if ($payment->booking_id !== $booking->id || $payment->status !== BookingPaymentStatus::Submitted || $booking->status !== BookingStatus::PaymentReview) {
-                throw ValidationException::withMessages(['payment' => 'Bukti pembayaran ini sudah diproses atau status booking berubah.']);
+                throw ValidationException::withMessages(['payment' => 'Bukti pembayaran ini sudah diproses atau status pemesanan berubah.']);
             }
 
             $transactionKey = null;
@@ -227,7 +227,7 @@ class PaymentService
             $booking->setRelation('item', $item);
             Gate::forUser($owner)->authorize('cashAndHandOver', $booking);
             if ($booking->status !== BookingStatus::PartiallyPaid || $booking->payment_plan !== PaymentPlan::DepositCash || $booking->fulfillment_method !== Booking::Pickup) {
-                throw ValidationException::withMessages(['payment' => 'Booking ini tidak menggunakan pelunasan tunai saat pengambilan.']);
+                throw ValidationException::withMessages(['payment' => 'Pemesanan ini tidak menggunakan pelunasan tunai saat pengambilan.']);
             }
             if ($booking->start_date->toDateString() > now(Booking::RentalTimezone)->toDateString()) {
                 throw ValidationException::withMessages(['payment' => 'Pelunasan tunai hanya dapat dikonfirmasi pada atau setelah tanggal mulai.']);
@@ -263,17 +263,17 @@ class PaymentService
             $booking = Booking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($owner)->authorize('recordRefund', $booking);
             if ($booking->collectsViaPlatform() && ! $booking->refund_destination) {
-                throw ValidationException::withMessages(['refund' => 'Penyewa harus mengisi rekening tujuan refund terlebih dahulu.']);
+                throw ValidationException::withMessages(['refund' => 'Penyewa harus mengisi rekening tujuan pengembalian dana terlebih dahulu.']);
             }
             if ($booking->collectsViaPlatform() && $booking->refund_claimed_by_user_id !== $owner->id) {
-                throw ValidationException::withMessages(['refund' => 'Mulai proses refund terlebih dahulu. Hanya admin yang menangani refund ini dapat mencatat transfernya.']);
+                throw ValidationException::withMessages(['refund' => 'Mulai proses pengembalian dana terlebih dahulu. Hanya administrator yang menangani pengembalian dana ini dapat mencatat transfernya.']);
             }
             if ($booking->status !== BookingStatus::Cancelled || $booking->refund_status !== 'pending' || $booking->refund()->exists()) {
-                throw ValidationException::withMessages(['refund' => 'Refund tidak diperlukan atau sudah dicatat.']);
+                throw ValidationException::withMessages(['refund' => 'Pengembalian dana tidak diperlukan atau sudah dicatat.']);
             }
             $refundedAt = Carbon::parse($data['refunded_at'], Booking::RentalTimezone)->utc();
             if ($refundedAt->isFuture()) {
-                throw ValidationException::withMessages(['refunded_at' => 'Waktu refund tidak boleh berada di masa depan.']);
+                throw ValidationException::withMessages(['refunded_at' => 'Waktu pengembalian dana tidak boleh berada di masa depan.']);
             }
             $booking->refund()->create([
                 'recorded_by_user_id' => $owner->id,
@@ -305,14 +305,14 @@ class PaymentService
     private function validatePlan(Booking $booking, PaymentPlan $plan): void
     {
         if ($booking->collectsViaPlatform() && $plan === PaymentPlan::DepositCash) {
-            throw ValidationException::withMessages(['payment_plan' => 'Pelunasan booking ini harus ditransfer ke Pinjemin.']);
+            throw ValidationException::withMessages(['payment_plan' => 'Pelunasan pemesanan ini harus ditransfer ke Pinjemin.']);
         }
         if ($plan === PaymentPlan::FullTransfer) {
             return;
         }
         $policy = $booking->fulfillment_snapshot['payment_policy'] ?? [];
         if (! ($policy['allow_deposit'] ?? false) || (float) $booking->deposit_amount <= 0 || (float) $booking->deposit_amount >= (float) $booking->total_amount) {
-            throw ValidationException::withMessages(['payment_plan' => 'Pembayaran DP tidak tersedia untuk booking ini.']);
+            throw ValidationException::withMessages(['payment_plan' => 'Pembayaran DP tidak tersedia untuk pemesanan ini.']);
         }
         if ($plan === PaymentPlan::DepositCash && (! ($policy['allow_cash_balance'] ?? false) || $booking->fulfillment_method !== Booking::Pickup)) {
             throw ValidationException::withMessages(['payment_plan' => 'Pelunasan tunai hanya tersedia untuk pengambilan langsung yang diizinkan pemilik.']);

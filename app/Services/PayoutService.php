@@ -32,7 +32,7 @@ class PayoutService
                     throw ValidationException::withMessages(['note' => 'Jelaskan masalah atau alasan penahanan dana.']);
                 }
                 if ($payout->status === 'processing') {
-                    throw ValidationException::withMessages(['payout' => 'Pencairan sedang diproses. Hubungi admin yang menangani sebelum mengubah status.']);
+                    throw ValidationException::withMessages(['payout' => 'Pencairan sedang diproses. Hubungi administrator yang menangani sebelum mengubah status.']);
                 }
                 $payout->status = 'on_hold';
                 $payout->hold_reason = $data['note'];
@@ -54,7 +54,7 @@ class PayoutService
                 $payout->processing_at = now();
             } elseif ($action === 'paid') {
                 if ($payout->status !== 'processing' || $payout->processed_by_user_id !== $actor->id || ! $payout->isEligible()) {
-                    throw ValidationException::withMessages(['payout' => 'Hanya admin yang memulai pencairan ini dapat mencatat transfernya.']);
+                    throw ValidationException::withMessages(['payout' => 'Hanya administrator yang memulai pencairan ini dapat mencatat transfernya.']);
                 }
                 $paidAt = Carbon::parse($data['paid_at'], Booking::RentalTimezone)->utc();
                 if ($paidAt->isFuture() || $paidAt->lt($booking->completed_at->copy()->startOfMinute())) {

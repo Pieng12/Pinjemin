@@ -12,8 +12,8 @@ class PromotionModeTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Sewa lebih bijak, barang lebih bermanfaat')
-            ->assertSee('Kebutuhan sesaat tidak selalu harus dibeli.')
+            ->assertSee('Layanan penyewaan dan pengelolaan barang')
+            ->assertSee('Penyewaan barang untuk kebutuhan sementara.')
             ->assertSee('https://www.instagram.com/pinjemin911/', false)
             ->assertSee('mailto:pinjemin99@gmail.com', false)
             ->assertSee('images/landing/logo pinjemin.svg', false)
@@ -35,7 +35,7 @@ class PromotionModeTest extends TestCase
         foreach (['/jelajahi', '/sewakan-barang', '/login', '/register', '/dashboard', '/admin'] as $path) {
             $this->get($path)
                 ->assertRedirect(route('home'))
-                ->assertSessionHas('status', 'Halaman tersebut tidak tersedia. Kenali Pinjemin dan temukan informasi terbaru di beranda.');
+                ->assertSessionHas('status', 'Halaman tersebut tidak tersedia. Informasi layanan Pinjemin dapat diakses melalui beranda.');
         }
     }
 

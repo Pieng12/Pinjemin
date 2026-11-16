@@ -2,7 +2,7 @@
 
 @section('title', 'Jelajahi Barang - Pinjemin')
 @section('nav_title', 'Menyewa Barang')
-@section('meta_description', 'Jelajahi barang aktif yang bisa disewa di Pinjemin.')
+@section('meta_description', 'Jelajahi barang aktif yang dapat disewa di Pinjemin.')
 
 @section('content')
     @php
@@ -13,8 +13,8 @@
     <section class="page-shell catalog-page">
         <div data-reveal class="marketplace-reveal">
             <p class="eyebrow">Marketplace</p>
-            <h1 class="mt-2 text-2xl font-semibold leading-tight text-zinc-950 sm:text-3xl">Temukan barang untuk rencanamu</h1>
-            <p class="mt-3 text-sm leading-6 text-zinc-600">Pilih barang, lokasi, dan harga sewa yang sesuai kebutuhanmu.</p>
+            <h1 class="mt-2 text-2xl font-semibold leading-tight text-zinc-950 sm:text-3xl">Temukan barang untuk kebutuhan Anda</h1>
+            <p class="mt-3 text-sm leading-6 text-zinc-600">Pilih barang, lokasi, dan harga sewa yang sesuai kebutuhan Anda.</p>
         </div>
 
         <form method="GET" action="{{ route('browse') }}" class="catalog-search mt-7" data-catalog-search>
@@ -124,7 +124,7 @@
                 </div>
                 <div class="mt-8">{{ $items->links() }}</div>
             @else
-                <x-empty-state :show-mark="false" title="Barang tidak ditemukan." description="Coba ubah kata pencarian atau filter yang digunakan." action-label="Reset Filter" :action-url="route('browse')" />
+                <x-empty-state :show-mark="false" title="Barang tidak ditemukan." description="Sesuaikan kata pencarian atau filter yang digunakan." action-label="Reset Filter" :action-url="route('browse')" />
             @endif
         </div>
     </section>

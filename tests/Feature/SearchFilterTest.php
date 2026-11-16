@@ -310,7 +310,7 @@ class SearchFilterTest extends TestCase
 
         $this->actingAs($owner)->get(route('my-items.index', ['q' => 'Camera']))
             ->assertViewHas('totalCount', 0)
-            ->assertSee('Belum ada barang yang kamu sewakan.')
+            ->assertSee('Belum ada barang yang Anda sewakan.')
             ->assertDontSee('Tidak ada hasil yang cocok');
 
         Item::factory()->for($owner, 'user')->create(['name' => 'My Camera']);
@@ -318,7 +318,7 @@ class SearchFilterTest extends TestCase
         $this->get(route('my-items.index', ['q' => 'Missing']))
             ->assertViewHas('totalCount', 1)
             ->assertSee('Tidak ada hasil yang cocok')
-            ->assertDontSee('Belum ada barang yang kamu sewakan.');
+            ->assertDontSee('Belum ada barang yang Anda sewakan.');
     }
 
     public function test_incoming_pending_bookings_link_to_review_without_inline_approval(): void

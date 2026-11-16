@@ -17,7 +17,7 @@ class UserController extends Controller
             $request->merge(['q' => trim($request->query('q'))]);
         }
 
-        $roles = [User::RoleAdmin => 'Admin', User::RoleUser => 'Pengguna'];
+        $roles = [User::RoleAdmin => 'Administrator', User::RoleUser => 'Pengguna'];
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'role' => ['nullable', 'string', Rule::in(array_keys($roles))],

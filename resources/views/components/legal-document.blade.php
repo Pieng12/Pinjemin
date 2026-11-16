@@ -46,7 +46,7 @@
     </div>
 
     <aside class="mt-8 flex flex-col gap-4 rounded-lg border border-blue-100 bg-blue-50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-        <div><h2 class="font-semibold text-blue-950">Ada pertanyaan tentang aturan atau data akun?</h2><p class="mt-2 max-w-xl text-sm leading-6 text-zinc-600">Untuk masalah transaksi, sertakan kode booking agar admin dapat memeriksa catatan dan bukti yang terkait. Jangan kirim KTP/SIM melalui email biasa.</p></div>
+        <div><h2 class="font-semibold text-blue-950">Ada pertanyaan tentang aturan atau data akun?</h2><p class="mt-2 max-w-xl text-sm leading-6 text-zinc-600">Untuk masalah transaksi, sertakan kode pemesanan agar administrator dapat memeriksa catatan dan bukti yang terkait. Jangan kirim KTP/SIM melalui email biasa.</p></div>
         <a href="mailto:pinjemin99@gmail.com" class="btn btn-primary shrink-0">Hubungi Pinjemin</a>
     </aside>
 </section>

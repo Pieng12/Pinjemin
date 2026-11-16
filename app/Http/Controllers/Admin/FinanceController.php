@@ -82,12 +82,12 @@ class FinanceController extends Controller
             $booking = Booking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($request->user())->authorize('setRefundDestination', $booking);
             if ($booking->refund_destination) {
-                throw ValidationException::withMessages(['refund' => 'Rekening refund sudah dikunci. Hubungi admin jika ada kesalahan sebelum transfer.']);
+                throw ValidationException::withMessages(['refund' => 'Rekening pengembalian dana sudah dikunci. Hubungi administrator jika ada kesalahan sebelum transfer.']);
             }
             $booking->update(['refund_destination' => $data]);
         });
 
-        return back()->with('status', 'Rekening refund disimpan. Admin akan menggunakan tujuan ini.');
+        return back()->with('status', 'Rekening pengembalian dana disimpan. Administrator akan menggunakan tujuan ini.');
     }
 
     public function claimRefund(Request $request, Booking $booking): RedirectResponse
@@ -99,12 +99,12 @@ class FinanceController extends Controller
             $booking = Booking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($request->user())->authorize('recordRefund', $booking);
             if (! $booking->refund_destination || $booking->refund_claimed_by_user_id) {
-                throw ValidationException::withMessages(['refund' => 'Rekening refund belum diisi atau refund sudah ditangani admin lain.']);
+                throw ValidationException::withMessages(['refund' => 'Rekening pengembalian dana belum diisi atau pengembalian dana sudah ditangani administrator lain.']);
             }
             $booking->update(['refund_claimed_by_user_id' => $request->user()->id, 'refund_claimed_at' => now()]);
         });
 
-        return back()->with('status', 'Refund ditugaskan kepadamu. Periksa tujuan dan nominal sebelum mentransfer.');
+        return back()->with('status', 'Pengembalian Dana ditugaskan kepada Anda. Periksa tujuan dan nominal sebelum mentransfer.');
     }
 
     public function document(Booking $booking): Response

@@ -359,7 +359,7 @@ class ConditionInspectionTest extends TestCase
             ->assertDontSee(route('incoming-bookings.hand-over', $booking), false)
             ->assertSee('Bukti kedua pihak sudah terkirim.');
         $this->capture('owner-review', $ownerPage->getContent(), $booking);
-        $adminPage = $this->actingAs($admin)->get(route('admin.bookings.show', $booking))->assertOk()->assertSee('Pemeriksaan Admin / Pihak Tidak Kooperatif');
+        $adminPage = $this->actingAs($admin)->get(route('admin.bookings.show', $booking))->assertOk()->assertSee('Pemeriksaan Administrator / Pihak Tidak Kooperatif');
         $this->capture('admin-inspection', $adminPage->getContent(), $booking);
         $ownerItems = $this->actingAs($owner)->get(route('my-items.index'))->assertOk()->assertSee('Persyaratan Foto &amp; Identitas', false);
         $this->capture('owner-settings', $ownerItems->getContent(), $booking);

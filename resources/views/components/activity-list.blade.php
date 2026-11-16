@@ -1,7 +1,7 @@
-@props(['activity', 'title' => 'Perlu perhatianmu'])
-<section class="card card-pad mt-7" aria-label="{{ $title }}">
+@props(['activity', 'title' => 'Tindakan yang diperlukan'])
+<section class="card card-pad mt-7" aria-label="{{ $title }}" data-activity-list>
     <div class="flex flex-wrap items-start justify-between gap-3">
-        <div><h2 class="text-lg font-semibold">{{ $title }}</h2><p class="mt-1 text-sm text-zinc-600">{{ $activity['bookingCount'] }} booking membutuhkan tindakanmu.@if($activity['identityCount']) {{ $activity['identityCount'] }} pengajuan identitas menunggu pemeriksaan.@endif</p></div>
+        <div><h2 class="text-lg font-semibold">{{ $title }}</h2><p class="mt-1 text-sm text-zinc-600">{{ $activity['bookingCount'] }} pemesanan membutuhkan tindakan Anda.@if($activity['identityCount']) {{ $activity['identityCount'] }} pengajuan identitas menunggu pemeriksaan.@endif</p></div>
         <span class="badge bg-brand-50 text-brand-700">{{ count($activity['tasks']) }} ditampilkan</span>
     </div>
     <div class="mt-5 grid gap-3">
@@ -11,7 +11,7 @@
                 <span class="inline-flex min-h-11 shrink-0 items-center gap-2 text-sm font-semibold">{{ $task['label'] }} <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i></span>
             </a>
         @empty
-            <p class="rounded-md bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">Tidak ada tindakan yang menunggumu saat ini. Riwayat dan daftar lengkap tetap tersedia dari navigasi.</p>
+            <p class="rounded-md bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">Tidak ada tindakan yang perlu diselesaikan saat ini. Riwayat dan daftar lengkap dapat diakses melalui navigasi.</p>
         @endforelse
     </div>
 </section>

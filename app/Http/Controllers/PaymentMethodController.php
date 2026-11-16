@@ -38,7 +38,7 @@ class PaymentMethodController extends Controller
         $data['user_id'] = $user->id;
         $path = $request->hasFile('qris_image') ? $request->file('qris_image')->store('payment-methods/'.$user->id, 'local') : null;
         if ($path === false) {
-            throw ValidationException::withMessages(['qris_image' => 'Gambar QRIS gagal disimpan. Coba lagi.'])->errorBag($request->formKey());
+            throw ValidationException::withMessages(['qris_image' => 'Gambar QRIS gagal disimpan. Silakan coba kembali.'])->errorBag($request->formKey());
         }
         $data['qris_path'] = $path;
         try {
@@ -69,7 +69,7 @@ class PaymentMethodController extends Controller
         $oldPath = $paymentMethod->qris_path;
         $newPath = $request->hasFile('qris_image') ? $request->file('qris_image')->store('payment-methods/'.$request->user()->id, 'local') : null;
         if ($newPath === false) {
-            throw ValidationException::withMessages(['qris_image' => 'Gambar QRIS gagal disimpan. Coba lagi.'])->errorBag($request->formKey());
+            throw ValidationException::withMessages(['qris_image' => 'Gambar QRIS gagal disimpan. Silakan coba kembali.'])->errorBag($request->formKey());
         }
         if ($newPath) {
             $data['qris_path'] = $newPath;
@@ -121,7 +121,7 @@ class PaymentMethodController extends Controller
             Storage::disk('local')->delete($path);
         }
 
-        return back()->with('status', 'Metode pembayaran dihapus. Snapshot booking lama tetap tersimpan.');
+        return back()->with('status', 'Metode pembayaran dihapus. Salinan Data pemesanan lama tetap tersimpan.');
     }
 
     /** @return array<string, mixed> */

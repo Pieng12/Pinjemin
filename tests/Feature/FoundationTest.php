@@ -18,7 +18,7 @@ class FoundationTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee('Sewa lebih bijak, barang lebih bermanfaat')
+            ->assertSee('Layanan penyewaan dan pengelolaan barang')
             ->assertSee('Cara kerja Pinjemin');
     }
 
@@ -78,7 +78,7 @@ class FoundationTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin')
             ->assertOk()
-            ->assertSee('Admin Dashboard');
+            ->assertSee('Dasbor Administrator');
     }
 
     public function test_user_cannot_update_their_own_role_from_profile(): void

@@ -36,7 +36,7 @@ class BookingService
             }
             $pricing = $this->calculator->calculate($item, $data['start_date'], $data['end_date'], (int) $data['quantity']);
             if (! in_array($data['requirements_accepted'] ?? null, ['yes', 'on', 1, '1', true, 'true'], true)) {
-                throw ValidationException::withMessages(['requirements_accepted' => 'Setujui aturan penyewaan dan persyaratan barang sebelum mengajukan booking.']);
+                throw ValidationException::withMessages(['requirements_accepted' => 'Setujui aturan penyewaan dan persyaratan barang sebelum mengajukan pemesanan.']);
             }
             $this->ensureTotalFits($pricing['total_amount']);
 
@@ -83,7 +83,7 @@ class BookingService
         return $this->locked($booking, function (Booking $booking, array &$copiedPaths): void {
             $this->ensureStatus($booking, BookingStatus::Pending);
             if ($booking->fulfillment_method === Booking::Delivery && ! ($booking->fulfillment_snapshot['free_delivery'] ?? false)) {
-                throw ValidationException::withMessages(['delivery_fee' => 'Kirim tawaran ongkir untuk disetujui penyewa terlebih dahulu.']);
+                throw ValidationException::withMessages(['delivery_fee' => 'Kirim tawaran biaya pengiriman untuk disetujui penyewa terlebih dahulu.']);
             }
             $this->ensureApprovalAvailable($booking);
             $this->payments->beginPayment($booking, $copiedPaths);
@@ -95,7 +95,7 @@ class BookingService
         return $this->locked($booking, function (Booking $booking) use ($deliveryFee): void {
             $this->ensureStatus($booking, BookingStatus::Pending);
             if ($booking->fulfillment_method !== Booking::Delivery || ($booking->fulfillment_snapshot['free_delivery'] ?? false)) {
-                throw ValidationException::withMessages(['booking' => 'Booking ini tidak memerlukan tawaran ongkir.']);
+                throw ValidationException::withMessages(['booking' => 'Pemesanan ini tidak memerlukan tawaran biaya pengiriman.']);
             }
             $this->ensureApprovalAvailable($booking);
             $this->payments->ensureDestinationsAvailable($booking);
@@ -138,7 +138,7 @@ class BookingService
         return $this->locked($booking, function (Booking $booking) use ($actor, $reason): void {
             if (! $booking->canBeCancelledByRenter()) {
                 throw ValidationException::withMessages([
-                    'booking' => 'Booking dengan status ini tidak dapat dibatalkan.',
+                    'booking' => 'Pemesanan dengan status ini tidak dapat dibatalkan.',
                 ]);
             }
 
@@ -164,7 +164,7 @@ class BookingService
         return $this->locked($booking, function (Booking $booking): void {
             $this->ensureStatus($booking, BookingStatus::Approved);
             if ($booking->usesConditionInspections()) {
-                throw ValidationException::withMessages(['inspection' => 'Gunakan pemeriksaan penyerahan dua pihak untuk booking ini.']);
+                throw ValidationException::withMessages(['inspection' => 'Gunakan pemeriksaan penyerahan dua pihak untuk pemesanan ini.']);
             }
             if ($booking->handed_over_at || $booking->start_date->toDateString() > now(Booking::RentalTimezone)->toDateString()) {
                 throw ValidationException::withMessages(['booking' => 'Penyerahan hanya dapat dicatat sekali, pada atau setelah tanggal mulai.']);
@@ -181,7 +181,7 @@ class BookingService
         return $this->locked($booking, function (Booking $booking): void {
             $this->ensureStatus($booking, BookingStatus::Approved);
             if ($booking->usesConditionInspections()) {
-                throw ValidationException::withMessages(['inspection' => 'Gunakan pemeriksaan pengembalian dua pihak untuk booking ini.']);
+                throw ValidationException::withMessages(['inspection' => 'Gunakan pemeriksaan pengembalian dua pihak untuk pemesanan ini.']);
             }
             if (! $booking->handed_over_at) {
                 throw ValidationException::withMessages(['booking' => 'Catat penyerahan barang sebelum mengonfirmasi pengembalian.']);
@@ -227,8 +227,8 @@ class BookingService
 
         if ($result->status === BookingStatus::Expired) {
             $message = $result->payment_due_at
-                ? 'Batas pembayaran sudah berakhir. Silakan ajukan booking baru.'
-                : 'Tawaran ongkir sudah kedaluwarsa. Silakan ajukan booking baru.';
+                ? 'Batas pembayaran sudah berakhir. Silakan ajukan pemesanan baru.'
+                : 'Tawaran biaya pengiriman sudah kedaluwarsa. Silakan ajukan pemesanan baru.';
             throw ValidationException::withMessages(['booking' => $message]);
         }
 
@@ -238,7 +238,7 @@ class BookingService
     private function ensureStatus(Booking $booking, BookingStatus $expected): void
     {
         if ($booking->status !== $expected) {
-            throw ValidationException::withMessages(['booking' => 'Status booking sudah berubah. Muat ulang halaman untuk melihat status terbaru.']);
+            throw ValidationException::withMessages(['booking' => 'Status pemesanan sudah berubah. Muat ulang halaman untuk melihat status terbaru.']);
         }
     }
 
@@ -247,10 +247,10 @@ class BookingService
         $this->identities->ensureForApproval($booking);
         $item = $booking->item;
         if (! $item->is_active || $item->status !== ItemStatus::Available || ! filled($item->address)) {
-            throw ValidationException::withMessages(['booking' => 'Aktifkan barang dan lengkapi lokasi pengambilan sebelum menyetujui booking.']);
+            throw ValidationException::withMessages(['booking' => 'Aktifkan barang dan lengkapi lokasi pengambilan sebelum menyetujui pemesanan.']);
         }
         if ($booking->start_date->toDateString() < now(Booking::RentalTimezone)->toDateString()) {
-            throw ValidationException::withMessages(['booking' => 'Tanggal mulai sudah lewat. Silakan ajukan booking baru.']);
+            throw ValidationException::withMessages(['booking' => 'Tanggal mulai sudah lewat. Silakan ajukan pemesanan baru.']);
         }
         if ($this->availability->getAvailableQuantity($item, $booking->start_date, $booking->end_date, $booking) < $booking->quantity) {
             throw ValidationException::withMessages(['quantity' => 'Jumlah barang tidak lagi tersedia pada periode tersebut.']);
@@ -268,7 +268,7 @@ class BookingService
     {
         if ($item->user_id === $renter->id) {
             throw ValidationException::withMessages([
-                'item' => 'Kamu tidak dapat menyewa barang milik sendiri.',
+                'item' => 'Anda tidak dapat menyewa barang milik sendiri.',
             ]);
         }
 

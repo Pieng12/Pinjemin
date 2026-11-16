@@ -45,7 +45,7 @@
                     <div class="mt-5 flex flex-wrap gap-2 text-xs font-medium text-zinc-600">
                         <span class="rounded-md border border-zinc-200 px-3 py-2">Ambil sendiri di {{ $item->city }}</span>
                         @if($item->delivery_enabled)
-                            <span class="rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-blue-700">{{ $item->free_delivery ? 'Pengiriman gratis ongkir' : 'Pengiriman dengan tawaran ongkir' }}</span>
+                            <span class="rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-blue-700">{{ $item->free_delivery ? 'Pengiriman bebas biaya pengiriman' : 'Pengiriman dengan tawaran biaya pengiriman' }}</span>
                         @endif
                         @if($item->allow_deposit_payment)
                             <span class="rounded-md border border-emerald-100 bg-emerald-50 px-3 py-2 text-emerald-700">Pembayaran DP tersedia</span>
@@ -59,7 +59,7 @@
                         <div>
                             <h2 class="font-semibold text-zinc-950">Persyaratan penyewa</h2>
                             <p class="mt-2">{{ $item->requires_condition_photos ? 'Foto kondisi wajib dari pemilik dan penyewa saat penyerahan serta pengembalian.' : 'Foto kondisi opsional; dokumentasi sukarela tetap diperbolehkan.' }}</p>
-                            <p>{{ $item->requires_identity_verification ? 'Penyewa wajib memiliki verifikasi KTP/SIM melalui admin sebelum booking diterima. Pemilik hanya melihat status.' : 'Verifikasi identitas tidak diwajibkan untuk barang ini.' }}</p>
+                            <p>{{ $item->requires_identity_verification ? 'Penyewa wajib memiliki verifikasi KTP/SIM melalui administrator sebelum pemesanan diterima. Pemilik hanya melihat status.' : 'Verifikasi identitas tidak diwajibkan untuk barang ini.' }}</p>
                         </div>
                         <div>
                             <h2 class="font-semibold text-zinc-950">Deskripsi</h2>
@@ -90,8 +90,8 @@
                 @auth
                     @if (auth()->id() === $item->user_id)
                         <div class="card card-pad">
-                            <h2 class="font-semibold text-zinc-950">Barang milikmu</h2>
-                            <p class="mt-2 text-sm leading-6 text-zinc-600">Kelola barang ini dari workspace pemilik.</p>
+                            <h2 class="font-semibold text-zinc-950">Barang milik Anda</h2>
+                            <p class="mt-2 text-sm leading-6 text-zinc-600">Kelola barang ini dari ruang kerja pemilik.</p>
                             <div class="mt-5 flex flex-wrap gap-3">
                                 <x-button :href="route('my-items.edit', $item)">Edit Barang</x-button>
                                 <x-button :href="route('my-items.show', $item)" variant="outline">Kelola Barang</x-button>
@@ -113,7 +113,7 @@
                                 data-today="{{ now(\App\Models\Booking::RentalTimezone)->toDateString() }}"
                             >
                                 @csrf
-                                <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm leading-6"><strong>Persyaratan barang</strong><p>Foto kondisi: {{ $item->requires_condition_photos ? 'Wajib dari pemilik dan penyewa saat penyerahan serta pengembalian.' : 'Opsional; kedua pihak tetap boleh mendokumentasikan kondisi.' }}</p><p>Identitas: {{ $item->requires_identity_verification ? 'Penyewa wajib terverifikasi admin sebelum booking diterima. Pemilik tidak menerima dokumen identitas.' : 'Tidak diwajibkan untuk barang ini.' }}</p><p>Penyerahan dan pengembalian menggunakan checklist serta konfirmasi kedua pihak.</p></div>
+                                <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm leading-6"><strong>Persyaratan barang</strong><p>Foto kondisi: {{ $item->requires_condition_photos ? 'Wajib dari pemilik dan penyewa saat penyerahan serta pengembalian.' : 'Opsional; kedua pihak tetap boleh mendokumentasikan kondisi.' }}</p><p>Identitas: {{ $item->requires_identity_verification ? 'Penyewa wajib terverifikasi administrator sebelum pemesanan diterima. Pemilik tidak menerima dokumen identitas.' : 'Tidak diwajibkan untuk barang ini.' }}</p><p>Penyerahan dan pengembalian menggunakan daftar pemeriksaan serta konfirmasi kedua pihak.</p></div>
                                 <div data-booking-calendar hidden>
                                     <label for="rental-range" class="field-label">Periode sewa</label>
                                     <div class="mb-3 flex items-center gap-2">
@@ -121,7 +121,7 @@
                                         <button type="button" class="inline-flex h-11 w-10 shrink-0 items-center justify-center rounded-md border border-zinc-200 text-zinc-500 hover:bg-zinc-50" data-booking-clear aria-label="Hapus periode sewa" title="Hapus periode sewa"><i data-lucide="x" class="h-4 w-4"></i></button>
                                     </div>
                                     <div data-calendar-surface></div>
-                                    <div class="mt-2 flex flex-wrap gap-3 text-xs text-zinc-500"><span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm border border-red-200 bg-red-50" aria-hidden="true"></span>Stok tidak cukup</span><span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-blue-700" aria-hidden="true"></span>Pilihanmu</span></div>
+                                    <div class="mt-2 flex flex-wrap gap-3 text-xs text-zinc-500"><span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm border border-red-200 bg-red-50" aria-hidden="true"></span>Stok tidak cukup</span><span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-blue-700" aria-hidden="true"></span>Pilihan Anda</span></div>
                                     <p class="field-error" role="alert" data-calendar-error></p>
                                 </div>
                                 <label class="block" data-booking-native-date>
@@ -139,7 +139,7 @@
                                     <label class="flex items-center gap-2 text-sm text-zinc-700"><input type="radio" name="fulfillment_method" value="pickup" @checked(old('fulfillment_method', 'pickup') === 'pickup') class="h-4 w-4 accent-blue-700">Ambil Sendiri</label>
                                     @if($item->delivery_enabled)
                                         <label class="flex items-center gap-2 text-sm text-zinc-700"><input type="radio" name="fulfillment_method" value="delivery" @checked(old('fulfillment_method') === 'delivery') class="h-4 w-4 accent-blue-700">Dikirim ke Alamat Saya</label>
-                                        <p class="text-xs leading-5 text-zinc-500">{{ $item->free_delivery ? 'Gratis ongkir untuk pengiriman ke penyewa.' : 'Ongkir akan ditawarkan pemilik dan perlu persetujuanmu.' }} Pengembalian menjadi tanggung jawab penyewa.</p>
+                                        <p class="text-xs leading-5 text-zinc-500">{{ $item->free_delivery ? 'Pengiriman kepada penyewa tidak dikenai biaya.' : 'Biaya pengiriman akan ditawarkan pemilik dan perlu persetujuan Anda.' }} Pengembalian menjadi tanggung jawab penyewa.</p>
                                         <div class="grid gap-3" data-recipient-fields>
                                             <label class="block"><span class="field-label">Nama penerima</span><input name="recipient_name" value="{{ old('recipient_name', auth()->user()->name) }}" class="input" maxlength="255">@error('recipient_name')<span class="field-error">{{ $message }}</span>@enderror</label>
                                             <label class="block"><span class="field-label">Telepon penerima</span><input name="recipient_phone" value="{{ old('recipient_phone', auth()->user()->phone) }}" class="input" maxlength="30">@error('recipient_phone')<span class="field-error">{{ $message }}</span>@enderror</label>
@@ -175,7 +175,7 @@
                                 </div>
                                 <div class="rounded-md border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-zinc-600">
                                     <p class="font-semibold text-blue-950">Sebelum mengajukan sewa</p>
-                                    <p class="mt-2">DP adalah bagian biaya sewa. Pembayaran booking baru diperiksa admin dan barang diserahkan setelah lunas. Pengembalian serta masalah kondisi mengikuti pemeriksaan kedua pihak.</p>
+                                    <p class="mt-2">DP adalah bagian biaya sewa. Pembayaran pemesanan baru diperiksa administrator dan barang diserahkan setelah lunas. Pengembalian serta masalah kondisi mengikuti pemeriksaan kedua pihak.</p>
                                     <label class="mt-3 flex min-h-11 items-start gap-3 py-2"><input type="checkbox" name="requirements_accepted" value="1" required @checked(old('requirements_accepted')) class="mt-1 h-4 w-4 shrink-0 accent-brand" aria-describedby="booking-terms-error"><span>Saya menyetujui <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-700 underline underline-offset-2">aturan penyewaan Pinjemin</a> dan persyaratan barang ini, termasuk foto serta identitas jika diwajibkan pemilik.</span></label>
                                     <div id="booking-terms-error">@error('requirements_accepted')<p class="field-error" role="alert">{{ $message }}</p>@enderror</div>
                                 </div>

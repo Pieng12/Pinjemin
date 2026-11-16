@@ -6,7 +6,7 @@
     <section class="flex flex-1 items-center justify-center py-12">
         <div class="card card-pad w-full max-w-md">
             <h1 class="text-2xl font-semibold tracking-tight text-zinc-950">Masuk</h1>
-            <p class="mt-2 text-sm text-zinc-600">Lanjutkan aktivitas sewa atau kelola barangmu.</p>
+            <p class="mt-2 text-sm text-zinc-600">Lanjutkan aktivitas sewa atau kelola barang Anda.</p>
             <form method="POST" action="{{ route('login') }}" class="mt-6 flex flex-col gap-4">
                 @csrf
                 <div>

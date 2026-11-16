@@ -31,10 +31,10 @@ class ConditionInspectionService
             $action = $data['action'];
             Gate::forUser($actor)->authorize($action === 'resolve' ? 'resolveInspection' : 'participateInspection', $booking);
             if (! $booking->usesConditionInspections() || ! in_array($stage, ['handover', 'return'], true)) {
-                throw ValidationException::withMessages(['inspection' => 'Booking ini tidak memakai alur pemeriksaan kondisi baru.']);
+                throw ValidationException::withMessages(['inspection' => 'Pemesanan ini tidak memakai alur pemeriksaan kondisi baru.']);
             }
             if (! in_array($booking->status, [BookingStatus::Approved, BookingStatus::Completed], true) || $booking->remainingAmount() > 0) {
-                throw ValidationException::withMessages(['inspection' => 'Pemeriksaan penyerahan memerlukan pembayaran lunas dan booking aktif.']);
+                throw ValidationException::withMessages(['inspection' => 'Pemeriksaan penyerahan memerlukan pembayaran lunas dan pemesanan aktif.']);
             }
             if ($stage === 'return' && ! $booking->handed_over_at && $action !== 'resolve') {
                 throw ValidationException::withMessages(['inspection' => 'Penyerahan fisik belum dicatat.']);
@@ -54,13 +54,13 @@ class ConditionInspectionService
             $session->setRelation('reports', $session->reports()->lockForUpdate()->get());
             $payout = $booking->payout()->lockForUpdate()->first();
             if ($payout && in_array($payout->status, ['processing', 'paid', 'cancelled'], true)) {
-                throw ValidationException::withMessages(['inspection' => 'Pencairan sedang diproses atau sudah selesai. Hubungi admin untuk bantuan.']);
+                throw ValidationException::withMessages(['inspection' => 'Pencairan sedang diproses atau sudah selesai. Hubungi administrator untuk bantuan.']);
             }
             $role = $actor->id === $item->user_id ? 'owner' : 'renter';
             $report = $session->reports->where('kind', 'initial')->where('user_id', $actor->id)->first();
             if ($action === 'ready') {
                 if (! in_array($session->status, ['waiting', 'active'], true) || $session->hasExpired()) {
-                    throw ValidationException::withMessages(['inspection' => 'Sesi ini sudah dikirim atau memerlukan penyelesaian admin.']);
+                    throw ValidationException::withMessages(['inspection' => 'Sesi ini sudah dikirim atau memerlukan penyelesaian administrator.']);
                 }
                 $field = $role.'_ready_at';
                 if (! $session->{$field}) {
@@ -80,7 +80,7 @@ class ConditionInspectionService
                     throw ValidationException::withMessages(['inspection' => 'Bukti awal sudah dikunci. Gunakan tambahan bukti.']);
                 }
                 if ($action === 'supplement' && ($data['request_admin_review'] ?? false) && $session->resolved_at) {
-                    throw ValidationException::withMessages(['inspection' => 'Pemeriksaan sudah diputuskan admin. Hubungi admin untuk peninjauan lebih lanjut.']);
+                    throw ValidationException::withMessages(['inspection' => 'Pemeriksaan sudah diputuskan administrator. Hubungi administrator untuk peninjauan lebih lanjut.']);
                 }
                 $sender = $stage === 'handover' ? 'owner' : 'renter';
                 if ($action !== 'supplement' && $booking->fulfillment_method === Booking::Delivery && $role !== $sender && ! $session->reports->where('kind', 'initial')->where('role', $sender)->whereNotNull('submitted_at')->count()) {
@@ -132,13 +132,13 @@ class ConditionInspectionService
                 }
             } elseif ($action === 'agree' || $action === 'dispute') {
                 if (! $session->bothSubmitted() || $session->hasExpired() || ! $report?->submitted_at || $session->resolved_at) {
-                    throw ValidationException::withMessages(['inspection' => 'Bukti kedua pihak belum lengkap atau sesi sudah ditangani admin.']);
+                    throw ValidationException::withMessages(['inspection' => 'Bukti kedua pihak belum lengkap atau sesi sudah ditangani administrator.']);
                 }
                 if ($action === 'dispute' && ! filled($data['note'] ?? null)) {
                     throw ValidationException::withMessages(['note' => 'Jelaskan perbedaan kondisi yang ditemukan.']);
                 }
                 if ($report->decision !== null && ! ($report->decision === 'agree' && $action === 'dispute')) {
-                    throw ValidationException::withMessages(['inspection' => 'Keputusan sudah dicatat. Perubahan keberatan memerlukan admin.']);
+                    throw ValidationException::withMessages(['inspection' => 'Keputusan sudah dicatat. Perubahan keberatan memerlukan administrator.']);
                 }
                 $report->update(['decision' => $action, 'decision_note' => $data['note'] ?? null, 'decided_at' => now()]);
                 $session->load('reports');
@@ -162,12 +162,12 @@ class ConditionInspectionService
                 $this->physical($booking, $stage);
             } elseif ($action === 'resolve') {
                 if (! filled($data['note'] ?? null)) {
-                    throw ValidationException::withMessages(['note' => 'Jelaskan dasar keputusan admin.']);
+                    throw ValidationException::withMessages(['note' => 'Jelaskan dasar keputusan administrator.']);
                 }
                 $proof = isset($data['evidence_report_id']) ? ConditionReport::query()->whereKey($data['evidence_report_id'])->whereNotNull('submitted_at')
                     ->whereHas('session', fn ($query) => $query->where('booking_id', $booking->id))->first() : null;
                 if (! $photos && (! $proof || ! $proof->photos)) {
-                    throw ValidationException::withMessages(['photos' => 'Unggah bukti atau pilih dokumentasi foto dari booking ini sebagai dasar keputusan.']);
+                    throw ValidationException::withMessages(['photos' => 'Unggah bukti atau pilih dokumentasi foto dari pemesanan ini sebagai dasar keputusan.']);
                 }
                 $session->reports()->create(['user_id' => $actor->id, 'role' => 'admin', 'kind' => 'admin', 'condition_note' => $data['note'],
                     'photos' => $photos, 'submitted_at' => now(), 'accessories' => $proof ? 'Referensi bukti #'.$proof->id : null]);
@@ -182,7 +182,7 @@ class ConditionInspectionService
             $session->events = [...($session->events ?? []), ['actor_id' => $actor->id, 'actor_name' => $actor->name, 'action' => $action, 'at' => now()->toIso8601String(), 'note' => $data['note'] ?? null]];
             $session->save();
             if ($session->status === 'disputed' && $payout) {
-                $payout->update(['status' => 'on_hold', 'hold_reason' => 'Perbedaan kondisi barang memerlukan pemeriksaan admin.']);
+                $payout->update(['status' => 'on_hold', 'hold_reason' => 'Perbedaan kondisi barang memerlukan pemeriksaan administrator.']);
             }
             if ($session->status === 'disputed' && $booking->status === BookingStatus::Completed) {
                 $booking->update(['status' => BookingStatus::Approved, 'completed_at' => null]);

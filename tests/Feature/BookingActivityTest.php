@@ -90,7 +90,7 @@ class BookingActivityTest extends TestCase
         $this->assertCount(5, $activity['tasks']);
         $this->assertTrue($activity['tasks'][0]['deadline']->lessThan($activity['tasks'][1]['deadline']));
         $this->assertStringNotContainsString($other->booking_code, json_encode($activity));
-        $this->actingAs($renter)->get(route('dashboard'))->assertOk()->assertSee('7 booking membutuhkan tindakanmu.');
+        $this->actingAs($renter)->get(route('dashboard'))->assertOk()->assertSee('7 pemesanan membutuhkan tindakan Anda.');
     }
 
     public function test_identity_queue_is_separate_from_booking_count(): void

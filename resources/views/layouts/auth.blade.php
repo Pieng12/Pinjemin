@@ -26,6 +26,7 @@
         </div>
     </main>
     <x-legal-modal />
+    <x-assistant />
     @stack('scripts')
 </body>
 </html>

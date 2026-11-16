@@ -8,7 +8,7 @@
             <div>
                 <p class="eyebrow">Pembayaran manual</p>
                 <h1 class="mt-2 text-3xl font-semibold text-zinc-950">{{ $platform ? 'Rekening Penerimaan Pinjemin' : 'Metode Pembayaran & Pencairan' }}</h1>
-                <p class="mt-2 max-w-2xl text-zinc-600">{{ $platform ? 'Penyewa membayar ke tujuan ini. Semua admin mengelola daftar yang sama; perubahan tidak mengubah instruksi booking lama.' : 'Untuk booking baru, penyewa membayar ke Pinjemin. Tambahkan bank atau e-wallet aktif sebagai tujuan pencairan; komisi 5% dipotong dari biaya sewa, di luar ongkir. Metode booking lama tetap berlaku.' }}</p>
+                <p class="mt-2 max-w-2xl text-zinc-600">{{ $platform ? 'Penyewa membayar ke tujuan ini. Semua administrator mengelola daftar yang sama; perubahan tidak mengubah instruksi pemesanan lama.' : 'Untuk pemesanan baru, penyewa membayar ke Pinjemin. Tambahkan bank atau e-wallet aktif sebagai tujuan pencairan; komisi 5% dipotong dari biaya sewa, di luar biaya pengiriman. Metode pemesanan lama tetap berlaku.' }}</p>
             </div>
             <div class="grid gap-3"><p class="text-sm font-semibold text-zinc-600">{{ $activeMethodsCount }} / 10 metode aktif</p><x-button href="#tambah-metode">Tambah Metode</x-button></div>
         </div>
@@ -38,7 +38,7 @@
                             @include('payment-methods.partials.fields', ['current' => $method])
                             <div class="flex flex-wrap gap-2"><x-button type="submit">Simpan</x-button></div>
                         </form>
-                        <form method="POST" action="{{ route(($platform ? 'admin.' : '').'payment-methods.destroy', $method) }}" class="mt-3" data-confirm data-confirm-title="Hapus metode pembayaran?" data-confirm-message="Metode hilang dari profil, tetapi snapshot booking lama tetap tersimpan." data-confirm-button="Hapus Metode">
+                        <form method="POST" action="{{ route(($platform ? 'admin.' : '').'payment-methods.destroy', $method) }}" class="mt-3" data-confirm data-confirm-title="Hapus metode pembayaran?" data-confirm-message="Metode hilang dari profil, tetapi salinan data pemesanan lama tetap tersimpan." data-confirm-button="Hapus Metode">
                             @csrf @method('DELETE')
                             <x-button type="submit" variant="danger">Hapus</x-button>
                         </form>

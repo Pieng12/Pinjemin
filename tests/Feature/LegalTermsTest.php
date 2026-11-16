@@ -26,7 +26,7 @@ class LegalTermsTest extends TestCase
             ->assertSee('5% dari subtotal sewa')->assertSee('tidak mengenakan denda atau biaya tambahan otomatis')
             ->assertSee('id="masalah-barang"', false)->assertSee('id="pembatalan"', false);
         $this->get(route('legal.privacy'))->assertOk()
-            ->assertSee('Kebijakan Privasi')->assertSee('hanya dapat diakses pemilik akun tersebut dan admin berwenang')
+            ->assertSee('Kebijakan Privasi')->assertSee('hanya dapat diakses pemilik akun tersebut dan administrator berwenang')
             ->assertSee('ditinjau setiap 30 hari')->assertSee(config('legal.privacy_version'));
         $this->assertGuest();
     }

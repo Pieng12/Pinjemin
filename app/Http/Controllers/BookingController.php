@@ -57,7 +57,7 @@ class BookingController extends Controller
     {
         $booking = $bookings->create($request->user(), $item, $request->validated());
 
-        return redirect()->route('my-bookings.show', $booking)->with('status', 'Booking berhasil diajukan.');
+        return redirect()->route('my-bookings.show', $booking)->with('status', 'Pemesanan berhasil diajukan.');
     }
 
     public function index(Request $request): View
@@ -115,7 +115,7 @@ class BookingController extends Controller
 
         $bookings->cancel($booking, request()->user());
 
-        return redirect()->route('my-bookings.show', $booking)->with('status', 'Booking berhasil dibatalkan.');
+        return redirect()->route('my-bookings.show', $booking)->with('status', 'Pemesanan berhasil dibatalkan.');
     }
 
     public function confirmDelivery(Booking $booking, BookingService $bookings): RedirectResponse
@@ -129,8 +129,8 @@ class BookingController extends Controller
     public function declineDelivery(Booking $booking, BookingService $bookings): RedirectResponse
     {
         Gate::authorize('confirmDelivery', $booking);
-        $bookings->cancel($booking, request()->user(), 'Penyewa menolak tawaran ongkir.');
+        $bookings->cancel($booking, request()->user(), 'Penyewa menolak tawaran biaya pengiriman.');
 
-        return redirect()->route('my-bookings.show', $booking)->with('status', 'Tawaran ditolak dan booking dibatalkan.');
+        return redirect()->route('my-bookings.show', $booking)->with('status', 'Tawaran ditolak dan pemesanan dibatalkan.');
     }
 }

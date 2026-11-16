@@ -8,7 +8,7 @@
         <div class="page-header mt-5">
             <div>
                 <h1 class="text-3xl font-semibold text-zinc-950">Edit Barang</h1>
-                <p class="mt-2 max-w-2xl text-zinc-600">Perbarui informasi listing, foto, harga, dan status publikasi barang.</p>
+                <p class="mt-2 max-w-2xl text-zinc-600">Perbarui informasi barang, foto, harga, dan status publikasinya.</p>
             </div>
         </div>
 

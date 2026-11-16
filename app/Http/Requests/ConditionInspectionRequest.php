@@ -46,6 +46,6 @@ class ConditionInspectionRequest extends FormRequest
 
     public function messages(): array
     {
-        return ['note.required' => 'Isi alasan atau catatan pemeriksaan.', 'photos.max' => 'Maksimal 5 foto per kiriman.', 'photos.*.image' => 'Pilih foto yang valid.', 'photos.*.mimes' => 'Foto harus JPG, PNG, atau WebP.', 'photos.*.max' => 'Setiap foto maksimal 5 MB.', 'outcome.required_if' => 'Pilih hasil pemeriksaan admin.'];
+        return ['note.required' => 'Isi alasan atau catatan pemeriksaan.', 'photos.max' => 'Maksimal 5 foto per kiriman.', 'photos.*.image' => 'Pilih foto yang valid.', 'photos.*.mimes' => 'Foto harus JPG, PNG, atau WebP.', 'photos.*.max' => 'Setiap foto maksimal 5 MB.', 'outcome.required_if' => 'Pilih hasil pemeriksaan administrator.'];
     }
 }

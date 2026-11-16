@@ -47,7 +47,7 @@
     <table class="costs">
         <tr><td>Sewa: {{ $money($details['daily_price']) }} x {{ $details['rental_days'] }} hari x {{ $details['quantity'] }} unit</td><td class="amount">{{ $money($details['subtotal']) }}</td></tr>
         <tr><td>{{ ($invoice['pricing_version'] ?? 1) >= 2 ? 'DP (bagian dari total, bukan biaya tambahan)' : 'DP sesuai perhitungan pengajuan lama' }}</td><td class="amount">{{ $money($details['deposit_amount']) }}</td></tr>
-        <tr><td>Ongkir ke penyewa</td><td class="amount">{{ $money($details['delivery_fee']) }}</td></tr>
+        <tr><td>Biaya Pengiriman ke penyewa</td><td class="amount">{{ $money($details['delivery_fee']) }}</td></tr>
         <tr class="total"><td>Total</td><td class="amount">{{ $money($details['total_amount']) }}</td></tr>
     </table>
     <div class="section"><h2>Status Pembayaran</h2>@if($booking->payment_legacy)<p>Lunas - data lama. Rincian transaksi pembayaran tidak tercatat.</p>@else<p>Terverifikasi: {{ $money($booking->verifiedAmount()) }}</p>@endif<p>Sisa pembayaran: {{ $money($booking->remainingAmount()) }}</p>@if($booking->refund_status)<p>Refund: {{ $booking->refund_status === 'refunded' ? 'Sudah dicatat' : 'Menunggu pengembalian dana' }}</p>@endif</div>
@@ -55,6 +55,6 @@
         <div class="section"><h2>Tujuan Pengiriman</h2><p>{{ $invoice['recipient']['name'] ?? 'Belum tercatat' }} / {{ $invoice['recipient']['phone'] ?? '' }}</p><p style="white-space: pre-line">{{ $invoice['recipient']['address'] ?? 'Belum tercatat' }}</p><p>{{ $invoice['recipient']['city'] ?? '' }}</p></div>
     @endif
     <div class="section"><h2>Lokasi Pengambilan / Pengembalian</h2><p style="white-space: pre-line">{{ $invoice['pickup']['address'] ?? 'Alamat belum tercatat' }}</p><p>{{ $invoice['pickup']['city'] ?? '' }}</p></div>
-    <div class="note">Tagihan ini mencatat biaya penyewaan dan bukan bukti pembayaran. Verifikasi pembayaran dilakukan manual oleh {{ ($invoice['payment_collection'] ?? null) === 'platform' ? 'admin Pinjemin. Pembayaran ditujukan ke rekening Pinjemin sesuai instruksi booking' : 'pemilik' }}, bukan oleh bank atau payment gateway. @if($details['fulfillment_method'] === 'delivery')Ongkir hanya mencakup pengiriman ke penyewa; pengembalian menjadi tanggung jawab penyewa.@endif @if($invoice['legacy'] ?? false)Dokumen booking lama menggunakan data yang tersedia saat fitur invoice ditambahkan.@endif</div>
+    <div class="note">Tagihan ini mencatat biaya penyewaan dan bukan bukti pembayaran. Verifikasi pembayaran dilakukan manual oleh {{ ($invoice['payment_collection'] ?? null) === 'platform' ? 'administrator Pinjemin. Pembayaran ditujukan ke rekening Pinjemin sesuai instruksi pemesanan' : 'pemilik' }}, bukan oleh bank atau payment gateway. @if($details['fulfillment_method'] === 'delivery')Biaya pengiriman hanya mencakup pengiriman ke penyewa; pengembalian menjadi tanggung jawab penyewa.@endif @if($invoice['legacy'] ?? false)Dokumen pemesanan lama menggunakan data yang tersedia saat fitur invoice ditambahkan.@endif</div>
 </body>
 </html>

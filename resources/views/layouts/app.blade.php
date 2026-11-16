@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="@yield('meta_description', 'Pinjemin mempertemukan kebutuhan sementara dengan barang yang jarang digunakan di sekitar kita.')">
+    <meta name="description" content="@yield('meta_description', 'Pinjemin menghubungkan penyewa dengan pemilik barang untuk kebutuhan penggunaan sementara.')">
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/landing/logo pinjemin.svg') }}">
     <title>@yield('title', 'Pinjemin')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -64,15 +64,15 @@
                                         <a href="{{ route('my-bookings.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Penyewaan Saya</a>
                                         <div class="my-1 border-t border-zinc-100"></div>
                                         <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">Untuk Pemilik</p>
-                                        <a href="{{ route('owner.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Dashboard Pemilik</a>
+                                        <a href="{{ route('owner.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Dasbor Pemilik</a>
                                         <a href="{{ route('my-items.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Barang Saya</a>
-                                        <a href="{{ route('incoming-bookings.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Booking Masuk</a>
+                                        <a href="{{ route('incoming-bookings.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Pemesanan Masuk</a>
                                         <div class="my-1 border-t border-zinc-100"></div>
                                         <a href="{{ route('profile.edit') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Profil</a>
                                         <a href="{{ route('identity.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Verifikasi Identitas</a>
                                         <a href="{{ route('legal.terms') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Aturan &amp; Privasi</a>
                                         @if (auth()->user()->isAdmin())
-                                            <a href="{{ route('admin.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">Dashboard Admin</a>
+                                            <a href="{{ route('admin.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50">Dasbor Administrator</a>
                                         @endif
                                         <form method="POST" action="{{ route('logout') }}" class="mt-1 border-t border-zinc-100 pt-1">
                                             @csrf
@@ -126,11 +126,11 @@
                                 <p class="site-menu-caption">Akun Saya</p>
                                 <div class="site-menu-grid">
                                     <a href="{{ route('my-bookings.index') }}" class="site-mobile-link">Penyewaan Saya</a>
-                                    <a href="{{ route('owner.dashboard') }}" class="site-mobile-link">Dashboard Pemilik</a>
+                                    <a href="{{ route('owner.dashboard') }}" class="site-mobile-link">Dasbor Pemilik</a>
                                     <a href="{{ route('profile.edit') }}" class="site-mobile-link">Profil</a>
                                     <a href="{{ route('identity.index') }}" class="site-mobile-link">Verifikasi Identitas</a>
                                     @if (auth()->user()->isAdmin())
-                                        <a href="{{ route('admin.dashboard') }}" class="site-mobile-link">Dashboard Admin</a>
+                                        <a href="{{ route('admin.dashboard') }}" class="site-mobile-link">Dasbor Administrator</a>
                                     @endif
                                 </div>
                                 <form method="POST" action="{{ route('logout') }}" class="mt-2">
@@ -179,7 +179,7 @@
                         <img src="{{ asset('images/landing/logo pinjemin.svg') }}" alt="" class="h-12 w-12 rounded-full object-cover" width="48" height="44">
                         Pinjemin<span class="text-accent">.</span>
                     </a>
-                    <p class="mt-4 max-w-md leading-7 text-white/70">Cara yang lebih ringan untuk memakai barang seperlunya dan membuat barang yang jarang digunakan kembali bermanfaat.</p>
+                    <p class="mt-4 max-w-md leading-7 text-white/70">Layanan untuk mencari, menyewa, dan mengelola penyewaan barang sesuai kebutuhan.</p>
                 </div>
                 <div>
                     <p class="font-semibold text-white">Navigasi</p>
@@ -192,7 +192,7 @@
                     </div>
                 </div>
                 <div>
-                    <p class="font-semibold text-white">Temukan Kami</p>
+                    <p class="font-semibold text-white">Kontak Pinjemin</p>
                     <div class="mt-3 grid gap-2">
                         <a href="https://www.instagram.com/pinjemin911/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 hover:text-white">@pinjemin911 <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i></a>
                         <a href="mailto:pinjemin99@gmail.com" class="hover:text-white">pinjemin99@gmail.com</a>
@@ -208,6 +208,7 @@
     </div>
     <x-confirm-modal />
     <x-legal-modal />
+    <x-assistant />
     @stack('scripts')
 </body>
 </html>

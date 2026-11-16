@@ -29,6 +29,6 @@
         @endforeach
         <tr class="total"><td colspan="2">Total terverifikasi</td><td class="amount">{{ $money($details['total_amount']) }}</td></tr>
     </tbody></table>
-    <div class="note">Dokumen ini mencatat konfirmasi manual oleh {{ ($invoice['payment_collection'] ?? null) === 'platform' ? 'admin Pinjemin' : 'pemilik barang' }}. Pinjemin tidak terhubung dengan bank, e-wallet, QRIS, atau payment gateway dan tidak memvalidasi transaksi secara otomatis.</div>
+    <div class="note">Dokumen ini mencatat konfirmasi manual oleh {{ ($invoice['payment_collection'] ?? null) === 'platform' ? 'administrator Pinjemin' : 'pemilik barang' }}. Pinjemin tidak terhubung dengan bank, e-wallet, QRIS, atau payment gateway dan tidak memvalidasi transaksi secara otomatis.</div>
 </body>
 </html>

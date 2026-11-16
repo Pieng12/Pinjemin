@@ -79,7 +79,7 @@ class IncomingBookingController extends Controller
 
         $bookings->approve($booking);
 
-        return redirect()->route('incoming-bookings.show', $booking)->with('status', 'Booking diterima. Penyewa dapat melanjutkan pembayaran.');
+        return redirect()->route('incoming-bookings.show', $booking)->with('status', 'Pemesanan diterima. Penyewa dapat melanjutkan pembayaran.');
     }
 
     public function reject(Request $request, Booking $booking, BookingService $bookings): RedirectResponse
@@ -101,7 +101,7 @@ class IncomingBookingController extends Controller
         $data = $request->validate(['delivery_fee' => ['required', 'numeric', 'min:0', 'max:999999999.99', 'decimal:0,2']]);
         $bookings->quoteDelivery($booking, (float) $data['delivery_fee']);
 
-        return redirect()->route('incoming-bookings.show', $booking)->with('status', 'Tawaran ongkir dikirim. Stok ditahan sampai batas konfirmasi.');
+        return redirect()->route('incoming-bookings.show', $booking)->with('status', 'Tawaran biaya pengiriman dikirim. Stok ditahan sampai batas konfirmasi.');
     }
 
     public function cancel(Request $request, Booking $booking, BookingService $bookings): RedirectResponse
@@ -110,7 +110,7 @@ class IncomingBookingController extends Controller
         $data = $request->validate(['cancellation_reason' => ['required', 'string', 'max:1000']]);
         $bookings->cancel($booking, $request->user(), $data['cancellation_reason']);
 
-        return redirect()->route('incoming-bookings.show', $booking)->with('status', 'Booking dibatalkan dan reservasi stok dibebaskan.');
+        return redirect()->route('incoming-bookings.show', $booking)->with('status', 'Pemesanan dibatalkan dan reservasi stok dibebaskan.');
     }
 
     public function handOver(Booking $booking, BookingService $bookings): RedirectResponse

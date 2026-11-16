@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Detail Booking - Admin Pinjemin')
+@section('title', 'Detail Pemesanan - Administrator Pinjemin')
 
 @section('content')
     <section class="page-shell">
         <x-breadcrumb :items="[
-            'Admin' => route('admin.dashboard'),
-            'Booking' => route('admin.bookings.index'),
+            'Administrator' => route('admin.dashboard'),
+            'Pemesanan' => route('admin.bookings.index'),
             'Detail' => null,
         ]" />
 
@@ -43,7 +43,7 @@
             </div>
 
             <div class="card card-pad">
-                <h2 class="text-lg font-bold text-zinc-950">Rincian Booking</h2>
+                <h2 class="text-lg font-bold text-zinc-950">Rincian Pemesanan</h2>
                 <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                     <div><dt class="font-medium text-zinc-500">Tanggal mulai</dt><dd class="mt-1 text-zinc-950">{{ $booking->start_date->format('d M Y') }}</dd></div>
                     <div><dt class="font-medium text-zinc-500">Tanggal Pengembalian</dt><dd class="mt-1 text-zinc-950">{{ $booking->end_date->format('d M Y') }}</dd></div>
@@ -52,7 +52,7 @@
                     <div><dt class="font-medium text-zinc-500">Subtotal</dt><dd class="mt-1 text-zinc-950"><x-price :amount="$booking->subtotal" suffix="" /></dd></div>
                     <div><dt class="font-medium text-zinc-500">Uang muka (DP)</dt><dd class="mt-1 text-zinc-950"><x-price :amount="$booking->deposit_amount" suffix="" /></dd></div>
                     <div><dt class="font-medium text-zinc-500">Total</dt><dd class="mt-1 font-bold text-blue-700"><x-price :amount="$booking->total_amount" suffix="" /></dd></div>
-                    <div><dt class="font-medium text-zinc-500">Ongkir</dt><dd class="mt-1"><x-price :amount="$booking->delivery_fee" suffix="" /></dd></div>
+                    <div><dt class="font-medium text-zinc-500">Biaya Pengiriman</dt><dd class="mt-1"><x-price :amount="$booking->delivery_fee" suffix="" /></dd></div>
                     <div><dt class="font-medium text-zinc-500">Status</dt><dd class="mt-1"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></dd></div>
                 </dl>
                 @include('bookings.partials.fulfillment', ['booking' => $booking, 'showPickup' => true])

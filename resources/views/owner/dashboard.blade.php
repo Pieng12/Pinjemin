@@ -1,13 +1,13 @@
 @extends('layouts.owner')
 
-@section('title', 'Dashboard Pemilik - Pinjemin')
+@section('title', 'Dasbor Pemilik - Pinjemin')
 
 @section('content')
     <section class="page-shell">
         <div class="page-header">
             <div>
                 <p class="eyebrow">Mode Pemilik</p>
-                <h1 class="mt-2 text-3xl font-semibold text-zinc-950">Dashboard Pemilik</h1>
+                <h1 class="mt-2 text-3xl font-semibold text-zinc-950">Dasbor Pemilik</h1>
                 <p class="mt-2 text-zinc-600">Kelola barang dan permintaan sewa dari satu tempat.</p>
             </div>
             <x-button :href="route('my-items.create')"><i data-lucide="plus" class="h-4 w-4" aria-hidden="true"></i> Tambah Barang</x-button>
@@ -16,7 +16,7 @@
         <x-activity-list :activity="$activity" />
         <div class="mt-7 grid grid-cols-3 gap-2 sm:gap-4">
             <x-stat-card class="owner-stat-card" label="Barang Aktif" :value="$activeItemsCount" description="Tampil di marketplace" :href="route('my-items.index')" />
-            <x-stat-card class="owner-stat-card" label="Perlu Tindakan" :value="$activity['bookingCount']" description="Tindakan yang menjadi tugasmu" :href="route('incoming-bookings.index')" />
+            <x-stat-card class="owner-stat-card" label="Perlu Tindakan" :value="$activity['bookingCount']" description="Tindakan yang menjadi tugas Anda" :href="route('incoming-bookings.index')" />
             <x-stat-card class="owner-stat-card" label="Total Barang" :value="$totalItemsCount" description="{{ $inactiveItemsCount }} tidak aktif" :href="route('my-items.index')" />
         </div>
 
@@ -36,7 +36,7 @@
                             <x-booking-status-badge :status="$booking->status" :booking="$booking" />
                         </a>
                     @empty
-                        <x-empty-state :show-mark="false" :framed="false" title="Belum ada permintaan sewa" description="Booking untuk barangmu akan tampil di sini." />
+                        <x-empty-state :show-mark="false" :framed="false" title="Belum ada permintaan sewa" description="Pemesanan untuk barang Anda akan tampil di sini." />
                     @endforelse
                 </div>
             </div>

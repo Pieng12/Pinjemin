@@ -10,11 +10,11 @@
             <div class="page-header marketplace-reveal" data-reveal>
                 <div>
                     <p class="eyebrow">Untuk pemilik barang</p>
-                    <h1 class="mt-2 text-2xl font-semibold leading-tight sm:text-3xl">Barang yang kamu sewakan</h1>
-                    <p class="mt-3 text-sm leading-6 text-zinc-600"><span class="font-semibold text-zinc-900">{{ $itemsCount }} barang terdaftar.</span> Kelola informasi dan permintaan sewamu dari sini.</p>
+                    <h1 class="mt-2 text-2xl font-semibold leading-tight sm:text-3xl">Barang yang Anda sewakan</h1>
+                    <p class="mt-3 text-sm leading-6 text-zinc-600"><span class="font-semibold text-zinc-900">{{ $itemsCount }} barang terdaftar.</span> Kelola informasi dan permintaan penyewaan Anda dari sini.</p>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <x-button :href="route('owner.dashboard')" variant="outline">Dashboard Pemilik <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i></x-button>
+                    <x-button :href="route('owner.dashboard')" variant="outline">Dasbor Pemilik <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i></x-button>
                     <x-button :href="route('my-items.create')"><i data-lucide="plus" class="h-4 w-4" aria-hidden="true"></i> Tambah Barang</x-button>
                 </div>
             </div>
@@ -44,15 +44,15 @@
                     </div>
                     <div class="mt-8">{{ $ownedItems->links() }}</div>
                 @else
-                    <x-empty-state :show-mark="false" title="Belum ada barang yang kamu sewakan." description="Tambahkan foto dan informasi barang pertamamu untuk mulai menyewakan." action-label="Tambah Barang" :action-url="route('my-items.create')" />
+                    <x-empty-state :show-mark="false" title="Belum ada barang yang Anda sewakan." description="Tambahkan foto dan informasi barang pertama Anda untuk mulai menyewakan." action-label="Tambah Barang" :action-url="route('my-items.create')" />
                 @endif
             </div>
         @else
             <div class="grid gap-8 pb-2 md:grid-cols-2 md:items-center lg:gap-16">
                 <div class="marketplace-reveal" data-reveal>
                     <p class="eyebrow">Untuk pemilik barang</p>
-                    <h1 class="mt-3 max-w-lg text-3xl font-semibold leading-tight sm:text-4xl">Barang jarang dipakai?<br>Beri manfaat baru.</h1>
-                    <p class="mt-4 max-w-md text-sm leading-7 text-zinc-600">Sewakan barangmu, tentukan harga harian, dan kelola permintaan dari satu tempat.</p>
+                    <h1 class="mt-3 max-w-lg text-3xl font-semibold leading-tight sm:text-4xl">Sewakan dan kelola barang Anda.</h1>
+                    <p class="mt-4 max-w-md text-sm leading-7 text-zinc-600">Sewakan barang Anda, tentukan harga harian, dan kelola permintaan dari satu tempat.</p>
                     <div class="mt-6 flex flex-wrap gap-3"><x-button :href="route('register')">Mulai Sewakan <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i></x-button><x-button :href="route('login')" variant="outline">Masuk</x-button></div>
                 </div>
                 <div class="grid grid-cols-2 items-center gap-3" aria-label="Contoh perlengkapan untuk disewakan">
@@ -63,9 +63,9 @@
         @endauth
 
         <section class="mt-10 border-t border-zinc-200 pt-8 sm:mt-12" aria-labelledby="owner-guide-title">
-            <div class="marketplace-reveal max-w-xl" data-reveal><p class="eyebrow">Cara menyewakan barang</p><h2 id="owner-guide-title" class="mt-2 text-xl font-semibold sm:text-2xl">Mulai dari barang yang kamu punya.</h2></div>
+            <div class="marketplace-reveal max-w-xl" data-reveal><p class="eyebrow">Cara menyewakan barang</p><h2 id="owner-guide-title" class="mt-2 text-xl font-semibold sm:text-2xl">Daftarkan barang yang akan disewakan.</h2></div>
             <ol class="mt-6 grid gap-6 md:grid-cols-3">
-                @foreach ([['Tambahkan barang', 'Unggah foto asli dan informasi kondisi barang yang jelas.'], ['Tentukan harga dan aturan', 'Isi harga harian, DP, jumlah unit, dan aturan penyewaan.'], ['Kelola permintaan sewa', 'Tinjau booking masuk melalui Dashboard Pemilik.']] as [$title, $description])
+                @foreach ([['Tambahkan barang', 'Unggah foto asli dan informasi kondisi barang yang jelas.'], ['Tentukan harga dan aturan', 'Isi harga harian, DP, jumlah unit, dan aturan penyewaan.'], ['Kelola permintaan sewa', 'Tinjau pemesanan masuk melalui Dasbor Pemilik.']] as [$title, $description])
                     <li class="marketplace-reveal border-t-2 border-blue-100 pt-4" data-reveal style="--reveal-delay: {{ $loop->index * 40 }}ms"><span class="text-sm font-semibold text-blue-700">0{{ $loop->iteration }}</span><h3 class="mt-3 text-base font-semibold">{{ $title }}</h3><p class="mt-2 text-sm leading-7 text-zinc-600">{{ $description }}</p></li>
                 @endforeach
             </ol>

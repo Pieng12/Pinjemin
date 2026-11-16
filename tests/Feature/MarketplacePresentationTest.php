@@ -18,7 +18,7 @@ class MarketplacePresentationTest extends TestCase
     {
         $this->get('/jelajahi')
             ->assertSee('<details class="catalog-filter-details" >', false)
-            ->assertSee('Temukan barang untuk rencanamu');
+            ->assertSee('Temukan barang untuk kebutuhan Anda');
     }
 
     public function test_filter_chips_use_readable_labels_and_removal_preserves_other_filters_without_page(): void
@@ -77,7 +77,7 @@ class MarketplacePresentationTest extends TestCase
         Item::factory()->create(['name' => 'Barang Milik Orang Lain']);
 
         $this->actingAs($user)->get('/sewakan-barang')
-            ->assertSeeInOrder(['Barang yang kamu sewakan', 'Barang Milik Saya', 'Cara menyewakan barang'])
+            ->assertSeeInOrder(['Barang yang Anda sewakan', 'Barang Milik Saya', 'Cara menyewakan barang'])
             ->assertDontSee('Barang Milik Orang Lain');
     }
 
@@ -86,7 +86,7 @@ class MarketplacePresentationTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)->get('/sewakan-barang')
-            ->assertSeeInOrder(['Belum ada barang yang kamu sewakan.', 'Tambah Barang', 'Cara menyewakan barang'])
+            ->assertSeeInOrder(['Belum ada barang yang Anda sewakan.', 'Tambah Barang', 'Cara menyewakan barang'])
             ->assertSee(route('my-items.create'));
     }
 

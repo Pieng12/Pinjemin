@@ -22,9 +22,9 @@ const initializeInspectionUploads = () => {
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
                 urls.push(img.src);
-                img.alt = 'Preview foto kondisi';
+                img.alt = 'Pratinjau foto kondisi';
                 img.className = 'h-40 w-full rounded-md border border-zinc-200 bg-white object-contain';
-                img.addEventListener('error', () => { img.replaceWith(document.createTextNode('Preview tidak tersedia: ' + file.name)); });
+                img.addEventListener('error', () => { img.replaceWith(document.createTextNode('Pratinjau tidak tersedia: ' + file.name)); });
                 preview.append(img);
             });
         };

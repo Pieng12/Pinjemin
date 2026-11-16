@@ -56,8 +56,8 @@ class StoreBookingRequest extends FormRequest
             'start_date.after_or_equal' => 'Tanggal mulai tidak boleh sebelum hari ini.',
             'end_date.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
             'quantity.min' => 'Jumlah unit minimal 1.',
-            'requirements_accepted.required' => 'Setujui aturan penyewaan dan persyaratan barang sebelum mengajukan booking.',
-            'requirements_accepted.accepted' => 'Setujui aturan penyewaan dan persyaratan barang sebelum mengajukan booking.',
+            'requirements_accepted.required' => 'Setujui aturan penyewaan dan persyaratan barang sebelum mengajukan pemesanan.',
+            'requirements_accepted.accepted' => 'Setujui aturan penyewaan dan persyaratan barang sebelum mengajukan pemesanan.',
         ];
     }
 }

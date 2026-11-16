@@ -8,7 +8,7 @@
         <div class="page-header">
             <div>
                 <h1 class="text-3xl font-semibold text-zinc-950">Tambahkan Barang</h1>
-                <p class="mt-2 max-w-2xl text-zinc-600">Lengkapi informasi barang agar penyewa memahami barang yang kamu tawarkan.</p>
+                <p class="mt-2 max-w-2xl text-zinc-600">Lengkapi informasi barang agar penyewa memahami barang yang Anda tawarkan.</p>
             </div>
         </div>
 
@@ -23,7 +23,7 @@
             </form>
 
             <aside class="card card-pad h-fit xl:sticky xl:top-24">
-                <h2 class="font-semibold text-zinc-950">Tips listing yang baik</h2>
+                <h2 class="font-semibold text-zinc-950">Panduan informasi barang</h2>
                 <ul class="mt-4 grid gap-3 text-sm leading-6 text-zinc-600">
                     <li>Gunakan foto yang jelas dan terang.</li>
                     <li>Tulis kondisi barang apa adanya.</li>

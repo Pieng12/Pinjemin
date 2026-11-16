@@ -34,8 +34,12 @@ export function initializeLegalModal() {
         const previousOpener = opener;
         opener = null;
         const menuControl = previousOpener?.closest('[data-dropdown]')?.querySelector('[data-dropdown-trigger]')
-            || (previousOpener?.closest('#mobile-menu') ? document.querySelector('[aria-controls="mobile-menu"]') : null);
+            || (previousOpener?.closest('#mobile-menu') ? document.querySelector('[aria-controls="mobile-menu"]') : null)
+            || (previousOpener?.closest('[data-assistant-dialog]') ? document.querySelector('[data-assistant-launcher]') : null);
         (menuControl || previousOpener)?.focus({ preventScroll: true });
+        if (previousOpener?.closest('[data-assistant-dialog]')) {
+            requestAnimationFrame(() => menuControl?.focus({ preventScroll: true }));
+        }
     };
     const close = () => {
         if (dialog.open) dialog.close();
@@ -135,6 +139,7 @@ export function initializeLegalModal() {
         if (!entry) return;
         event.preventDefault();
         if (!dialog.open) {
+            document.dispatchEvent(new CustomEvent('pinjemin:overlay-opening', { detail: { source: 'legal' } }));
             opener = link;
             previousRootStyle = { overflow: document.documentElement.style.overflow, scrollbarGutter: document.documentElement.style.scrollbarGutter };
             if (window.innerWidth > document.documentElement.clientWidth) document.documentElement.style.scrollbarGutter = 'stable';

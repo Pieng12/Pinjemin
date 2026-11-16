@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import 'flatpickr/dist/flatpickr.min.css';
+@import './assistant.css';
+@import './tutorial.css';
 
 .flatpickr-calendar.inline { width: 100%; max-width: 100%; border: 1px solid #e4e4e7; border-radius: 8px; box-shadow: none; }
 .flatpickr-innerContainer, .flatpickr-rContainer, .flatpickr-days, .dayContainer { width: 100%; min-width: 0; max-width: 100%; }

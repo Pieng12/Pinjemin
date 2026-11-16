@@ -99,7 +99,7 @@ class ManualPaymentTest extends TestCase
             ->assertSee('Menunggu pembayaran')
             ->assertSee('Kirim Bukti Pembayaran')
             ->assertSee('BCA')
-            ->assertSee('Alur Booking');
+            ->assertSee('Alur Pemesanan');
 
         $this->submitProof($booking, $renter, PaymentPlan::FullTransfer);
         $payment = $booking->payments()->firstOrFail();

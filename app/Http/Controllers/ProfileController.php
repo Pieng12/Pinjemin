@@ -30,7 +30,7 @@ class ProfileController extends Controller
             $newPhoto = $request->file('profile_photo')->store($photoDirectory, 'public');
 
             if ($newPhoto === false) {
-                throw ValidationException::withMessages(['profile_photo' => 'Foto gagal disimpan. Silakan coba lagi.']);
+                throw ValidationException::withMessages(['profile_photo' => 'Foto gagal disimpan. Silakan coba kembali.']);
             }
 
             $data['profile_photo'] = $newPhoto;

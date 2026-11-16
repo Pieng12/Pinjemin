@@ -21,7 +21,7 @@
                         <p id="profile-photo-error" class="field-error" role="alert" data-error-field="profile_photo" data-profile-photo-error>@error('profile_photo'){{ $message }}@enderror</p>
                         <p class="field-help" aria-live="polite" data-profile-photo-status></p>
                         <div class="mt-3 flex flex-wrap items-center gap-4">
-                            <button type="button" class="text-sm font-semibold text-blue-700 hover:underline" data-profile-photo-reset hidden>Batal pilih foto</button>
+                            <button type="button" class="text-sm font-semibold text-blue-700 hover:underline" data-profile-photo-reset hidden>Batalkan pemilihan foto</button>
                             @if($user->profile_photo)
                                 <label class="flex items-center gap-2 text-sm text-zinc-600">
                                     <input id="remove_profile_photo" type="checkbox" name="remove_profile_photo" value="1" @checked(old('remove_profile_photo')) class="h-4 w-4 accent-blue-700" aria-invalid="{{ $errors->has('remove_profile_photo') ? 'true' : 'false' }}" @error('remove_profile_photo') aria-describedby="remove-profile-photo-error" @enderror data-profile-photo-remove>

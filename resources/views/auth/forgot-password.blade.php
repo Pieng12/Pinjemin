@@ -1,14 +1,14 @@
 @extends('layouts.auth')
 
-@section('title', 'Lupa Password - Pinjemin')
+@section('title', 'Lupa Kata Sandi - Pinjemin')
 
 @section('content')
     <section class="page-shell max-w-md py-16">
         <div class="card card-pad">
             <p class="eyebrow">Bantuan akun</p>
-            <h1 class="mt-2 text-2xl font-bold tracking-tight text-zinc-950">Lupa password</h1>
+            <h1 class="mt-2 text-2xl font-bold tracking-tight text-zinc-950">Lupa kata sandi</h1>
             <p class="mt-3 text-sm leading-6 text-zinc-600">Untuk bantuan akses akun, hubungi <a href="mailto:pinjemin99@gmail.com" class="font-semibold text-blue-700">pinjemin99@gmail.com</a>.</p>
-            <x-button href="{{ route('login') }}" class="mt-6">Kembali ke login</x-button>
+            <x-button href="{{ route('login') }}" class="mt-6">Kembali ke Halaman Masuk</x-button>
         </div>
     </section>
 @endsection

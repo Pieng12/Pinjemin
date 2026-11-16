@@ -33,14 +33,14 @@ class LoginController extends Controller
         $key = 'login:'.hash('sha256', Str::lower(trim($credentials['email'])).'|'.$request->ip());
         if (RateLimiter::tooManyAttempts($key, 5)) {
             throw ValidationException::withMessages([
-                'email' => 'Terlalu banyak percobaan masuk. Coba lagi dalam '.RateLimiter::availableIn($key).' detik.',
+                'email' => 'Terlalu banyak percobaan masuk. Silakan coba kembali dalam '.RateLimiter::availableIn($key).' detik.',
             ]);
         }
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($key, 60);
             throw ValidationException::withMessages([
-                'email' => 'Email atau password tidak sesuai.',
+                'email' => 'Email atau kata sandi tidak sesuai.',
             ]);
         }
 
@@ -67,6 +67,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('status', 'Kamu berhasil keluar.');
+        return redirect()->route('home')->with('status', 'Anda berhasil keluar.');
     }
 }

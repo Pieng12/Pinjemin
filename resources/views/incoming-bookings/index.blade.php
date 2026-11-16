@@ -1,27 +1,27 @@
 @extends('layouts.owner')
 
-@section('title', 'Booking Masuk - Pinjemin')
+@section('title', 'Pemesanan Masuk - Pinjemin')
 
 @section('content')
     <section class="page-shell">
         <x-breadcrumb :items="[
-            'Dashboard Pemilik' => route('owner.dashboard'),
-            'Booking Masuk' => null,
+            'Dasbor Pemilik' => route('owner.dashboard'),
+            'Pemesanan Masuk' => null,
         ]" />
 
         <div class="page-header mt-6">
             <div>
                 <p class="eyebrow">Permintaan peminjam</p>
-                <h1 class="mt-2 text-3xl font-semibold text-zinc-950">Booking Masuk</h1>
-                <p class="mt-2 text-zinc-600">Permintaan sewa untuk barang milikmu.</p>
+                <h1 class="mt-2 text-3xl font-semibold text-zinc-950">Pemesanan Masuk</h1>
+                <p class="mt-2 text-zinc-600">Permintaan sewa untuk barang milik Anda.</p>
             </div>
         </div>
 
         @php
             $filterSelects = ['status' => ['label' => 'Status', 'all' => 'Semua status', 'options' => $statuses]];
         @endphp
-        <x-list-filters :action="route('incoming-bookings.index')" :filters="$filters" search-label="Cari booking masuk" placeholder="Kode booking, barang, atau penyewa" :selects="$filterSelects" />
-        <x-list-results :results="$bookings" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('incoming-bookings.index')" empty-title="Belum ada booking masuk" empty-description="Permintaan sewa untuk barangmu akan tampil di sini." />
+        <x-list-filters :action="route('incoming-bookings.index')" :filters="$filters" search-label="Cari pemesanan masuk" placeholder="Kode pemesanan, barang, atau penyewa" :selects="$filterSelects" />
+        <x-list-results :results="$bookings" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('incoming-bookings.index')" empty-title="Belum ada pemesanan masuk" empty-description="Permintaan sewa untuk barang Anda akan tampil di sini." />
 
         @if ($bookings->isNotEmpty())
             <div class="mt-8 table-shell">
@@ -29,7 +29,7 @@
                     <table class="min-w-full divide-y divide-zinc-200 text-sm">
                         <thead class="table-head">
                             <tr>
-                                <th class="px-4 py-3">Booking</th>
+                                <th class="px-4 py-3">Pemesanan</th>
                                 <th class="px-4 py-3">Barang</th>
                                 <th class="px-4 py-3">Penyewa</th>
                                 <th class="px-4 py-3">Tanggal</th>

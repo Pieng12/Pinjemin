@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Kategori - Admin Pinjemin')
+@section('title', 'Kategori - Administrator Pinjemin')
 
 @section('content')
     <section class="page-shell">
         <x-breadcrumb :items="[
-            'Admin' => route('admin.dashboard'),
+            'Administrator' => route('admin.dashboard'),
             'Kategori' => null,
         ]" />
 

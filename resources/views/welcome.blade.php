@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('transparent_nav', 'true')
-@section('title', 'Pinjemin - Pinjam Seperlunya, Bagikan Manfaatnya')
+@section('title', 'Pinjemin - Layanan Penyewaan Barang')
 @section('meta_description', 'Pinjemin mempertemukan orang yang membutuhkan barang untuk sementara dengan pemilik barang yang ingin membuat barangnya kembali bermanfaat.')
 
 @section('content')
@@ -24,10 +24,10 @@
 
             <div class="home-hero-copy">
                 <img src="{{ asset('images/landing/logo pinjemin.svg') }}" alt="Logo Pinjemin" class="promo-hero-logo rounded-full object-cover landing-reveal" width="92" height="82">
-                <p class="promo-hero-kicker landing-reveal" style="transition-delay: 40ms">Sewa lebih bijak, barang lebih bermanfaat</p>
+                <p class="promo-hero-kicker landing-reveal" style="transition-delay: 40ms">Layanan penyewaan dan pengelolaan barang</p>
                 <h1 class="landing-reveal" style="transition-delay: 80ms">Pinjemin<span class="text-accent">.</span></h1>
-                <p class="promo-hero-tagline landing-reveal" style="transition-delay: 120ms">Butuh sesekali?<br>Temukan, sewa, mulai ceritamu.</p>
-                <p class="promo-hero-description landing-reveal" style="transition-delay: 180ms">Pinjemin mempertemukan kebutuhan sementara dengan barang yang jarang digunakan di sekitar kita.</p>
+                <p class="promo-hero-tagline landing-reveal" style="transition-delay: 120ms">Sewa barang sesuai kebutuhan.<br>Kelola penyewaan dalam satu layanan.</p>
+                <p class="promo-hero-description landing-reveal" style="transition-delay: 180ms">Pinjemin menghubungkan penyewa dengan pemilik barang untuk kebutuhan penggunaan sementara.</p>
                 <div class="landing-reveal mt-6 flex flex-wrap justify-center gap-3" style="transition-delay: 240ms">
                     @if(config('features.marketplace_enabled'))
                         <a href="{{ route('browse') }}" class="btn btn-primary home-action">Menyewa Barang <i data-lucide="arrow-right" class="h-4 w-4" aria-hidden="true"></i></a>
@@ -37,7 +37,7 @@
                         Ikuti @pinjemin911
                         <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
                     </a>
-                    <a href="#tentang" class="btn btn-secondary">Kenali Pinjemin</a>
+                    <a href="#tentang" class="btn btn-secondary">Tentang Pinjemin</a>
                     @endif
                 </div>
             </div>
@@ -50,19 +50,19 @@
             <div class="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
                 <div class="landing-reveal">
                     <p class="eyebrow">Tentang Pinjemin</p>
-                    <h2 class="home-heading mt-3">Kebutuhan sesaat tidak selalu harus dibeli.</h2>
+                    <h2 class="home-heading mt-3">Penyewaan barang untuk kebutuhan sementara.</h2>
                 </div>
                 <div class="landing-reveal lg:pt-7" style="transition-delay: 80ms">
-                    <p class="text-lg leading-8 text-zinc-700">Pinjemin membantu barang yang jarang digunakan bertemu dengan orang yang membutuhkannya.</p>
-                    <p class="mt-5 text-sm leading-7 text-zinc-600">Satu barang dapat menemani lebih banyak rencana. Penyewa memperoleh akses sesuai kebutuhan, sementara pemilik memberi nilai baru pada barang yang tersimpan.</p>
+                    <p class="text-lg leading-8 text-zinc-700">Pinjemin menyediakan sarana bagi pemilik untuk menyewakan barang dan bagi penyewa untuk menemukan barang yang dibutuhkan.</p>
+                    <p class="mt-5 text-sm leading-7 text-zinc-600">Penyewa dapat memperoleh barang sesuai kebutuhan. Pemilik dapat mengelola informasi barang, ketentuan sewa, dan pengajuan melalui Pinjemin.</p>
                 </div>
             </div>
 
             <div class="promo-principles mt-12 grid md:grid-cols-3">
                 @foreach ([
-                    ['01', 'Gunakan seperlunya', 'Penuhi kebutuhan sementara tanpa harus selalu membeli barang baru.'],
-                    ['02', 'Temukan yang dekat', 'Hubungkan rencana dengan pilihan barang yang relevan di sekitarmu.'],
-                    ['03', 'Bagikan manfaatnya', 'Beri kesempatan pada barang yang jarang dipakai untuk kembali berguna.'],
+                    ['01', 'Penyewaan sesuai kebutuhan', 'Penuhi kebutuhan sementara tanpa harus selalu membeli barang baru.'],
+                    ['02', 'Pencarian berdasarkan lokasi', 'Cari barang berdasarkan kategori, kota, kondisi, dan harga sewa.'],
+                    ['03', 'Pengelolaan barang sewaan', 'Kelola harga, ketersediaan, dan persyaratan barang yang akan disewakan.'],
                 ] as [$number, $title, $description])
                     <article class="landing-reveal promo-principle" style="transition-delay: {{ $loop->index * 70 }}ms">
                         <span>{{ $number }}</span>
@@ -79,10 +79,10 @@
             <div class="promo-deck-shell landing-reveal" data-promo-deck role="region" aria-roledescription="carousel" aria-label="Cerita Pinjemin">
                 <div class="promo-deck-track" data-promo-track>
                     @foreach ([
-                        ['promo-01.jpeg', 'Punya barang menganggur atau sedang membutuhkan barang? Pinjemin punya solusi untuk keduanya.'],
-                        ['promo-02.jpeg', 'Butuh barang hanya untuk sementara? Pinjemin membantu menemukan pilihan yang sesuai kebutuhan.'],
+                        ['promo-01.jpeg', 'Informasi layanan Pinjemin untuk penyewa dan pemilik barang.'],
+                        ['promo-02.jpeg', 'Informasi penyewaan barang untuk kebutuhan penggunaan sementara.'],
                         ['promo-03.jpeg', 'Barang yang jarang digunakan dapat kembali bermanfaat melalui Pinjemin.'],
-                        ['promo-04.jpeg', 'Kenalan dengan Pinjemin, tempat untuk menyewa dan menyewakan barang.'],
+                        ['promo-04.jpeg', 'Pengenalan layanan penyewaan dan pengelolaan barang Pinjemin.'],
                     ] as [$poster, $alt])
                         <figure class="promo-deck-card" data-promo-card>
                             <img src="{{ asset('images/landing/'.$poster) }}" alt="{{ $alt }}" width="1080" height="1350" loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="async" draggable="false">
@@ -107,13 +107,13 @@
             </div>
 
             <div class="landing-reveal" style="transition-delay: 80ms">
-                <p class="eyebrow">Kenalan dengan Pinjemin</p>
-                <h2 class="home-heading mt-3">Satu tempat untuk kebutuhan sementara dan barang yang menganggur.</h2>
-                <p class="mt-5 max-w-xl text-sm leading-7 text-zinc-600">Pinjemin menghadirkan cara yang lebih masuk akal untuk menggunakan barang: sewa saat diperlukan, atau sewakan barang yang masih layak agar manfaatnya tidak berhenti di rumah.</p>
+                <p class="eyebrow">Layanan Pinjemin</p>
+                <h2 class="home-heading mt-3">Penuhi kebutuhan barang melalui penyewaan.</h2>
+                <p class="mt-5 max-w-xl text-sm leading-7 text-zinc-600">Penyewa dapat mencari barang untuk penggunaan sementara. Pemilik dapat menawarkan barang layak pakai dan mengelola pengajuan penyewaan melalui layanan yang sama.</p>
                 <div class="promo-category-list mt-8">
                     @foreach ([
                         'Akses barang sesuai kebutuhan dan durasi pemakaian',
-                        'Ruang bagi pemilik untuk membuat barang kembali produktif',
+                        'Pengelolaan penyewaan bagi pemilik barang',
                         'Informasi yang mudah dipahami oleh penyewa dan pemilik',
                         'Pilihan untuk beragam rencana, acara, dan proyek',
                     ] as $benefit)
@@ -128,19 +128,19 @@
     <section class="home-section bg-white">
         <div class="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
             <div class="landing-reveal max-w-2xl">
-                <p class="eyebrow">Dua kebutuhan, satu ruang</p>
-                <h2 class="home-heading mt-3">Lebih ringan bagi penyewa, lebih berarti bagi pemilik.</h2>
+                <p class="eyebrow">Layanan bagi penyewa dan pemilik</p>
+                <h2 class="home-heading mt-3">Penyewaan dan pengelolaan barang dalam satu layanan.</h2>
             </div>
             <div class="home-audience mt-10 grid gap-8 lg:grid-cols-2 lg:gap-14">
                 <div class="landing-reveal py-7">
                     <p class="text-sm font-semibold text-accent">Untuk penyewa</p>
-                    <h3 class="mt-4 text-2xl font-semibold text-blue-950">Pakai yang dibutuhkan, saat dibutuhkan.</h3>
+                    <h3 class="mt-4 text-2xl font-semibold text-blue-950">Akses barang sesuai kebutuhan.</h3>
                     <p class="mt-3 max-w-xl text-sm leading-7 text-zinc-600">Temukan perlengkapan untuk perjalanan, acara, pekerjaan, atau kebutuhan lain yang hanya digunakan sesekali.</p>
                 </div>
                 <div class="landing-reveal py-7" style="transition-delay: 70ms">
                     <p class="text-sm font-semibold text-accent">Untuk pemilik</p>
-                    <h3 class="mt-4 text-2xl font-semibold text-blue-950">Biarkan barangmu kembali bekerja.</h3>
-                    <p class="mt-3 max-w-xl text-sm leading-7 text-zinc-600">Barang yang tersimpan tetap dapat memberi manfaat ketika dipertemukan dengan orang dan kebutuhan yang tepat.</p>
+                    <h3 class="mt-4 text-2xl font-semibold text-blue-950">Kelola barang yang akan disewakan.</h3>
+                    <p class="mt-3 max-w-xl text-sm leading-7 text-zinc-600">Tentukan harga, persyaratan, dan ketersediaan barang, kemudian tinjau setiap pengajuan penyewaan.</p>
                 </div>
             </div>
         </div>
@@ -158,8 +158,8 @@
 
             <ol class="home-steps mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4" data-scroll-line>
                 @foreach ([
-                    ['Temukan', 'Cari barang yang sesuai dengan kebutuhan, waktu, dan lokasimu.'],
-                    ['Ajukan & bayar', config('features.marketplace_enabled') ? 'Ajukan periode sewa. Setelah disepakati, bayar ke Pinjemin dan unggah bukti untuk diperiksa admin.' : 'Sampaikan kebutuhan dan sepakati detail penyewaan bersama pemilik.'],
+                    ['Temukan', 'Cari barang yang sesuai dengan kebutuhan, waktu, dan lokasi Anda.'],
+                    ['Ajukan & bayar', config('features.marketplace_enabled') ? 'Ajukan periode sewa. Setelah disepakati, bayar ke Pinjemin dan unggah bukti untuk diperiksa administrator.' : 'Sampaikan kebutuhan dan sepakati detail penyewaan bersama pemilik.'],
                     ['Terima & gunakan', config('features.marketplace_enabled') ? 'Setelah lunas, periksa kondisi bersama pemilik dan gunakan barang sesuai kesepakatan.' : 'Terima lalu gunakan barang sesuai durasi dan kesepakatan.'],
                     ['Kembalikan', config('features.marketplace_enabled') ? 'Kembalikan barang, periksa kondisinya, dan selesaikan konfirmasi kedua pihak.' : 'Kembalikan barang dengan baik setelah kebutuhan selesai.'],
                 ] as [$title, $description])
@@ -177,20 +177,15 @@
         <div class="mx-auto grid max-w-7xl gap-10 px-5 sm:px-6 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16 lg:px-8">
             <div class="landing-reveal">
                 <p class="eyebrow">Pertanyaan umum</p>
-                <h2 class="home-heading mt-3">Lebih dekat dengan Pinjemin.</h2>
-                <p class="mt-5 max-w-sm text-sm leading-7 text-zinc-600">Kenali gagasan, manfaat, dan jenis kebutuhan yang dapat dipertemukan melalui Pinjemin.</p>
+                <h2 class="home-heading mt-3">Informasi layanan Pinjemin.</h2>
+                <p class="mt-5 max-w-sm text-sm leading-7 text-zinc-600">Pelajari informasi layanan, ketentuan, serta prosedur penyewaan barang.</p>
                 <a href="mailto:pinjemin99@gmail.com" class="home-text-link mt-6">pinjemin99@gmail.com <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i></a>
             </div>
             <div class="landing-reveal grid content-start gap-3" data-faq-group>
-                @foreach ([
-                    ['Apa itu Pinjemin?', 'Pinjemin adalah ruang penyewaan barang yang mempertemukan pemilik barang dengan orang yang membutuhkannya untuk sementara.'],
-                    ['Untuk siapa Pinjemin?', 'Pinjemin ditujukan bagi siapa saja yang membutuhkan barang sesekali maupun pemilik barang layak pakai yang ingin membagikan manfaatnya.'],
-                    ['Barang apa yang cocok untuk Pinjemin?', 'Beragam barang seperti kamera, perlengkapan acara, kebutuhan camping, elektronik, dan perkakas dapat menemukan penggunaan baru melalui Pinjemin.'],
-                    ['Apa manfaatnya bagi pemilik barang?', 'Barang yang jarang digunakan dapat kembali produktif sekaligus membantu kebutuhan orang lain di sekitar.'],
-                ] as [$question, $answer])
+                @foreach (collect(config('assistant.topics'))->where('home_faq', true) as $topic)
                     <details class="home-faq overflow-hidden rounded-lg border border-blue-100 bg-white">
-                        <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 px-5 py-4 text-sm font-semibold text-zinc-950" aria-controls="faq-{{ $loop->index }}">{{ $question }}<i data-lucide="chevron-down" class="h-4 w-4 shrink-0 text-blue-700 transition-transform" aria-hidden="true"></i></summary>
-                        <div id="faq-{{ $loop->index }}" class="px-5 pb-5 text-sm leading-7 text-zinc-600">{{ $answer }}</div>
+                        <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 px-5 py-4 text-sm font-semibold text-zinc-950" aria-controls="faq-{{ $loop->index }}">{{ $topic['question'] }}<i data-lucide="chevron-down" class="h-4 w-4 shrink-0 text-blue-700 transition-transform" aria-hidden="true"></i></summary>
+                        <div id="faq-{{ $loop->index }}" class="px-5 pb-5 text-sm leading-7 text-zinc-600">{{ $topic['answer'] }}</div>
                     </details>
                 @endforeach
             </div>
@@ -201,7 +196,7 @@
         <div class="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div class="landing-reveal">
                 <p class="text-sm font-semibold text-white/70">Temukan Pinjemin</p>
-                <h2 class="mt-2 max-w-2xl text-3xl font-semibold leading-tight text-white sm:text-4xl">Mari terhubung dan kenali Pinjemin lebih dekat.</h2>
+                <h2 class="mt-2 max-w-2xl text-3xl font-semibold leading-tight text-white sm:text-4xl">Hubungi Pinjemin untuk informasi layanan.</h2>
             </div>
             <div class="landing-reveal flex flex-col gap-3 sm:flex-row">
                 <a href="https://www.instagram.com/pinjemin911/" target="_blank" rel="noopener noreferrer" class="promo-contact-button promo-contact-button-primary">

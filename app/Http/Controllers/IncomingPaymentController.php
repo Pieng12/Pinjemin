@@ -40,7 +40,7 @@ class IncomingPaymentController extends Controller
     {
         $path = $request->file('proof')->store('refund-proofs/'.$booking->booking_code, 'local');
         if ($path === false) {
-            throw ValidationException::withMessages(['proof' => 'Bukti refund gagal disimpan. Coba lagi.']);
+            throw ValidationException::withMessages(['proof' => 'Bukti pengembalian dana gagal disimpan. Silakan coba kembali.']);
         }
         try {
             $payments->recordRefund($booking, $request->user(), $path, $request->validated());
@@ -49,6 +49,6 @@ class IncomingPaymentController extends Controller
             throw $exception;
         }
 
-        return back()->with('status', 'Refund seluruh pembayaran terverifikasi berhasil dicatat.');
+        return back()->with('status', 'Pengembalian Dana seluruh pembayaran terverifikasi berhasil dicatat.');
     }
 }

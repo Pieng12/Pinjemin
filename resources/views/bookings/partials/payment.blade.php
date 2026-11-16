@@ -16,8 +16,8 @@
         <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
                 <h2 id="payment-title" class="text-lg font-semibold text-zinc-950">Pembayaran</h2>
-                <p class="mt-1 text-sm text-zinc-600">{{ $booking->collectsViaPlatform() ? 'Pembayaran ke rekening Pinjemin, diverifikasi manual oleh admin setelah dana masuk.' : 'Diverifikasi manual oleh pemilik, bukan oleh bank atau payment gateway.' }}</p>
-                <a href="{{ route('legal.terms') }}#pembayaran" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block text-sm font-semibold text-blue-700 underline underline-offset-2">Aturan pembayaran, DP, dan refund</a>
+                <p class="mt-1 text-sm text-zinc-600">{{ $booking->collectsViaPlatform() ? 'Pembayaran ke rekening Pinjemin, diverifikasi manual oleh administrator setelah dana masuk.' : 'Diverifikasi manual oleh pemilik, bukan oleh bank atau payment gateway.' }}</p>
+                <a href="{{ route('legal.terms') }}#pembayaran" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block text-sm font-semibold text-blue-700 underline underline-offset-2">Aturan pembayaran, DP, dan pengembalian dana</a>
             </div>
             @if($booking->payment_legacy)<span class="badge bg-zinc-100 text-zinc-600">Lunas - data lama</span>@endif
         </div>
@@ -74,18 +74,18 @@
                                 <label class="flex items-start gap-3 rounded-md border border-zinc-200 bg-white p-3 text-sm"><input type="radio" name="payment_plan" value="deposit_cash" @checked($selectedPlan === 'deposit_cash') class="mt-0.5 accent-blue-700" id="payment-form-1-payment_plan-deposit_cash"><span><strong>Bayar DP, pelunasan tunai</strong><span class="mt-1 block text-zinc-500">Sisa dibayar saat barang diambil.</span></span></label>
                             @endif
                         @else
-                            <p class="field-help">Pembayaran DP tidak tersedia untuk nominal dan ketentuan booking ini. Gunakan pembayaran lunas.</p>
+                            <p class="field-help">Pembayaran DP tidak tersedia untuk nominal dan ketentuan pemesanan ini. Gunakan pembayaran lunas.</p>
                         @endif
                     </fieldset>
                 @endif
-                <noscript><style>[data-live-payment-amount] { display: none; }</style><p class="rounded-md bg-white p-3 text-sm leading-6">@if($verifiedAmount > 0)Nominal pelunasan: <strong><x-price :amount="$remainingAmount" suffix="" /></strong>.@else Bayar sesuai pilihanmu: lunas <strong><x-price :amount="$booking->total_amount" suffix="" /></strong>@if($depositAvailable), atau DP <strong><x-price :amount="$booking->deposit_amount" suffix="" /></strong>@endif.@endif</p></noscript>
+                <noscript><style>[data-live-payment-amount] { display: none; }</style><p class="rounded-md bg-white p-3 text-sm leading-6">@if($verifiedAmount > 0)Nominal pelunasan: <strong><x-price :amount="$remainingAmount" suffix="" /></strong>.@else Lakukan pembayaran sesuai pilihan Anda: lunas <strong><x-price :amount="$booking->total_amount" suffix="" /></strong>@if($depositAvailable), atau DP <strong><x-price :amount="$booking->deposit_amount" suffix="" /></strong>@endif.@endif</p></noscript>
                 <div class="rounded-md bg-white p-3 text-sm font-semibold" data-live-payment-amount><p aria-live="polite">Nominal yang harus ditransfer: <span data-payment-amount data-copy-source><x-price :amount="$amountDue" suffix="" /></span></p><button type="button" class="mt-1 min-h-11 text-brand-700" data-copy-amount hidden>Salin nominal</button></div>
                 <label class="block"><span class="field-label">Rekening tujuan</span><select name="method_index" required class="input" id="payment-form-1-method_index" aria-describedby="payment-form-1-method_index-error" aria-invalid="{{ $errors->has('method_index') ? 'true' : 'false' }}">@foreach($methods as $index => $method)<option value="{{ $index }}" @selected((string)$bookingOld('method_index', '0') === (string)$index)>{{ $method['label'] }} / {{ $method['account_name'] }}</option>@endforeach</select>@error('method_index')<span id="payment-form-1-method_index-error" data-error-field="method_index" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
 
 
                 <label class="block"><span class="field-label">Waktu transfer</span><input type="datetime-local" name="transferred_at" value="{{ $bookingOld('transferred_at', now(\App\Models\Booking::RentalTimezone)->format('Y-m-d\TH:i')) }}" required class="input" id="payment-form-1-transferred_at" aria-describedby="payment-form-1-transferred_at-error" aria-invalid="{{ $errors->has('transferred_at') ? 'true' : 'false' }}">@error('transferred_at')<span id="payment-form-1-transferred_at-error" data-error-field="transferred_at" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
                 <label class="block"><span class="field-label">Foto bukti transaksi</span><input type="file" name="proof" accept="image/jpeg,image/png,image/webp" required class="photo-file-input" data-private-image-input id="payment-form-1-proof" aria-describedby="payment-form-1-proof-error" aria-invalid="{{ $errors->has('proof') ? 'true' : 'false' }}">@error('proof')<span id="payment-form-1-proof-error" data-error-field="proof" class="field-error" role="alert">{{ $message }}</span>@enderror<span class="field-help">JPG, PNG, atau WebP maksimal 5 MB.</span></label>
-                <div data-private-image-preview hidden><img alt="Preview bukti pembayaran" class="max-h-80 w-full rounded-md border border-zinc-200 bg-white object-contain p-2"></div>
+                <div data-private-image-preview hidden><img alt="Pratinjau bukti pembayaran" class="max-h-80 w-full rounded-md border border-zinc-200 bg-white object-contain p-2"></div>
                 <label class="block"><span class="field-label">Catatan (opsional)</span><textarea name="renter_note" rows="3" maxlength="1000" class="input" id="payment-form-1-renter_note" aria-describedby="payment-form-1-renter_note-error" aria-invalid="{{ $errors->has('renter_note') ? 'true' : 'false' }}">{{ $bookingOld('renter_note') }}</textarea>@error('renter_note')<span id="payment-form-1-renter_note-error" data-error-field="renter_note" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
 
 
@@ -109,7 +109,7 @@
                             </div>
                             @if($payment->proof_path)<a href="{{ route('bookings.payment-proof', [$booking, $payment]) }}" target="_blank" rel="noopener" class="mt-3 block max-w-xs"><img src="{{ route('bookings.payment-proof', [$booking, $payment]) }}" alt="Bukti {{ $payment->kind }}" class="h-40 w-full rounded-md border border-zinc-200 bg-zinc-50 object-contain"><span class="mt-2 block text-xs font-semibold text-brand-700">Lihat bukti ukuran penuh</span></a>@endif
                             <p class="mt-3 text-xs text-zinc-500">Transfer {{ $payment->transferred_at?->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB @if($payment->reviewer) · Diperiksa {{ $payment->reviewer->name }} @endif @if($payment->transaction_reference) · Ref: {{ $payment->transaction_reference }} @endif</p>
-                            @if($payment->owner_comment)<p class="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-800"><strong>Komentar {{ $booking->collectsViaPlatform() ? 'admin' : 'pemilik' }}:</strong> {{ $payment->owner_comment }}</p>@endif
+                            @if($payment->owner_comment)<p class="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-800"><strong>Komentar {{ $booking->collectsViaPlatform() ? 'administrator' : 'pemilik' }}:</strong> {{ $payment->owner_comment }}</p>@endif
                             @if(auth()->user()->can('reviewPayment', $booking) && $payment->status === \App\BookingPaymentStatus::Submitted)
                                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
                                     @php
@@ -180,12 +180,12 @@
 
         @if($booking->refund_status)
             <div class="mt-6 rounded-md {{ $booking->refund_status === 'refunded' ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900' }} p-4 text-sm">
-                <p class="font-semibold">{{ $booking->refund_status === 'refunded' ? 'Refund sudah dicatat' : ($booking->collectsViaPlatform() ? 'Menunggu refund dari admin Pinjemin' : 'Menunggu refund dari pemilik') }}</p>
-                <p class="mt-1">Nominal refund: <x-price :amount="$verifiedAmount" suffix="" /></p>
-                @if($booking->refund)<a href="{{ route('bookings.refund-proof', $booking) }}" target="_blank" rel="noopener" class="mt-2 inline-block font-semibold underline">Lihat bukti refund</a>@endif
+                <p class="font-semibold">{{ $booking->refund_status === 'refunded' ? 'Pengembalian dana sudah dicatat' : ($booking->collectsViaPlatform() ? 'Menunggu pengembalian dana dari administrator Pinjemin' : 'Menunggu pengembalian dana dari pemilik') }}</p>
+                <p class="mt-1">Nominal pengembalian dana: <x-price :amount="$verifiedAmount" suffix="" /></p>
+                @if($booking->refund)<a href="{{ route('bookings.refund-proof', $booking) }}" target="_blank" rel="noopener" class="mt-2 inline-block font-semibold underline">Lihat bukti pengembalian dana</a>@endif
             </div>
             @if($booking->collectsViaPlatform() && $booking->refund_destination)
-                <p class="mt-3 rounded-md border border-zinc-200 p-3 text-sm">Tujuan refund: {{ $booking->refund_destination['provider'] }} / {{ $booking->refund_destination['account_name'] }} / {{ $booking->refund_destination['account_identifier'] }}. Tujuan dikunci setelah disimpan.</p>
+                <p class="mt-3 rounded-md border border-zinc-200 p-3 text-sm">Tujuan pengembalian dana: {{ $booking->refund_destination['provider'] }} / {{ $booking->refund_destination['account_name'] }} / {{ $booking->refund_destination['account_identifier'] }}. Tujuan dikunci setelah disimpan.</p>
             @elseif($booking->collectsViaPlatform() && $viewer === 'renter' && $booking->refund_status === 'pending')
                 @php
                     $bookingFormKey = 'payment-form-5';
@@ -198,11 +198,11 @@
                     <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
                     <x-validation-summary :form-id="$bookingFormKey" :field-ids="['provider' => 'payment-form-5-provider', 'account_name' => 'payment-form-5-account_name', 'account_identifier' => 'payment-form-5-account_identifier']" />
 
-                    @csrf @method('PUT')<h3 class="font-semibold">Rekening Tujuan Refund</h3><p class="text-sm text-zinc-600">Periksa nomor dan nama penerima. Tujuan dikunci setelah disimpan untuk mencegah perubahan saat admin mentransfer.</p>
+                    @csrf @method('PUT')<h3 class="font-semibold">Rekening Tujuan Pengembalian Dana</h3><p class="text-sm text-zinc-600">Periksa nomor dan nama penerima. Tujuan dikunci setelah disimpan untuk mencegah perubahan saat administrator mentransfer.</p>
                     <label><span class="field-label">Bank / e-wallet</span><input name="provider" value="{{ $bookingOld('provider') }}" required maxlength="100" class="input" id="payment-form-5-provider" aria-describedby="payment-form-5-provider-error" aria-invalid="{{ $errors->has('provider') ? 'true' : 'false' }}">@error('provider')<span id="payment-form-5-provider-error" data-error-field="provider" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
                     <label><span class="field-label">Nama penerima</span><input name="account_name" value="{{ $bookingOld('account_name', auth()->user()->name) }}" required maxlength="255" class="input" id="payment-form-5-account_name" aria-describedby="payment-form-5-account_name-error" aria-invalid="{{ $errors->has('account_name') ? 'true' : 'false' }}">@error('account_name')<span id="payment-form-5-account_name-error" data-error-field="account_name" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
                     <label><span class="field-label">Nomor rekening / akun</span><input name="account_identifier" value="{{ $bookingOld('account_identifier') }}" required maxlength="255" class="input" id="payment-form-5-account_identifier" aria-describedby="payment-form-5-account_identifier-error" aria-invalid="{{ $errors->has('account_identifier') ? 'true' : 'false' }}">@error('account_identifier')<span id="payment-form-5-account_identifier-error" data-error-field="account_identifier" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
-                    <x-button type="submit" class="w-fit">Simpan Tujuan Refund</x-button>
+                    <x-button type="submit" class="w-fit">Simpan Tujuan Pengembalian Dana</x-button>
                 </form>
                 @php
                     $errors = $bookingFormErrors;
@@ -221,7 +221,7 @@
                     <form method="POST" action="{{ route('admin.claim-refund', $booking) }}" class="mt-4" data-form-id="payment-form-6">
                         <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
                         <x-validation-summary :form-id="$bookingFormKey" :field-ids="[]" />
-@csrf<x-button type="submit">Mulai Proses Refund</x-button></form>
+@csrf<x-button type="submit">Mulai Proses Pengembalian Dana</x-button></form>
                     @php
                         $errors = $bookingFormErrors;
                     @endphp
@@ -242,12 +242,12 @@
                     <input type="hidden" name="_ui_form" value="{{ $bookingFormKey }}">
                     <x-validation-summary :form-id="$bookingFormKey" :field-ids="['refunded_at' => 'payment-form-7-refunded_at', 'proof' => 'payment-form-7-proof', 'note' => 'payment-form-7-note']" />
                     @csrf
-                    <h3 class="font-semibold text-zinc-950">Catat Refund Penuh</h3>
-                    <label><span class="field-label">Waktu refund</span><input type="datetime-local" name="refunded_at" value="{{ $bookingOld('refunded_at', now(\App\Models\Booking::RentalTimezone)->format('Y-m-d\TH:i')) }}" required class="input" id="payment-form-7-refunded_at" aria-describedby="payment-form-7-refunded_at-error" aria-invalid="{{ $errors->has('refunded_at') ? 'true' : 'false' }}">@error('refunded_at')<span id="payment-form-7-refunded_at-error" data-error-field="refunded_at" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
-                    <label><span class="field-label">Bukti refund</span><input type="file" name="proof" required accept="image/jpeg,image/png,image/webp" class="photo-file-input" data-private-image-input id="payment-form-7-proof" aria-describedby="payment-form-7-proof-error" aria-invalid="{{ $errors->has('proof') ? 'true' : 'false' }}">@error('proof')<span id="payment-form-7-proof-error" data-error-field="proof" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
-                    <div data-private-image-preview hidden><img alt="Preview bukti refund" class="max-h-80 w-full rounded-md border border-zinc-200 object-contain"></div>
+                    <h3 class="font-semibold text-zinc-950">Catat Pengembalian Dana Penuh</h3>
+                    <label><span class="field-label">Waktu pengembalian dana</span><input type="datetime-local" name="refunded_at" value="{{ $bookingOld('refunded_at', now(\App\Models\Booking::RentalTimezone)->format('Y-m-d\TH:i')) }}" required class="input" id="payment-form-7-refunded_at" aria-describedby="payment-form-7-refunded_at-error" aria-invalid="{{ $errors->has('refunded_at') ? 'true' : 'false' }}">@error('refunded_at')<span id="payment-form-7-refunded_at-error" data-error-field="refunded_at" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
+                    <label><span class="field-label">Bukti pengembalian dana</span><input type="file" name="proof" required accept="image/jpeg,image/png,image/webp" class="photo-file-input" data-private-image-input id="payment-form-7-proof" aria-describedby="payment-form-7-proof-error" aria-invalid="{{ $errors->has('proof') ? 'true' : 'false' }}">@error('proof')<span id="payment-form-7-proof-error" data-error-field="proof" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
+                    <div data-private-image-preview hidden><img alt="Pratinjau bukti pengembalian dana" class="max-h-80 w-full rounded-md border border-zinc-200 object-contain"></div>
                     <label><span class="field-label">Catatan</span><textarea name="note" rows="3" maxlength="1000" class="input" id="payment-form-7-note" aria-describedby="payment-form-7-note-error" aria-invalid="{{ $errors->has('note') ? 'true' : 'false' }}">{{ $bookingOld('note') }}</textarea>@error('note')<span id="payment-form-7-note-error" data-error-field="note" class="field-error" role="alert">{{ $message }}</span>@enderror</label>
-                    <x-button type="submit" class="w-fit">Simpan Refund</x-button>
+                    <x-button type="submit" class="w-fit">Simpan Pengembalian Dana</x-button>
                 </form>
                 @php
                     $errors = $bookingFormErrors;

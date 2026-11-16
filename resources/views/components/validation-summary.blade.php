@@ -8,7 +8,7 @@
 @endphp
 @if(collect($errorBags)->contains(fn ($messages) => $messages->any()))
     <div {{ $attributes->merge(['class' => 'rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800']) }} role="alert" tabindex="-1" data-validation-summary @if($formId) data-form-id="{{ $formId }}" @endif>
-        <p class="font-semibold">Periksa kembali data yang kamu masukkan.</p>
+        <p class="font-semibold">Periksa kembali data yang Anda masukkan.</p>
         <ul class="mt-2 list-inside list-disc space-y-1">
             @foreach($errorBags as $bagName => $messages)
                 @foreach($messages->messages() as $field => $fieldMessages)

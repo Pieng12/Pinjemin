@@ -25,6 +25,37 @@ class AuditRegressionTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    public function test_account_validation_uses_indonesian_service_messages(): void
+    {
+        app()->setLocale('id');
+
+        $this->post('/login', ['password' => 'password123', 'terms_accepted' => '1'])
+            ->assertSessionHasErrors(['email' => 'Alamat email wajib diisi.']);
+
+        $this->post('/register', [
+            'name' => 'Pengguna Pinjemin',
+            'email' => 'alamat-tidak-valid',
+            'password' => 'short',
+            'password_confirmation' => 'short',
+            'terms_accepted' => '1',
+        ])->assertSessionHasErrors([
+            'email' => 'Alamat email harus berupa alamat email yang valid.',
+            'password' => 'Kata sandi minimal 8 karakter.',
+        ]);
+    }
+
+    public function test_catalog_pagination_uses_indonesian_labels(): void
+    {
+        app()->setLocale('id');
+        Item::factory()->count(13)->create();
+
+        $this->get(route('browse'))->assertOk()
+            ->assertSee('Navigasi halaman')
+            ->assertSee('Berikutnya')
+            ->assertSee('Buka halaman 2')
+            ->assertDontSee('Pagination Navigation');
+    }
+
     public function test_password_controls_do_not_repopulate_passwords_or_advertise_reset(): void
     {
         $this->withSession(['_old_input' => ['password' => 'secret-do-not-render']])->get('/login')
@@ -43,7 +74,7 @@ class AuditRegressionTest extends TestCase
             $this->post('/login', ['email' => $user->email, 'password' => 'wrong', 'terms_accepted' => '1'])->assertSessionHasErrors('email');
         }
         $this->post('/login', ['email' => $user->email, 'password' => 'password123', 'terms_accepted' => '1'])
-            ->assertSessionHasErrors(['email' => 'Terlalu banyak percobaan masuk. Coba lagi dalam 60 detik.']);
+            ->assertSessionHasErrors(['email' => 'Terlalu banyak percobaan masuk. Silakan coba kembali dalam 60 detik.']);
         $this->assertGuest();
         $this->travel(61)->seconds();
         $this->post('/login', ['email' => $user->email, 'password' => 'password123', 'terms_accepted' => '1'])->assertRedirect(route('dashboard'));

@@ -38,6 +38,7 @@ import { initializeLegalModal } from './legal-modal';
 import { initializeWorkspace } from './workspace';
 import { initializeFormAccessibility } from './form-accessibility';
 import { initializeTransactionUI } from './transaction-ui';
+import { initializeAssistant } from './assistant';
 
 const formatRupiah = (value) => `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0))}`;
 
@@ -46,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeWorkspace();
     initializeFormAccessibility();
     initializeTransactionUI();
+    initializeAssistant();
     createIcons({
         icons: {
             ArrowRight,
@@ -219,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const objectUrl = URL.createObjectURL(file);
                 objectUrls.push(objectUrl);
                 image.src = objectUrl;
-                image.alt = `Preview ${file.name}`;
+                image.alt = `Pratinjau ${file.name}`;
                 const caption = document.createElement('figcaption');
                 caption.className = 'photo-preview-caption';
                 const metadata = document.createElement('div');
@@ -255,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 image.addEventListener('load', () => { size.textContent += ` / ${image.naturalWidth} x ${image.naturalHeight} px`; }, { once: true });
                 image.addEventListener('error', () => {
                     image.remove();
-                    name.textContent = `${file.name} (preview tidak tersedia)`;
+                    name.textContent = `${file.name} (pratinjau tidak tersedia)`;
                 }, { once: true });
                 figure.append(image, caption);
                 preview.append(figure);
@@ -944,7 +946,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         image.addEventListener('error', () => {
             preview.hidden = true;
-            error.textContent = 'Preview gambar gagal dimuat. Pilih gambar lain.';
+            error.textContent = 'Pratinjau gambar gagal dimuat. Pilih gambar lain.';
             input.setCustomValidity(error.textContent);
         });
         input.addEventListener('change', render);

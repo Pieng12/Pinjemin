@@ -141,7 +141,7 @@ class MyItemController extends Controller
 
         if ($item->bookings()->exists()) {
             return back()->withErrors([
-                'item' => 'Barang yang sudah memiliki booking tidak dapat dihapus. Nonaktifkan barang untuk menutup booking baru.',
+                'item' => 'Barang yang sudah memiliki pemesanan tidak dapat dihapus. Nonaktifkan barang untuk menutup pemesanan baru.',
             ]);
         }
 
@@ -219,7 +219,7 @@ class MyItemController extends Controller
             $item->update($data);
         });
 
-        return back()->with('status', 'Persyaratan diperbarui untuk booking berikutnya. Booking yang sudah diajukan tidak berubah.');
+        return back()->with('status', 'Persyaratan diperbarui untuk pemesanan berikutnya. Pemesanan yang sudah diajukan tidak berubah.');
     }
 
     /**
@@ -242,7 +242,7 @@ class MyItemController extends Controller
             $sortOrder++;
             $path = $photo->store('items/'.now()->format('Y/m'), 'public');
             if ($path === false) {
-                throw ValidationException::withMessages(['photos' => 'Foto barang gagal disimpan. Coba lagi.']);
+                throw ValidationException::withMessages(['photos' => 'Foto barang gagal disimpan. Silakan coba kembali.']);
             }
             $storedPaths[] = $path;
 
