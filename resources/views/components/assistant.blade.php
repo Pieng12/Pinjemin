@@ -2,10 +2,12 @@
 @php
     $assistantUser = auth()->user();
     $assistantEnabled = (bool) config('features.marketplace_enabled');
+    $assistantChatEnabled = $assistantEnabled && config('features.chat_enabled');
     $assistantAdmin = $assistantUser?->isAdmin() ?? false;
     $assistantContext = ! $assistantEnabled ? 'promotion' : (! $assistantUser ? 'guest' : ($context ?? (request()->routeIs('admin.*') ? 'admin' : (request()->routeIs('owner.*', 'my-items.*', 'incoming-bookings.*', 'payment-methods.*') ? 'owner' : 'renter'))));
-    $assistantDestinations = collect(config('assistant.destinations'))->filter(function ($destination) use ($assistantEnabled, $assistantAdmin, $assistantUser) {
+    $assistantDestinations = collect(config('assistant.destinations'))->filter(function ($destination) use ($assistantEnabled, $assistantChatEnabled, $assistantAdmin, $assistantUser) {
         return ($assistantEnabled || ($destination['public'] ?? false))
+            && (! ($destination['chat'] ?? false) || $assistantChatEnabled)
             && (! ($destination['admin'] ?? false) || $assistantAdmin)
             && (! ($destination['guest'] ?? false) || ! $assistantUser);
     })->map(function ($destination) use ($assistantUser) {
@@ -16,20 +18,21 @@
 
         return ['label' => $needsLogin ? 'Masuk untuk melanjutkan' : $destination['label'], 'url' => $destination['url']];
     });
-    $assistantTopics = collect(config('assistant.topics'))->filter(fn ($topic) => ($assistantEnabled || ($topic['public'] ?? false)) && (! ($topic['admin'] ?? false) || $assistantAdmin))
+    $assistantTopics = collect(config('assistant.topics'))->filter(fn ($topic) => ($assistantEnabled || ($topic['public'] ?? false)) && (! ($topic['admin'] ?? false) || $assistantAdmin) && (! ($topic['chat'] ?? false) || $assistantChatEnabled))
         ->map(function ($topic, $id) use ($assistantDestinations) {
             $topic['id'] = $id;
             $topic['actions'] = collect($topic['actions'])->filter(fn ($action) => $assistantDestinations->has($action))->map(fn ($action) => $assistantDestinations->get($action))->unique('url')->values()->all();
 
             return $topic;
         });
-    $assistantInitial = config('assistant.initial_topics.'.$assistantContext);
+    $assistantInitial = array_values(array_intersect(config('assistant.initial_topics.'.$assistantContext, []), $assistantTopics->keys()->all()));
     $assistantData = [
         'version' => config('assistant.version'),
         'scope' => $assistantUser ? hash('sha256', 'assistant|'.$assistantUser->getAuthIdentifier()) : 'guest',
         'context' => $assistantContext,
         'page' => \Illuminate\Support\Facades\Route::currentRouteName(),
         'marketplaceEnabled' => $assistantEnabled,
+        'chatEnabled' => $assistantChatEnabled,
         'navigation' => $assistantDestinations->all(),
         'topics' => $assistantTopics->values()->all(),
         'initial' => $assistantInitial,

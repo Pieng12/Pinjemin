@@ -7,6 +7,7 @@ export function goalTutorialSteps(config, goal = 'page') {
     const stage = guideStage(config, goal);
     const heading = { selector: 'main h1', title: 'Ikuti panduan sesuai tujuan Anda', description: 'Sorotan menjelaskan kontrol pada bagian ini. Setelah selesai, gunakan formulir atau pilih data sendiri; panduan berlanjut pada bagian berikutnya.' };
     let content = base.filter(step => step.selector && step !== base[0] && !step.selector.startsWith('[data-workspace-') && !step.selector.startsWith('[data-mobile-'));
+    if (goal === 'item-chat' && ['catalog', 'item'].includes(stage)) return [heading, ...content.filter(step => step.selector.includes('/pesan'))];
     if (stage === 'auth' || stage === 'create' || stage === 'identity') return [heading, ...content];
     if (stage === 'catalog') return [heading, ...content.filter(step => /#q|catalog-|#sort/.test(step.selector))];
     if (stage === 'item') return [heading, ...content];

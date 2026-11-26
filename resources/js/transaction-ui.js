@@ -36,7 +36,6 @@ export function initializeTransactionUI() {
         const select = section.querySelector('select[name="method_index"]');
         const destinations = section.querySelector('[data-payment-destinations]');
         if (!select || !destinations) return;
-        select.closest('label').after(destinations);
         destinations.classList.remove('sm:grid-cols-2');
         destinations.setAttribute('aria-label', 'Tujuan pembayaran terpilih');
         const sync = () => destinations.querySelectorAll('[data-payment-destination]').forEach(card => {

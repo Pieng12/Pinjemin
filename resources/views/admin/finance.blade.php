@@ -17,7 +17,16 @@
     <div class="mt-5 grid gap-4">
         @forelse($bookings as $booking)
             <article class="card flex flex-wrap items-center justify-between gap-4 p-5">
-                <div class="min-w-0"><a href="{{ route('admin.bookings.show', $booking) }}" class="font-semibold text-brand">{{ $booking->booking_code }}</a><p class="mt-1 break-words text-sm">{{ $booking->item->name }} / {{ $booking->item->user->name }}</p><div class="mt-3 flex flex-wrap gap-2"><span class="badge bg-brand-50 text-brand-700">Pembayaran: {{ $booking->effectiveStatus()->label() }}</span><span class="badge bg-zinc-100 text-zinc-700">Pencairan: {{ $booking->payout->statusLabel() }}</span></div></div>
+                <div class="min-w-0">
+                    <a href="{{ route('admin.bookings.show', $booking) }}" class="font-semibold text-brand">{{ $booking->booking_code }}</a>
+                    <p class="mt-1 break-words text-sm">{{ $booking->item->name }} / {{ $booking->item->user->name }}</p>
+                    <div class="mt-3 flex flex-wrap gap-2"><span class="badge bg-brand-50 text-brand-700">Pemesanan: {{ $booking->effectiveStatus()->label() }}</span><span class="badge bg-zinc-100 text-zinc-700">Pencairan: {{ $booking->payout->statusLabel() }}</span></div>
+                    @if($booking->refund_status === 'pending' && !$booking->refund_destination)
+                        <p class="mt-2 text-sm text-amber-800">Menunggu rekening tujuan pengembalian dana dari penyewa.</p>
+                    @elseif($booking->payout->status === 'on_hold')
+                        <p class="mt-2 wrap-anywhere text-sm text-amber-800">{{ $booking->payout->hold_reason ?: 'Menunggu penyelesaian pemeriksaan.' }}</p>
+                    @endif
+                </div>
                 <div class="text-sm"><p>Hak pemilik: <strong><x-price :amount="$booking->payout->amount" suffix="" /></strong></p><p class="mt-1 text-zinc-500">Komisi: <x-price :amount="$booking->payout->commission_amount" suffix="" /></p><x-button :href="route('admin.bookings.show', $booking)" variant="outline" class="mt-3">Periksa Pemesanan</x-button></div>
             </article>
         @empty

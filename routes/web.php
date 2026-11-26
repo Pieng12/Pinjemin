@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ChatReportController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\ItemController as AdminItemController;
@@ -13,6 +14,9 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingInvoiceController;
 use App\Http\Controllers\BookingPaymentController;
 use App\Http\Controllers\BookingPaymentReceiptController;
+use App\Http\Controllers\ChatAttachmentController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatSafetyController;
 use App\Http\Controllers\ConditionInspectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
@@ -27,6 +31,7 @@ use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PrivatePaymentImageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RentOutController;
+use App\Http\Middleware\EnsureChatIsEnabled;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -52,6 +57,23 @@ Route::middleware('marketplace')->group(function (): void {
     });
 
     Route::middleware('auth')->group(function (): void {
+        Route::middleware(EnsureChatIsEnabled::class)->name('chat.')->group(function (): void {
+            Route::get('/pesan', [ChatController::class, 'index'])->name('index');
+            Route::get('/items/{item}/pesan', [ChatController::class, 'create'])->name('items.create');
+            Route::post('/items/{item}/pesan', [ChatController::class, 'start'])->middleware('throttle:chat-send')->name('items.store');
+            Route::get('/bookings/{booking:booking_code}/pesan', [ChatController::class, 'fromBooking'])->name('bookings.create');
+            Route::post('/bookings/{booking:booking_code}/pesan', [ChatController::class, 'startFromBooking'])->middleware('throttle:chat-send')->name('bookings.store');
+            Route::get('/pesan/{conversation}', [ChatController::class, 'show'])->name('show');
+            Route::get('/pesan/{conversation}/pembaruan', [ChatController::class, 'updates'])->name('updates');
+            Route::get('/pesan/{conversation}/lampiran/{message}/{attachment}', [ChatAttachmentController::class, 'show'])->whereNumber('attachment')->name('attachments.show');
+            Route::post('/pesan/{conversation}/dibaca', [ChatController::class, 'read'])->name('read');
+            Route::post('/pesan/{conversation}', [ChatController::class, 'send'])->middleware('throttle:chat-send')->name('send');
+            Route::post('/pesan/{conversation}/blokir', [ChatSafetyController::class, 'block'])->middleware('throttle:30,1,chat-block')->name('block');
+            Route::delete('/pesan/{conversation}/blokir', [ChatSafetyController::class, 'unblock'])->middleware('throttle:30,1,chat-block')->name('unblock');
+            Route::get('/pesan/{conversation}/laporan/{message}', [ChatSafetyController::class, 'createReport'])->name('reports.create');
+            Route::post('/pesan/{conversation}/laporan/{message}', [ChatSafetyController::class, 'storeReport'])->middleware('throttle:10,1,chat-report')->name('reports.store');
+        });
+
         Route::get('/identity', [IdentityVerificationController::class, 'index'])->name('identity.index');
         Route::post('/identity', [IdentityVerificationController::class, 'store'])->middleware('throttle:10,1')->name('identity.store');
         Route::get('/identity/{verification}', [IdentityVerificationController::class, 'show'])->name('identity.show');
@@ -64,6 +86,7 @@ Route::middleware('marketplace')->group(function (): void {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::get('/owner', OwnerDashboardController::class)->name('owner.dashboard');
         Route::get('/owner/payouts', [FinanceController::class, 'ownerIndex'])->name('owner.payouts');
+        Route::get('/items/{item:slug}/continue-rental', [ItemController::class, 'continueRental'])->name('items.continue-rental');
         Route::post('/items/{item:slug}/bookings', [BookingController::class, 'store'])->name('items.bookings.store');
 
         Route::get('/my-bookings', [BookingController::class, 'index'])->name('my-bookings.index');
@@ -115,6 +138,11 @@ Route::middleware('marketplace')->group(function (): void {
         ->name('admin.')
         ->middleware(['auth', 'admin'])
         ->group(function (): void {
+            Route::middleware(EnsureChatIsEnabled::class)->group(function (): void {
+                Route::get('laporan-pesan', [ChatReportController::class, 'index'])->name('chat-reports.index');
+                Route::get('laporan-pesan/{report}/lampiran/{attachment}', [ChatAttachmentController::class, 'reported'])->whereNumber('attachment')->name('chat-reports.attachments.show');
+                Route::patch('laporan-pesan/{report}', [ChatReportController::class, 'resolve'])->name('chat-reports.resolve');
+            });
             Route::get('/', AdminDashboardController::class)->name('dashboard');
             Route::get('identity', [IdentityVerificationController::class, 'adminIndex'])->name('identity.index');
             Route::post('identity/{verification}/review', [IdentityVerificationController::class, 'review'])->name('identity.review');

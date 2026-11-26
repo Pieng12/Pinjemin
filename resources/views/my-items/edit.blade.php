@@ -4,15 +4,12 @@
 
 @section('content')
     <section class="page-shell">
-        <x-breadcrumb :items="['Dashboard Pemilik' => route('owner.dashboard'), 'Barang Saya' => route('my-items.index'), $item->name => route('my-items.show', $item), 'Edit' => null]" />
-        <div class="page-header mt-5">
-            <div>
-                <h1 class="text-3xl font-semibold text-zinc-950">Edit Barang</h1>
-                <p class="mt-2 max-w-2xl text-zinc-600">Perbarui informasi barang, foto, harga, dan status publikasinya.</p>
-            </div>
-        </div>
+        <x-breadcrumb :items="['Dasbor Pemilik' => route('owner.dashboard'), 'Barang Saya' => route('my-items.index'), $item->name => route('my-items.show', $item), 'Edit' => null]" />
+        <x-owner-heading title="Edit Barang" :description="$item->name" class="mt-4">
+            <x-button :href="route('my-items.show', $item)" variant="outline">Lihat Barang</x-button>
+        </x-owner-heading>
 
-        <div class="mt-8">
+        <div class="mt-6 max-w-4xl">
             @if ($item->photos->count())
                 <div class="card card-pad">
                     <h2 class="font-semibold text-zinc-950">Foto barang</h2>
@@ -20,7 +17,7 @@
                         @foreach ($item->photos as $photo)
                             <div class="min-w-0">
                                 <img src="{{ $photo->url() }}" alt="{{ $item->name }}" class="item-photo-natural max-h-60" loading="lazy">
-                                <div class="mt-3 flex flex-wrap gap-2">
+                                <div class="mt-3 flex flex-wrap items-center gap-2">
                                     @if ($photo->is_primary)
                                         <span class="badge bg-emerald-50 text-emerald-700">Foto utama</span>
                                     @else
@@ -42,13 +39,13 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('my-items.update', $item) }}" enctype="multipart/form-data" class="mt-8">
+            <form method="POST" action="{{ route('my-items.update', $item) }}" enctype="multipart/form-data" @class(['mt-6' => $item->photos->isNotEmpty()])>
                 @csrf
                 @method('PUT')
                 @include('my-items.partials.form')
-                <div class="mt-6 flex flex-wrap gap-3">
-                    <x-button type="submit">Simpan Perubahan</x-button>
+                <div class="owner-form-actions">
                     <x-button :href="route('my-items.show', $item)" variant="outline">Batal</x-button>
+                    <x-button type="submit">Simpan Perubahan</x-button>
                 </div>
             </form>
         </div>

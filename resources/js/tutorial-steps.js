@@ -1,7 +1,7 @@
 const step = (selector, title, description) => ({ selector, title, description });
 const link = (destination, title, description) => ({ destination, title, description });
 
-export function tutorialSteps({ page = '', context = 'guest', marketplaceEnabled = true }) {
+export function tutorialSteps({ page = '', context = 'guest', marketplaceEnabled = true, chatEnabled = false }) {
     const navigation = [
         step('[data-mobile-menu-toggle]', 'Menu navigasi', 'Tombol ini membuka menu halaman dan akses akun pada layar yang lebih kecil.'),
         step('[data-workspace-open]', 'Menu dasbor', 'Buka menu ini untuk berpindah bagian dasbor. Tutorial juga akan menunjukkan menu yang tersedia.'),
@@ -24,15 +24,17 @@ export function tutorialSteps({ page = '', context = 'guest', marketplaceEnabled
     } else if (page === 'browse') {
         content = [
             step('#q', '1. Cari barang', 'Masukkan barang yang dibutuhkan, seperti kamera atau tenda, lalu gunakan tombol Cari.'),
-            step('.catalog-filter-toggle', '2. Buka filter', 'Filter membantu memilih kategori, kota, kondisi, serta rentang harga. Angka pada tombol menunjukkan jumlah filter aktif.'),
-            step('.catalog-filter-panel', '3. Sesuaikan kebutuhan Anda', 'Isi penyaringan yang diperlukan lalu pilih Terapkan. Gunakan Reset untuk kembali melihat seluruh pilihan.'),
+            step('.catalog-filter-toggle', '2. Buka filter', 'Saring barang berdasarkan kategori, kota, kondisi, harga, atau periode sewa.'),
+            step('.catalog-filter-panel', '3. Periksa periode sewa', 'Isi kedua tanggal dan jumlah unit yang diperlukan, lalu pilih Terapkan. Pilihan periode terbawa ke detail barang.'),
             step('#sort', '4. Urutkan hasil', 'Pilih urutan terbaru, harga termurah, atau termahal. Gunakan tombol panah di sampingnya untuk menerapkan urutan.'),
             step('.catalog-card a', '5. Baca detail barang', 'Buka kartu untuk melihat foto, kondisi, aturan, harga, dan lokasi. Di halaman detail Anda dapat memilih tanggal serta jumlah unit.'),
+            ...(chatEnabled ? [step('.catalog-card a[href$="/pesan"]', 'Hubungi pemilik', 'Gunakan Chat Barang untuk menanyakan kondisi atau persyaratan barang sebelum mengajukan penyewaan.')] : []),
             ...lists.slice(2),
         ];
     } else if (page === 'items.show') {
         content = [
             step('[data-gallery]', '1. Periksa foto barang', 'Lihat foto dan kelengkapan barang. Gunakan foto kecil di bawah galeri jika tersedia untuk mengganti tampilan utama.'),
+            ...(chatEnabled ? [step('main a[href$="/pesan"]', 'Hubungi pemilik', 'Percakapan menampilkan kartu barang dengan tarif katalog. Gunakan Pesan Cepat atau tulis pertanyaan Anda sendiri.')] : []),
             step('[data-booking-range], [name="start_date"]', '2. Tentukan periode sewa', 'Pilih tanggal mulai dan akhir. Rentang dihitung inklusif; tanggal merah tidak dapat dipilih jika sisa stok tidak mencukupi.'),
             step('[data-booking-form] [name="quantity"]', '3. Tentukan jumlah unit', 'Isi jumlah yang diperlukan. Ketersediaan tanggal dan estimasi biaya mengikuti jumlah unit ini.'),
             step('[data-booking-form] [name="fulfillment_method"]', '4. Pilih cara menerima barang', 'Ambil sendiri tersedia. Pilihan dikirim muncul jika diizinkan pemilik; alamat penerima harus diperiksa saat memilih pengiriman.'),
@@ -100,7 +102,7 @@ export function tutorialSteps({ page = '', context = 'guest', marketplaceEnabled
         content = [
             step('[data-activity-list]', 'Aktivitas yang perlu ditangani', 'Mulai dari tugas yang membutuhkan tindakan. Tautan tugas membuka bagian yang relevan sesuai kewenangan Anda.'),
             ...lists,
-            step('main table', 'Daftar dan tindakan', 'Periksa informasi serta status setiap baris. Detail atau Edit membuka informasi terkait; pada mobile daftar dapat tampil sebagai kartu.'),
+            step('main table, main .owner-records', 'Daftar dan tindakan', 'Periksa informasi dan status tiap baris. Pilih Detail untuk meninjau pemesanan atau Edit untuk mengubah barang.'),
             step('main .catalog-card a, main .owned-item-card a', 'Detail barang', 'Buka barang untuk membaca informasi lengkap dan tindakan yang tersedia bagi akun Anda.'),
         ];
     }

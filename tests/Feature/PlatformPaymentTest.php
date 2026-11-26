@@ -6,6 +6,7 @@ use App\BookingPaymentStatus;
 use App\BookingStatus;
 use App\Models\Booking;
 use App\Models\BookingPayment;
+use App\Models\BookingPayout;
 use App\Models\Item;
 use App\Models\User;
 use App\Models\UserPaymentMethod;
@@ -96,6 +97,25 @@ class PlatformPaymentTest extends TestCase
         $this->actingAs($renter)->get(route('bookings.payout-proof', $booking))->assertForbidden();
         $this->get(route('bookings.payout-receipt', $booking))->assertForbidden();
         $this->actingAs(User::factory()->create())->get(route('admin.finance'))->assertForbidden();
+    }
+
+    public function test_owner_can_open_payout_details_and_download_receipt_when_the_snapshot_lacks_an_account_number(): void
+    {
+        $owner = User::factory()->create();
+        $item = Item::factory()->for($owner, 'user')->create();
+        $booking = Booking::factory()->for($item)->create([
+            'status' => BookingStatus::Completed,
+            'completed_at' => now()->subDay(),
+            'fulfillment_snapshot' => ['pricing_version' => 2, 'payment_collection' => 'platform', 'commission_rate' => 5],
+        ]);
+        BookingPayout::factory()->for($booking)->create([
+            'status' => 'paid', 'paid_at' => now(),
+            'destination_snapshot' => ['label' => 'Rekening Demo', 'account_name' => $owner->name],
+        ]);
+
+        $this->actingAs($owner)->get(route('incoming-bookings.show', $booking))
+            ->assertOk()->assertSee('Nomor rekening belum tercatat.')->assertDontSee('Lihat Bukti Transfer');
+        $this->get(route('bookings.payout-receipt', $booking))->assertDownload('OUT-'.$booking->booking_code.'.pdf');
     }
 
     public function test_deposit_and_balance_go_to_admin_and_cash_is_rejected(): void

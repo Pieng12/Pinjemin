@@ -66,6 +66,23 @@ class AssistantTest extends TestCase
         }
     }
 
+    public function test_help_distinguishes_chat_from_account_support_and_respects_the_chat_flag(): void
+    {
+        config(['features.chat_enabled' => true]);
+
+        $response = $this->get(route('home'))->assertSee('Bagaimana memulai Chat Barang?');
+        $guest = collect($this->assistantData($response->getContent())['topics'])->keyBy('id');
+        $this->assertStringContainsString('Pesan Cepat', $guest['chat-item']['answer']);
+        $this->assertStringContainsString('stok cukup setiap hari', $guest['catalog-period']['answer']);
+        $this->assertContains(route('password.request'), array_column($guest['account-help']['actions'], 'url'));
+        $this->assertContains(route('login'), array_column($guest['chat-item']['actions'], 'url'));
+
+        config(['features.chat_enabled' => false]);
+
+        $response = $this->get(route('home'))->assertDontSee('Bagaimana memulai Chat Barang?');
+        $this->assertNotContains('chat-attachment', array_column($this->assistantData($response->getContent())['topics'], 'id'));
+    }
+
     public function test_legal_pages_keep_help_available(): void
     {
         foreach (['terms', 'privacy'] as $document) {

@@ -158,7 +158,7 @@
 
             <ol class="home-steps mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4" data-scroll-line>
                 @foreach ([
-                    ['Temukan', 'Cari barang yang sesuai dengan kebutuhan, waktu, dan lokasi Anda.'],
+                    ['Temukan', config('features.marketplace_enabled') ? 'Saring barang berdasarkan lokasi, periode sewa, dan jumlah unit yang Anda perlukan.' : 'Cari barang yang sesuai dengan kebutuhan, waktu, dan lokasi Anda.'],
                     ['Ajukan & bayar', config('features.marketplace_enabled') ? 'Ajukan periode sewa. Setelah disepakati, bayar ke Pinjemin dan unggah bukti untuk diperiksa administrator.' : 'Sampaikan kebutuhan dan sepakati detail penyewaan bersama pemilik.'],
                     ['Terima & gunakan', config('features.marketplace_enabled') ? 'Setelah lunas, periksa kondisi bersama pemilik dan gunakan barang sesuai kesepakatan.' : 'Terima lalu gunakan barang sesuai durasi dan kesepakatan.'],
                     ['Kembalikan', config('features.marketplace_enabled') ? 'Kembalikan barang, periksa kondisinya, dan selesaikan konfirmasi kedua pihak.' : 'Kembalikan barang dengan baik setelah kebutuhan selesai.'],
@@ -179,10 +179,12 @@
                 <p class="eyebrow">Pertanyaan umum</p>
                 <h2 class="home-heading mt-3">Informasi layanan Pinjemin.</h2>
                 <p class="mt-5 max-w-sm text-sm leading-7 text-zinc-600">Pelajari informasi layanan, ketentuan, serta prosedur penyewaan barang.</p>
-                <a href="mailto:pinjemin99@gmail.com" class="home-text-link mt-6">pinjemin99@gmail.com <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i></a>
+                <a href="mailto:{{ config('assistant.email') }}" class="home-text-link mt-6">{{ config('assistant.email') }} <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i></a>
             </div>
             <div class="landing-reveal grid content-start gap-3" data-faq-group>
-                @foreach (collect(config('assistant.topics'))->where('home_faq', true) as $topic)
+                @foreach (collect(config('assistant.topics'))->where('home_faq', true)
+                    ->filter(fn ($topic) => (config('features.marketplace_enabled') || ($topic['public'] ?? false))
+                        && (! ($topic['chat'] ?? false) || config('features.chat_enabled'))) as $topic)
                     <details class="home-faq overflow-hidden rounded-lg border border-blue-100 bg-white">
                         <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 px-5 py-4 text-sm font-semibold text-zinc-950" aria-controls="faq-{{ $loop->index }}">{{ $topic['question'] }}<i data-lucide="chevron-down" class="h-4 w-4 shrink-0 text-blue-700 transition-transform" aria-hidden="true"></i></summary>
                         <div id="faq-{{ $loop->index }}" class="px-5 pb-5 text-sm leading-7 text-zinc-600">{{ $topic['answer'] }}</div>
@@ -203,7 +205,7 @@
                     @pinjemin911
                     <i data-lucide="arrow-up-right" class="h-4 w-4" aria-hidden="true"></i>
                 </a>
-                <a href="mailto:pinjemin99@gmail.com" class="promo-contact-button promo-contact-button-secondary">Email Pinjemin</a>
+                <a href="mailto:{{ config('assistant.email') }}" class="promo-contact-button promo-contact-button-secondary">Email Pinjemin</a>
             </div>
         </div>
     </section>

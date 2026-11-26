@@ -10,6 +10,11 @@
             'Catatan pemesanan mencakup barang, periode, jumlah unit, metode penerimaan, penerima, biaya, keputusan, dan waktu tindakan. Persetujuan baru menyimpan versi aturan dan waktunya.',
             'Foto profil dan foto katalog barang ditampilkan pada bagian aplikasi yang terkait. Jangan memasukkan nomor identitas atau dokumen privat ke foto profil, foto barang, deskripsi, maupun catatan yang tidak ditujukan untuk verifikasi.',
         ]],
+        ['id' => 'percakapan', 'title' => 'Percakapan dan laporan pesan', 'points' => [
+            'Percakapan dimulai dari barang di katalog atau dari pemesanan terkait.',
+            'Pinjemin menyimpan pesan, lampiran, waktu pengiriman, dan status baca untuk menyediakan riwayat percakapan. Riwayat dapat diakses oleh kedua peserta.',
+            'Jika pesan dilaporkan, administrator dapat melihat pesan yang dipilih beserta lampirannya, keterangan laporan, dan informasi yang diperlukan untuk peninjauan. Gunakan formulir verifikasi atau pembayaran yang tersedia untuk menyampaikan dokumen dan bukti transaksi.',
+        ]],
         ['id' => 'identitas', 'title' => 'Tujuan verifikasi identitas', 'points' => [
             'Jika memilih atau diwajibkan menjalani verifikasi, Anda memberikan jenis dokumen KTP/SIM, nama sesuai dokumen, nomor identitas, foto dokumen, dan tanggal kedaluwarsa jika berlaku. Tidak ada permintaan selfie.',
             'Data dipakai untuk pemeriksaan persyaratan identitas dan penanganan pengaduan berdasarkan dasar yang sah. Sebelum mengunggah, Anda menyetujui tujuan, akses, dan masa penyimpanan yang dijelaskan pada formulir.',

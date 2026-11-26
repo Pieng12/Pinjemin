@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\BookingStatus;
+use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\ItemPhoto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -60,6 +63,68 @@ class MarketplacePresentationTest extends TestCase
 
         $this->assertSame(12, $response['items']->count());
         $response->assertSee('href="'.e(route('browse', ['q' => 'Kamera', 'city' => 'Medan', 'sort' => 'price_asc', 'page' => 2])).'"', false);
+    }
+
+    public function test_period_filter_uses_stock_throughout_the_range_before_pagination(): void
+    {
+        $today = now(Booking::RentalTimezone);
+        $start = $today->copy()->addDays(2)->toDateString();
+        $end = $today->copy()->addDays(3)->toDateString();
+        $items = Item::factory()->count(13)->create(['quantity' => 2, 'daily_price' => 100000]);
+        $rotating = $items->first();
+        foreach ([$start, $end] as $day) {
+            Booking::factory()->for($rotating)->approved()->create(['start_date' => $day, 'end_date' => $day, 'quantity' => 1]);
+        }
+        $expired = $items->last();
+        Booking::factory()->for($expired)->create(['start_date' => $start, 'end_date' => $end, 'quantity' => 2, 'status' => BookingStatus::AwaitingRenterConfirmation, 'quote_expires_at' => now()->subMinute()]);
+
+        $full = Item::factory()->create(['quantity' => 1]);
+        Booking::factory()->for($full)->approved()->create(['start_date' => $end, 'end_date' => $end, 'quantity' => 1]);
+        $overdue = Item::factory()->create(['quantity' => 1]);
+        Booking::factory()->for($overdue)->approved()->create([
+            'start_date' => $today->copy()->subDays(2)->toDateString(), 'end_date' => $today->copy()->subDay()->toDateString(),
+            'quantity' => 1, 'handed_over_at' => now()->subDays(2),
+        ]);
+
+        $period = ['start_date' => $start, 'end_date' => $end, 'quantity' => 1];
+        $response = $this->get(route('browse', ['sort' => 'price_asc', ...$period]))->assertOk();
+        $this->assertSame(13, $response['items']->total());
+        $this->assertSame(12, $response['items']->count());
+        $response->assertSee(route('items.show', ['item' => $expired, ...$period]));
+        $second = $this->get(route('browse', ['sort' => 'price_asc', ...$period, 'page' => 2]))->assertOk();
+        $this->assertSame([$rotating->id], $second['items']->getCollection()->modelKeys());
+        $this->get(route('browse', [...$period, 'quantity' => 2]))->assertViewHas('items', fn ($results) => $results->total() === 12);
+    }
+
+    public function test_invalid_period_reopens_the_catalog_filter_with_its_previous_values(): void
+    {
+        $start = now(Booking::RentalTimezone)->addDay()->toDateString();
+        $this->followingRedirects()->get(route('browse', ['start_date' => $start, 'quantity' => 2]))
+            ->assertOk()->assertSee('Isi tanggal pengembalian untuk menyaring ketersediaan.')
+            ->assertSee('name="start_date" value="'.$start.'"', false)
+            ->assertSee('name="quantity" value="2"', false)
+            ->assertSee('<details class="catalog-filter-details"  open >', false);
+    }
+
+    public function test_catalog_selection_survives_sign_in_and_detail_reports_changed_stock(): void
+    {
+        $period = ['start_date' => now(Booking::RentalTimezone)->addDay()->toDateString(), 'end_date' => now(Booking::RentalTimezone)->addDay()->toDateString(), 'quantity' => 2];
+        $item = Item::factory()->create(['quantity' => 2, 'daily_price' => 75000]);
+        $renter = User::factory()->create(['password' => 'test-password-123']);
+        $detail = route('items.show', ['item' => $item, ...$period]);
+        $continue = route('items.continue-rental', ['item' => $item, ...$period]);
+        $this->get($detail)->assertOk()->assertSee($continue);
+        $this->get($continue)->assertRedirect(route('login'));
+
+        Booking::factory()->for($item)->approved()->create(['start_date' => $period['start_date'], 'end_date' => $period['end_date'], 'quantity' => 1]);
+        $login = $this->post(route('login'), ['email' => $renter->email, 'password' => 'test-password-123', 'terms_accepted' => '1'])->assertRedirectContains(parse_url($continue, PHP_URL_PATH));
+        parse_str(parse_url($login->headers->get('Location'), PHP_URL_QUERY), $carried);
+        $this->assertEquals($period, $carried);
+        $this->get($continue)->assertRedirect($detail);
+        $this->get($detail)->assertOk()->assertSee('Stok untuk periode pilihan tidak mencukupi.')
+            ->assertSee('name="quantity" value="2"', false)->assertSee('Rp 150.000');
+        $this->withSession(['_old_input' => ['quantity' => 1]])->get($detail)->assertOk()
+            ->assertSee('name="quantity" value="1"', false)->assertSee('Tersedia 1 unit pada periode ini.');
     }
 
     public function test_guest_sees_registration_and_supporting_photos_instead_of_owner_inventory(): void
@@ -154,6 +219,31 @@ class MarketplacePresentationTest extends TestCase
             ->assertSee('owner-detail-photo')
             ->assertSee('object-contain');
         $this->assertProductPhotosAreNotCropped($response->getContent());
+    }
+
+    public function test_detail_gallery_uses_the_catalog_primary_photo_and_exposes_failure_placeholders(): void
+    {
+        $item = Item::factory()->create();
+        ItemPhoto::factory()->for($item)->create(['path' => 'items/secondary.jpg', 'sort_order' => 0]);
+        ItemPhoto::factory()->for($item)->primary()->create(['path' => 'items/primary.jpg', 'sort_order' => 1]);
+
+        $catalog = $this->get(route('browse'))->assertOk();
+        $detail = $this->get(route('items.show', $item))->assertOk();
+        $document = new \DOMDocument;
+        $document->loadHTML($detail->getContent(), LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
+        $xpath = new \DOMXPath($document);
+        $main = $xpath->query('//img[@data-gallery-main]')->item(0);
+
+        $this->assertNotNull($main);
+        $catalog->assertSee($main->getAttribute('src'));
+        $this->assertStringEndsWith('/storage/items/primary.jpg', $main->getAttribute('src'));
+        $this->assertSame(3, $xpath->query('//*[@data-item-image]/*[@data-photo-fallback]')->length);
+        $this->assertSame(2, $xpath->query('//button[@data-gallery-thumb]/img[@data-item-photo]')->length);
+
+        if (getenv('CAPTURE_GALLERY_UI') === '1') {
+            File::ensureDirectoryExists(storage_path('framework/testing/gallery-ui'));
+            file_put_contents(storage_path('framework/testing/gallery-ui/detail.html'), $detail->getContent());
+        }
     }
 
     private function assertProductPhotosAreNotCropped(string $html): void

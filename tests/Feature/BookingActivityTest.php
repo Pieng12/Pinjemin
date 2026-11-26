@@ -149,9 +149,12 @@ class BookingActivityTest extends TestCase
         BookingPayout::factory()->for($booking)->create(['status' => 'pending']);
         $admin = User::factory()->admin()->create();
         $this->assertFalse(app(BookingActionPresenter::class)->describe($booking->fresh(), $admin, 'admin')['actionable']);
+        $ready = route('admin.finance', ['tab' => 'ready']);
+        $this->actingAs($admin)->get($ready)->assertOk()->assertDontSee($booking->booking_code);
         ConditionSession::factory()->for($booking)->create(['stage' => 'handover', 'status' => 'accepted']);
         ConditionSession::factory()->for($booking)->create(['stage' => 'return', 'status' => 'accepted']);
         $this->assertStringEndsWith('#booking-payout', app(BookingActionPresenter::class)->describe($booking->fresh(), $admin, 'admin')['href']);
+        $this->get($ready)->assertOk()->assertSee($booking->booking_code);
     }
 
     public function test_submitted_condition_evidence_waits_for_other_party_and_does_not_request_upload_again(): void

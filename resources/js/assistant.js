@@ -304,7 +304,7 @@ export function initializeAssistant() {
         else {
             const text = result.kind === 'choices'
                 ? 'Terdapat beberapa topik yang relevan. Pilih topik yang ingin ditinjau.'
-                : 'Informasi untuk pertanyaan tersebut belum tersedia. Pilih topik yang relevan atau hubungi Pinjemin untuk keterangan lebih lanjut. Pengaduan transaksi disampaikan melalui detail pemesanan atau administrator.';
+                : 'Pilih topik bantuan yang relevan atau hubungi Pinjemin. Untuk masalah transaksi, buka detail pemesanan dan gunakan pengaduan jika tersedia.';
             const entry = appendMessage(text);
             suggest(entry.message, result.kind === 'choices' ? result.topics : initialTopics.slice(0, 3));
             if (result.kind !== 'choices') appendLinks(entry.message, config.contacts);

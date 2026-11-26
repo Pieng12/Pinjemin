@@ -81,7 +81,7 @@
         ['id' => 'dokumen', 'title' => 'Dokumen dan pengaduan', 'points' => [
             'Tagihan, konfirmasi pembayaran, berita acara, serta riwayat keputusan dapat diakses sesuai status dan izin pemesanan. Pembayaran diverifikasi manual oleh administrator atau, untuk pemesanan lama tertentu, pemilik; bukan konfirmasi dari bank atau payment gateway.',
             'Administrator dapat menyelesaikan kasus pihak yang tidak kooperatif dengan alasan dan bukti. Keputusan dicatat sebagai keputusan administrator, bukan persetujuan atas nama pengguna.',
-            'Gunakan fitur pengaduan pada detail pemesanan atau hubungi pinjemin99@gmail.com. Jangan menyebarkan dokumen identitas, membuat bukti palsu, mengancam, atau menuduh pihak lain tanpa dasar.',
+            'Gunakan formulir pengaduan pada detail pemesanan jika tersedia. Untuk bantuan lain, hubungi '.config('assistant.email').' dan sertakan kode pemesanan serta kronologi singkat. Jaga kerahasiaan dokumen identitas dan berikan informasi yang dapat diperiksa.',
         ]],
     ];
 @endphp

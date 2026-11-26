@@ -12,6 +12,7 @@ use App\Models\BookingPayout;
 use App\Models\BookingRefund;
 use App\Services\PayoutService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,14 +31,28 @@ class FinanceController extends Controller
     {
         $filters = $request->validate(['tab' => ['nullable', Rule::in(['all', 'review', 'refund', 'ready', 'hold', 'paid'])]]);
         $tab = $filters['tab'] ?? 'all';
-        $bookings = Booking::query()->whereHas('payout')
+        $query = Booking::query()->whereHas('payout')
             ->with(['item.user', 'renter', 'payments', 'payout', 'refund', 'conditionSessions'])
             ->when($tab === 'review', fn ($query) => $query->where('status', BookingStatus::PaymentReview))
             ->when($tab === 'refund', fn ($query) => $query->where('refund_status', 'pending'))
-            ->when($tab === 'ready', fn ($query) => $query->where('status', BookingStatus::Completed)->whereHas('payout', fn ($payout) => $payout->where('status', 'pending')))
             ->when($tab === 'hold', fn ($query) => $query->whereHas('payout', fn ($payout) => $payout->whereIn('status', ['on_hold', 'processing'])))
-            ->when($tab === 'paid', fn ($query) => $query->whereHas('payout', fn ($payout) => $payout->where('status', 'paid')))
-            ->latest('id')->paginate(15)->withQueryString();
+            ->when($tab === 'paid', fn ($query) => $query->whereHas('payout', fn ($payout) => $payout->where('status', 'paid')));
+        if ($tab === 'ready') {
+            $eligible = [];
+            $query->where('status', BookingStatus::Completed)
+                ->whereHas('payout', fn ($payout) => $payout->where('status', 'pending'));
+            (clone $query)->withoutEagerLoads()->with(['payments', 'payout', 'conditionSessions'])
+                ->chunkById(150, function (Collection $candidates) use (&$eligible): void {
+                    foreach ($candidates as $booking) {
+                        if ($booking->payout?->setRelation('booking', $booking)->isEligible()) {
+                            $eligible[] = $booking->id;
+                        }
+                    }
+                });
+            $query->whereIntegerInRaw('id', $eligible);
+        }
+        $bookings = $query->latest('id')->paginate(15)->withQueryString();
+        $bookings->getCollection()->each(fn (Booking $booking) => $booking->payout->setRelation('booking', $booking));
         $received = (float) BookingPayment::query()->whereHas('booking.payout')->where('status', BookingPaymentStatus::Verified)->sum('amount');
         $refunded = (float) BookingRefund::query()->whereHas('booking.payout')->sum('amount');
         $paid = (float) BookingPayout::query()->where('status', 'paid')->sum('amount');

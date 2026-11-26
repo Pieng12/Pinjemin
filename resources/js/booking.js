@@ -28,16 +28,22 @@ export function initializeBookingForm(form) {
         if (!start.value || !end.value) return false;
         return [...dayStock].some(([day, stock]) => day >= start.value && day <= end.value && stock < units());
     };
+    const isDelivery = () => form.querySelector('[name="fulfillment_method"]:checked')?.value === 'delivery';
     const updatePrices = () => {
-        const days = start.value && end.value && end.value >= start.value
+        const days = start.value && end.value && start.value >= today && end.value >= start.value
             ? Math.round((Date.parse(`${end.value}T00:00:00Z`) - Date.parse(`${start.value}T00:00:00Z`)) / 86400000) + 1 : 0;
         const price = Number(form.dataset.dailyPrice);
-        const deposit = Number(form.dataset.deposit) * units();
-        form.querySelector('[data-rental-days]').textContent = `${days} hari`;
-        form.querySelector('[data-price-formula]').textContent = `${money(price)} x ${days} hari x ${units()} unit`;
-        form.querySelector('[data-subtotal]').textContent = money(price * days * units());
-        form.querySelector('[data-deposit-total]').textContent = money(deposit);
-        form.querySelector('[data-total]').textContent = money(price * days * units());
+        const quantityValid = Number.isInteger(units()) && units() >= 1 && units() <= Number(quantity.max);
+        const hasEstimate = days > 0 && quantityValid;
+        const subtotal = Math.round(price * days * units() * 100) / 100;
+        const deposit = Math.round(Number(form.dataset.deposit) * units() * 100) / 100;
+        const showDeposit = hasEstimate && deposit > 0 && deposit < subtotal;
+        form.querySelector('[data-rental-days]').textContent = days ? `${days} hari` : '—';
+        form.querySelector('[data-price-formula]').textContent = hasEstimate ? `${money(price)} × ${days} hari × ${units()} unit` : '';
+        form.querySelector('[data-subtotal]').textContent = hasEstimate ? money(subtotal) : '—';
+        form.querySelector('[data-deposit-row]').hidden = !showDeposit;
+        form.querySelector('[data-deposit-total]').textContent = showDeposit ? money(deposit) : '';
+        form.querySelector('[data-total]').textContent = hasEstimate ? money(subtotal) : '—';
     };
     const checkAvailability = async () => {
         estimateRequest?.abort();
@@ -46,9 +52,12 @@ export function initializeBookingForm(form) {
             message.textContent = 'Periode sewa belum lengkap atau tidak valid.';
             return false;
         }
-        if (!Number.isInteger(units()) || units() < 1 || units() > Number(quantity.max)) return false;
+        if (!Number.isInteger(units()) || units() < 1 || units() > Number(quantity.max)) {
+            message.textContent = `Pilih jumlah antara 1 dan ${quantity.max} unit.`;
+            return false;
+        }
         if (selectedRangeIsBlocked()) {
-            message.textContent = 'Ada tanggal dengan stok tidak cukup di dalam periode ini.';
+            message.textContent = 'Stok untuk periode pilihan tidak mencukupi. Pilih periode lain atau kurangi jumlah unit.';
             return false;
         }
         const controller = new AbortController();
@@ -63,8 +72,10 @@ export function initializeBookingForm(form) {
             }
             const data = await response.json();
             if (controller.signal.aborted) return false;
-            message.textContent = `Tersedia ${data.available_quantity} dari ${data.item_quantity} unit pada periode ini.`;
-            return data.available_quantity >= units();
+            const available = data.available_quantity >= units();
+            message.textContent = available ? `Tersedia ${data.available_quantity} dari ${data.item_quantity} unit pada periode ini.`
+                : `Tersedia ${data.available_quantity} unit. Pilih periode lain atau kurangi jumlah unit.`;
+            return available;
         } catch (exception) {
             if (exception.name === 'AbortError') return false;
             message.textContent = 'Ketersediaan akan diperiksa kembali saat pengajuan diterima.';
@@ -99,6 +110,7 @@ export function initializeBookingForm(form) {
         onYearChange: () => loadCalendar(),
         onOpen: () => loadCalendar(),
     });
+    if (start.value >= today && end.value >= start.value) picker.jumpToDate(start.value);
     calendar.hidden = false;
     picker.altInput.id = 'rental-range-display';
     calendar.querySelector('label').htmlFor = picker.altInput.id;
@@ -119,8 +131,9 @@ export function initializeBookingForm(form) {
         const controller = new AbortController();
         calendarRequest = controller;
         try {
-            const months = [-1, 0, 1].map(offset => monthKey(picker.currentYear, picker.currentMonth + offset));
-            const responses = await Promise.all(months.map(async month => {
+            const nearby = [-1, 0, 1].map(offset => monthKey(picker.currentYear, picker.currentMonth + offset));
+            const months = new Set(calendarReady || !end.value ? nearby : [...nearby, end.value.slice(0, 7)]);
+            const responses = await Promise.all([...months].map(async month => {
                 const response = await fetch(`${form.dataset.calendarUrl}?${new URLSearchParams({ month })}`, {
                     headers: { Accept: 'application/json' }, cache: 'no-store', signal: controller.signal,
                 });
@@ -136,8 +149,11 @@ export function initializeBookingForm(form) {
             enableCalendar();
             error.textContent = '';
             picker.set('minDate', today);
-            if (!calendarReady && start.value && end.value) {
-                picker.setDate([start.value, end.value], false);
+            if (!calendarReady && start.value >= today && end.value >= start.value) {
+                if (!selectedRangeIsBlocked()) picker.setDate([start.value, end.value], false);
+                if (picker.selectedDates.length !== 2) {
+                    picker.altInput.value = [start.value, end.value].map(date => picker.formatDate(picker.parseDate(date, 'Y-m-d'), 'j M Y')).join(' – ');
+                }
             }
             calendarReady = true;
             picker.redraw();
@@ -158,7 +174,7 @@ export function initializeBookingForm(form) {
     const recipient = form.querySelector('[data-recipient-fields]');
     const updateRecipient = () => {
         if (!recipient) return;
-        const delivery = form.querySelector('[name="fulfillment_method"]:checked')?.value === 'delivery';
+        const delivery = isDelivery();
         recipient.hidden = !delivery;
         recipient.querySelectorAll('input, textarea').forEach(input => {
             input.required = delivery;

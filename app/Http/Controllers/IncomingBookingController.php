@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Services\AvailabilityService;
 use App\Services\BookingActionPresenter;
 use App\Services\BookingService;
+use App\Services\ItemChatService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -50,7 +51,7 @@ class IncomingBookingController extends Controller
         ]);
     }
 
-    public function show(Booking $booking, AvailabilityService $availability): View
+    public function show(Booking $booking, AvailabilityService $availability, ItemChatService $chat): View
     {
         Gate::authorize('viewAsOwner', $booking);
 
@@ -62,6 +63,7 @@ class IncomingBookingController extends Controller
             'approvalBlocker' => $booking->status === BookingStatus::Pending ? app(BookingActionPresenter::class)->approvalBlocker($booking) : null,
             'booking' => $booking,
             'viewer' => 'owner',
+            'chatAvailable' => $chat->bookingChatAvailable($booking),
             'hasActivePaymentMethod' => $booking->item->user->paymentMethods()
                 ->where('is_active', true)
                 ->when($booking->collectsViaPlatform(), fn ($query) => $query->where('type', '!=', 'qris')->whereNotNull('account_identifier'))

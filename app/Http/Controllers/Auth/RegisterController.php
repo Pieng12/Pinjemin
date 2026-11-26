@@ -43,6 +43,6 @@ class RegisterController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard')->with('status', 'Akun Pinjemin berhasil dibuat.');
+        return redirect()->intended(route('dashboard'))->with('status', 'Akun Pinjemin berhasil dibuat.');
     }
 }

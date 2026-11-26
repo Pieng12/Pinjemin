@@ -34,7 +34,9 @@ class BookingActionPresenter
         ];
 
         if ($status === BookingStatus::Expired) {
-            return $action('Batas waktu sudah berakhir', $booking->payment_due_at ? 'Pembayaran tidak diterima dalam batas waktu. Pilih periode baru jika masih membutuhkan barang.' : 'Tawaran biaya pengiriman sudah kedaluwarsa. Pengajuan baru diperlukan.', $viewer === 'renter' ? route('items.show', $booking->item) : null, $viewer === 'renter' ? 'Lihat barang' : null);
+            $listed = $booking->item->is_active && $booking->item->status === ItemStatus::Available;
+
+            return $action('Batas waktu sudah berakhir', $booking->payment_due_at ? 'Pembayaran tidak diterima dalam batas waktu. Pilih periode baru jika masih membutuhkan barang.' : 'Tawaran biaya pengiriman sudah kedaluwarsa. Ajukan pemesanan baru untuk melanjutkan.', $viewer === 'renter' ? ($listed ? route('items.show', $booking->item) : route('browse')) : null, $viewer === 'renter' ? ($listed ? 'Lihat barang' : 'Cari barang lain') : null);
         }
         if ($booking->refund_status === 'pending') {
             if ($viewer === 'renter' && $booking->collectsViaPlatform() && ! $booking->refund_destination) {

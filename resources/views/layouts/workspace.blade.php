@@ -32,7 +32,7 @@
                 </button>
                 <button type="button" class="owner-icon-button lg:hidden" data-workspace-close @if ($workspaceRole === 'owner') data-owner-close @endif aria-label="Tutup navigasi {{ strtolower($workspaceLabel) }}" title="Tutup navigasi {{ strtolower($workspaceLabel) }}"><i data-lucide="x" class="h-5 w-5" aria-hidden="true"></i></button>
             </div>
-            <p class="owner-sidebar-caption">Ruang Kerja {{ strtolower($workspaceLabel) }}</p>
+            <p class="owner-sidebar-caption">Ruang kerja {{ strtolower($workspaceLabel) }}</p>
             <nav class="owner-sidebar-nav" aria-label="Navigasi {{ strtolower($workspaceLabel) }}">
                 @foreach ($workspaceNavigation as [$routeName, $label, $icon, $active])
                     <a href="{{ route($routeName) }}" data-workspace-route="{{ $routeName }}" class="owner-nav-link {{ $active ? 'is-active' : '' }} {{ $routeName === 'my-items.create' ? 'owner-nav-create' : '' }}" aria-label="{{ $label }}" title="{{ $label }}" @if ($active) aria-current="page" @endif>

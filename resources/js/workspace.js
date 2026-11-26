@@ -97,6 +97,13 @@ export function initializeWorkspace(root = document) {
         sidebar.addEventListener('click', (event) => {
             if (event.target.closest('a[href]')) setDrawerOpen(false);
         });
+        if (role === 'owner') {
+            workspace.addEventListener('click', (event) => {
+                workspace.querySelectorAll('details[data-owner-management][open]').forEach(detail => {
+                    if (!detail.contains(event.target)) detail.open = false;
+                });
+            });
+        }
         desktop.addEventListener('change', () => {
             const focusWasInSidebar = sidebar.contains(document.activeElement);
             const focusWasOnOpener = document.activeElement === openButton;
@@ -105,6 +112,14 @@ export function initializeWorkspace(root = document) {
             if (desktop.matches && focusWasOnOpener) collapseButton.focus({ preventScroll: true });
         });
         document.addEventListener('keydown', (event) => {
+            if (role === 'owner' && event.key === 'Escape' && !state.drawerOpen && !document.querySelector('dialog[open], [data-confirm-modal]:not(.hidden)')) {
+                const detail = workspace.querySelector('details[data-owner-management][open]');
+                if (detail) {
+                    event.preventDefault();
+                    detail.open = false;
+                    detail.querySelector('summary').focus();
+                }
+            }
             if (!state.drawerOpen || document.querySelector('[data-tutorial-dialog][open]')) return;
             if (event.key === 'Escape') {
                 event.preventDefault();

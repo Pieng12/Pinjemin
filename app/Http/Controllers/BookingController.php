@@ -10,6 +10,7 @@ use App\Models\Item;
 use App\Services\AvailabilityService;
 use App\Services\BookingActionPresenter;
 use App\Services\BookingService;
+use App\Services\ItemChatService;
 use App\Services\RentalPriceCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -95,7 +96,7 @@ class BookingController extends Controller
         ]);
     }
 
-    public function show(Booking $booking): View
+    public function show(Booking $booking, ItemChatService $chat): View
     {
         Gate::authorize('viewAsRenter', $booking);
 
@@ -105,6 +106,7 @@ class BookingController extends Controller
             'handoverBlocker' => app(BookingActionPresenter::class)->handoverBlocker($booking),
             'nextAction' => app(BookingActionPresenter::class)->describe($booking, request()->user(), 'renter'),
             'booking' => $booking,
+            'chatAvailable' => $chat->bookingChatAvailable($booking),
             'viewer' => 'renter',
         ]);
     }

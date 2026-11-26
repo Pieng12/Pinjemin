@@ -3,7 +3,7 @@ export function availableGuides(config) {
     const guides = [
         { id: 'rent', title: 'Panduan Penyewaan', description: 'Dari mencari barang sampai mengajukan dan membayar pemesanan.', entry: 'browse', entryLabel: 'katalog', steps: [
             ['auth', 'Siapkan akun', 'Masuk atau daftar agar dapat mengajukan penyewaan.'],
-            ['catalog', 'Cari dan pilih barang', 'Gunakan pencarian, filter, dan buka barang pilihan Anda.'],
+            ['catalog', 'Cari dan pilih barang', 'Gunakan filter periode dan jumlah unit untuk mencari barang yang tersedia pada tanggal yang Anda perlukan.'],
             ['item', 'Tentukan periode dan ajukan', 'Baca aturan, pilih tanggal, jumlah, serta cara menerima barang.'],
             ['booking', 'Pantau dan bayar pemesanan', 'Tunggu pemilik, sepakati biaya pengiriman bila ada, lalu bayar sesuai instruksi.'],
             ['return', 'Terima dan kembalikan', 'Ikuti pemeriksaan kondisi serta tanggal pengembalian pada pemesanan.'],
@@ -33,6 +33,11 @@ export function availableGuides(config) {
             ['review', 'Pantau pemeriksaan administrator', 'Baca alasan perbaikan jika ada. Jangan mengirim dokumen melalui layanan bantuan ini.'],
         ] },
     ];
+    if (config.chatEnabled) guides.push({ id: 'item-chat', title: 'Chat Barang', description: 'Hubungi pihak terkait, gunakan Pesan Cepat, dan kirim lampiran.', entry: 'browse', entryLabel: 'katalog', steps: [
+        ['catalog', 'Pilih barang di katalog', 'Tekan Hubungi Pemilik pada barang yang ingin ditanyakan, lalu masuk ke akun jika diminta.'],
+        ['item', 'Mulai percakapan', 'Periksa kartu barang. Pilih Pesan Cepat atau tulis pesan sendiri. Ikon penjepit kertas digunakan untuk menambahkan lampiran.'],
+        ['inbox', 'Buka kembali percakapan', 'Pilih Chat di menu akun, lalu cari percakapan berdasarkan nama barang.'],
+    ] });
     if (config.navigation?.['admin-finance']) guides.push({ id: 'admin', title: 'Kelola transaksi administrator', description: 'Kenali pemeriksaan pembayaran, pengembalian dana, dan pencairan.', entry: 'admin-finance', entryLabel: 'Keuangan Administrator', steps: [
         ['queue', 'Pilih antrean', 'Gunakan tab atau filter pembayaran, pengembalian dana, dan pencairan.'],
         ['booking', 'Tinjau pemesanan dan bukti', 'Buka transaksi untuk memeriksa catatan dan tindakan yang diizinkan.'],
@@ -49,6 +54,10 @@ export function guideStage(config, id) {
         if (page === 'items.show') return 'item';
         if (page === 'my-bookings.index') return 'bookings';
         if (page === 'my-bookings.show') return 'booking';
+    }
+    if (id === 'item-chat') {
+        if (page === 'browse') return 'catalog';
+        if (page === 'items.show') return 'item';
     }
     if (id === 'list') {
         if (['my-items.create', 'my-items.edit'].includes(page)) return 'create';
@@ -70,6 +79,7 @@ export function guideStage(config, id) {
 
 export function guideInstruction(id, stage) {
     if (stage === 'auth') return { text: 'Lengkapi formulir akun, kemudian kirim untuk melanjutkan. Panduan berlanjut setelah Anda berhasil masuk.', label: 'Isi formulir akun', selector: 'main input[name="email"]' };
+    if (id === 'item-chat' && ['catalog', 'item'].includes(stage)) return { text: 'Pilih Hubungi Pemilik pada barang yang ingin Anda tanyakan. Kartu barang dan pilihan Pesan Cepat muncul setelah percakapan dibuka.', label: 'Temukan tombol Hubungi Pemilik', selector: 'main a[href$="/pesan"]' };
     if (stage === 'catalog') return { text: 'Pilih barang yang akan disewa. Sorotan berikutnya muncul setelah Anda membuka detail barang.', label: 'Pilih barang di katalog', selector: '.catalog-card a, #q' };
     if (stage === 'item') return { text: 'Isi periode, jumlah, dan penerimaan barang, lalu ajukan jika sudah sesuai. Panduan berlanjut pada detail pemesanan.', label: 'Isi pilihan sewa', selector: '[data-booking-range], [data-booking-form] [name="quantity"]' };
     if (stage === 'create') return { text: 'Lengkapi informasi barang, kemudian simpan perubahan. Panduan berlanjut pada barang yang Anda simpan.', label: 'Isi informasi barang', selector: '[data-item-form-fields] input[name="name"]' };

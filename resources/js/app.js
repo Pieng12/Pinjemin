@@ -17,12 +17,15 @@ import {
     createIcons,
     Handshake,
     LayoutDashboard,
+    MapPin,
     Menu,
+    MessageCircle,
     PackageCheck,
     Package,
     Inbox,
     PanelLeftClose,
     PanelLeftOpen,
+    Paperclip,
     Plus,
     Pencil,
     ReceiptText,
@@ -39,8 +42,38 @@ import { initializeWorkspace } from './workspace';
 import { initializeFormAccessibility } from './form-accessibility';
 import { initializeTransactionUI } from './transaction-ui';
 import { initializeAssistant } from './assistant';
+import { initializeChat } from './chat';
 
 const formatRupiah = (value) => `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0))}`;
+
+function initializeItemPhotos(root) {
+    root.querySelectorAll('[data-item-photo]').forEach((image) => {
+        const fallback = image.closest('[data-item-image]')?.querySelector('[data-photo-fallback]');
+        if (!fallback) return;
+        const showFallback = () => {
+            image.hidden = true;
+            fallback.hidden = false;
+        };
+        image.addEventListener('error', showFallback);
+        image.addEventListener('load', () => {
+            image.hidden = false;
+            fallback.hidden = true;
+        });
+        if (image.complete && image.naturalWidth === 0) showFallback();
+    });
+}
+
+function initializeAvatars(root) {
+    root.querySelectorAll('[data-user-avatar]').forEach((avatar) => {
+        const image = avatar.querySelector('[data-avatar-photo]');
+        const showInitial = () => {
+            image.hidden = true;
+            avatar.querySelector('[data-avatar-initial]').hidden = false;
+        };
+        image.addEventListener('error', showInitial);
+        if (image.hasAttribute('src') && image.complete && image.naturalWidth === 0) showInitial();
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeLegalModal();
@@ -48,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeFormAccessibility();
     initializeTransactionUI();
     initializeAssistant();
+    initializeChat(initializeAvatars);
     createIcons({
         icons: {
             ArrowRight,
@@ -66,12 +100,15 @@ document.addEventListener('DOMContentLoaded', () => {
             CreditCard,
             Handshake,
             LayoutDashboard,
+            MapPin,
             Menu,
+            MessageCircle,
             PackageCheck,
             Package,
             Inbox,
             PanelLeftClose,
             PanelLeftOpen,
+            Paperclip,
             Plus,
             Pencil,
             ReceiptText,
@@ -101,24 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('pageshow', () => setVisible(false));
     });
 
-    document.querySelectorAll('[data-item-photo]').forEach((image) => {
-        const showFallback = () => {
-            image.hidden = true;
-            image.closest('[data-item-image]').querySelector('[data-photo-fallback]').hidden = false;
-        };
-        image.addEventListener('error', showFallback, { once: true });
-        if (image.complete && image.naturalWidth === 0) showFallback();
-    });
-
-    document.querySelectorAll('[data-user-avatar]').forEach((avatar) => {
-        const image = avatar.querySelector('[data-avatar-photo]');
-        const showInitial = () => {
-            image.hidden = true;
-            avatar.querySelector('[data-avatar-initial]').hidden = false;
-        };
-        image.addEventListener('error', showInitial);
-        if (image.hasAttribute('src') && image.complete && !image.naturalWidth) showInitial();
-    });
+    initializeItemPhotos(document);
+    initializeAvatars(document);
 
     const profilePhotoForm = document.querySelector('[data-profile-photo-upload]');
     if (profilePhotoForm) {
@@ -878,14 +899,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const main = gallery.querySelector('[data-gallery-main]');
         if (!main) return;
 
-        gallery.querySelectorAll('[data-gallery-thumb]').forEach((thumb) => {
+        const thumbnails = gallery.querySelectorAll('[data-gallery-thumb]');
+        thumbnails.forEach((thumb) => {
             thumb.addEventListener('click', () => {
-                main.classList.add('opacity-0');
-                setTimeout(() => {
-                    main.setAttribute('src', thumb.dataset.gallerySrc);
-                    main.setAttribute('alt', thumb.dataset.galleryAlt || main.getAttribute('alt') || '');
-                    main.classList.remove('opacity-0');
-                }, 120);
+                thumbnails.forEach((photo) => photo.setAttribute('aria-pressed', String(photo === thumb)));
+                main.setAttribute('alt', thumb.dataset.galleryAlt || main.getAttribute('alt') || '');
+                main.setAttribute('src', thumb.dataset.gallerySrc);
             });
         });
     });

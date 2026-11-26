@@ -62,6 +62,9 @@
                                         <div class="my-1 border-t border-zinc-100"></div>
                                         <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">Aktivitas Saya</p>
                                         <a href="{{ route('my-bookings.index') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Penyewaan Saya</a>
+                                        @if(config('features.chat_enabled'))
+                                            <a href="{{ route('chat.index') }}" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-brand-50 aria-[current=page]:bg-brand-50 aria-[current=page]:text-brand-700" @if(request()->routeIs('chat.*')) aria-current="page" @endif><i data-lucide="message-circle" class="size-4" aria-hidden="true"></i> Chat</a>
+                                        @endif
                                         <div class="my-1 border-t border-zinc-100"></div>
                                         <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">Untuk Pemilik</p>
                                         <a href="{{ route('owner.dashboard') }}" class="block rounded-md px-3 py-2 text-sm font-medium hover:bg-zinc-50">Dasbor Pemilik</a>
@@ -126,6 +129,9 @@
                                 <p class="site-menu-caption">Akun Saya</p>
                                 <div class="site-menu-grid">
                                     <a href="{{ route('my-bookings.index') }}" class="site-mobile-link">Penyewaan Saya</a>
+                                    @if(config('features.chat_enabled'))
+                                        <a href="{{ route('chat.index') }}" class="site-mobile-link {{ request()->routeIs('chat.*') ? 'is-active' : '' }}" @if(request()->routeIs('chat.*')) aria-current="page" @endif>Chat</a>
+                                    @endif
                                     <a href="{{ route('owner.dashboard') }}" class="site-mobile-link">Dasbor Pemilik</a>
                                     <a href="{{ route('profile.edit') }}" class="site-mobile-link">Profil</a>
                                     <a href="{{ route('identity.index') }}" class="site-mobile-link">Verifikasi Identitas</a>
@@ -154,7 +160,7 @@
             </nav>
         </header>
 
-        <main class="flex-1">
+        <main class="flex-1 @hasSection('chat_layout') flex min-h-0 flex-col @endif">
             @if (session('status'))
                 <div class="page-shell pb-0">
                     <div class="reveal rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-sm">
@@ -172,6 +178,7 @@
             @yield('content')
         </main>
 
+        @if (! View::hasSection('chat_layout'))
         <footer class="site-footer">
             <div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 text-sm sm:px-6 md:grid-cols-4 lg:px-8">
                 <div class="md:col-span-2">
@@ -205,10 +212,13 @@
                 @stack('footer_credits')
             </div>
         </footer>
+        @endif
     </div>
     <x-confirm-modal />
     <x-legal-modal />
-    <x-assistant />
+    @if (! View::hasSection('chat_layout'))
+        <x-assistant />
+    @endif
     @stack('scripts')
 </body>
 </html>

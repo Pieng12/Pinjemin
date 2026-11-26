@@ -9,13 +9,18 @@
             'Detail Pemesanan' => null,
         ]" />
 
-        <div class="page-header mt-6">
-            <div>
-                <x-booking-status-badge :status="$booking->status" :booking="$booking" />
-                <h1 class="mt-3 text-3xl font-bold tracking-tight text-zinc-950">Booking #{{ $booking->booking_code }}</h1>
-                <p class="mt-2 text-zinc-600">Dibuat pada {{ $booking->created_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB</p>
+        <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
+            <div class="min-w-0">
+                <h1 class="text-2xl font-semibold wrap-anywhere text-zinc-950 sm:text-3xl">Pemesanan {{ $booking->booking_code }}</h1>
+                <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    <div><x-booking-status-badge :status="$booking->status" :booking="$booking" class="min-h-7" /></div>
+                    <p class="text-sm text-zinc-600">Diajukan {{ $booking->created_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->locale('id')->translatedFormat('d M Y, H:i') }} WIB</p>
+                </div>
             </div>
             <div class="flex flex-wrap gap-2">
+                @if($chatAvailable ?? false)
+                    <x-button :href="route('chat.bookings.create', $booking)" variant="outline"><i data-lucide="message-circle" class="size-4" aria-hidden="true"></i> Percakapan</x-button>
+                @endif
                 @can('downloadInvoice', $booking)
                     <x-button :href="route('bookings.invoice', $booking)" variant="outline"><i data-lucide="download" class="h-4 w-4"></i>Unduh Tagihan</x-button>
                 @endcan
@@ -50,8 +55,6 @@
                         @endphp
 
                     @endif
-                @else
-                    <x-button href="{{ route('incoming-bookings.index') }}" variant="outline">Kembali</x-button>
                 @endif
             </div>
         </div>
@@ -62,13 +65,21 @@
             <p class="mt-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800" role="alert">Ada konflik stok pada periode pemesanan ini, termasuk kemungkinan barang terlambat kembali. Periksa pengembalian sebelum menyerahkan barang kepada penyewa.</p>
         @endif
 
-        <aside class="mt-5 rounded-md border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-zinc-600">
-            <p>{{ $viewer === 'owner' ? 'Sebelum menerima pemesanan, periksa persyaratan identitas, periode, stok, dan cara penerimaan barang. Pencairan mengikuti hasil pengembalian serta pemeriksaan kondisi.' : 'Rincian dan persyaratan yang tercatat pada pemesanan ini tetap menjadi acuan, termasuk jika aturan barang berubah setelah pengajuan.' }}</p>
-            <a href="{{ route('legal.terms') }}#pembatalan" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block font-semibold text-blue-700 underline underline-offset-2">Baca aturan pembatalan dan pengaduan</a>
+        <aside class="mt-4 text-sm leading-6 text-zinc-600" aria-label="Ketentuan dan bantuan pemesanan">
+            @if ($viewer !== 'owner')<p class="mb-1.5">Ketentuan yang tersimpan saat pengajuan berlaku untuk pemesanan ini.</p>@endif
+            <div class="flex flex-wrap gap-x-4 gap-y-1 font-medium text-brand-700">
+                <a href="{{ route('legal.terms') }}#pembatalan" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">Baca aturan pembatalan dan pengaduan</a>
+                @can('reportPaymentIssue', $booking)
+                    @if(in_array($booking->payout?->status, ['pending', 'on_hold'], true))
+                        <a href="#booking-report-issue" data-action-link class="underline underline-offset-2">Laporkan masalah transaksi</a>
+                    @endif
+                @endcan
+                <a href="mailto:{{ config('assistant.email') }}?subject={{ rawurlencode('Bantuan pemesanan '.$booking->booking_code) }}" class="underline underline-offset-2">Hubungi Pinjemin</a>
+            </div>
         </aside>
 
-        <div class="mt-8 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-            <aside class="space-y-5">
+        <div class="mt-5 grid items-start gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+            <aside class="min-w-0 space-y-5">
                 <div class="card card-pad">
                     <h2 class="text-lg font-bold text-zinc-950">Barang</h2>
                     <div class="mt-4 flex gap-4">
@@ -276,7 +287,7 @@
 
                                 @csrf @method('PATCH')
                                 <p class="text-sm leading-6 text-zinc-600">Biaya sekali untuk pengiriman ke alamat penyewa. Rp 0 diperbolehkan; total tetap perlu disetujui penyewa.</p>
-                                <div class="mt-4"><x-currency-input name="delivery_fee" label="Ongkir" :value="$bookingOld('delivery_fee', 0)" required /></div>
+                                <div class="mt-4"><x-currency-input name="delivery_fee" label="Biaya pengiriman" :value="$bookingOld('delivery_fee', 0)" required /></div>
                                 <x-button type="submit" class="mt-4">Kirim Tawaran Biaya Pengiriman</x-button>
                             </form>
                             @php

@@ -2,24 +2,39 @@
     @can('viewPayout', $booking)
         <section id="booking-payout" tabindex="-1" class="mt-7 scroll-mt-24 rounded-lg border border-zinc-200 bg-white p-5" aria-labelledby="payout-title">
             <div class="flex flex-wrap items-center justify-between gap-3"><h2 id="payout-title" class="text-lg font-semibold">Pencairan Pemilik</h2><span class="badge bg-blue-50 text-blue-700">{{ $booking->payout?->statusLabel() ?? 'Belum diterima pemilik' }}</span></div>
-            <p class="mt-2 text-sm leading-6 text-zinc-600">Komisi {{ $booking->fulfillment_snapshot['commission_rate'] }}% dari biaya sewa, di luar biaya pengiriman. DP bagian dari total. Transfer manual setelah pengembalian terkonfirmasi dan masalah selesai; target maksimal 1×24 jam. Pemilik membiayai biaya pengiriman lebih dahulu, lalu menerima penggantiannya bersama pencairan.</p>
             @php
-$payout = $booking->payout;
-@endphp
-            @php
-$fee = $payout?->commission_amount ?? round((float)$booking->subtotal * (float)$booking->fulfillment_snapshot['commission_rate'] / 100, 2);
-@endphp
+                $payout = $booking->payout;
+                $rate = $booking->fulfillment_snapshot['commission_rate'] ?? $payout?->commission_rate ?? 5;
+                $fee = $payout?->commission_amount ?? round((float) $booking->subtotal * (float) $rate / 100, 2);
+                $destination = $payout?->destination_snapshot ?? [];
+                $accountNumber = $destination['account_identifier'] ?? null;
+            @endphp
+            <p class="mt-2 text-sm leading-6 text-zinc-600">Komisi {{ $rate }}% dari biaya sewa, di luar biaya pengiriman. DP bagian dari total. Transfer manual setelah pengembalian terkonfirmasi dan masalah selesai; target maksimal 1×24 jam. Pemilik membiayai biaya pengiriman lebih dahulu, lalu menerima penggantiannya bersama pencairan.</p>
             <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-3">
                 <div><dt class="text-zinc-500">Total pemesanan</dt><dd class="mt-1 font-semibold"><x-price :amount="$booking->total_amount" suffix="" /></dd></div>
                 <div><dt class="text-zinc-500">{{ $payout?->status === 'cancelled' ? 'Komisi dibatalkan' : 'Komisi platform' }}</dt><dd class="mt-1 font-semibold"><x-price :amount="$payout?->status === 'cancelled' ? 0 : $fee" suffix="" /></dd></div>
                 <div><dt class="text-zinc-500">Hak bersih pemilik</dt><dd class="mt-1 font-semibold text-brand"><x-price :amount="$payout?->status === 'cancelled' ? 0 : ($payout?->amount ?? (float)$booking->total_amount - $fee)" suffix="" /></dd></div>
             </dl>
             @if($payout)
-                <div class="mt-4 rounded-md bg-zinc-50 p-4 text-sm"><p class="font-semibold">Tujuan pencairan saat pemesanan diterima</p><p class="mt-1 break-words">{{ $payout->destination_snapshot['label'] }} / {{ $payout->destination_snapshot['account_name'] }}</p><p class="mt-1 break-all font-mono">{{ $payout->destination_snapshot['account_identifier'] }}</p><p class="mt-2 text-xs text-zinc-500">Perubahan profil tidak mengubah tujuan pemesanan ini. Biaya transfer pencairan ditanggung Pinjemin.</p></div>
+                <div class="mt-4 rounded-md bg-zinc-50 p-4 text-sm">
+                    <p class="font-semibold">Tujuan pencairan saat pemesanan diterima</p>
+                    <p class="mt-1 break-words">{{ $destination['label'] ?? 'Metode belum tercatat' }} / {{ $destination['account_name'] ?? 'Nama penerima belum tercatat' }}</p>
+                    @if(filled($accountNumber))
+                        <p class="mt-1 break-all font-mono">{{ $accountNumber }}</p>
+                    @else
+                        <p class="mt-1 text-zinc-600">Nomor rekening belum tercatat.</p>
+                    @endif
+                    <p class="mt-2 text-xs text-zinc-500">Perubahan profil tidak mengubah tujuan pemesanan ini. Biaya transfer pencairan ditanggung Pinjemin.</p>
+                </div>
                 @if($payout->hold_reason)<p class="mt-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900"><strong>Dana ditahan:</strong> {{ $payout->hold_reason }}</p>@endif
                 @if($payout->paid_at)
                     <p class="mt-4 text-sm">Ditransfer {{ $payout->paid_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB · Ref: {{ $payout->transaction_reference }}</p>
-                    <div class="mt-3 flex flex-wrap gap-2"><x-button :href="route('bookings.payout-proof', $booking)" variant="outline" target="_blank">Lihat Bukti Transfer</x-button><x-button :href="route('bookings.payout-receipt', $booking)" variant="outline">Unduh Rincian Pencairan</x-button></div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @if($payout->proof_path)
+                            <x-button :href="route('bookings.payout-proof', $booking)" variant="outline" target="_blank">Lihat Bukti Transfer</x-button>
+                        @endif
+                        <x-button :href="route('bookings.payout-receipt', $booking)" variant="outline">Unduh Rincian Pencairan</x-button>
+                    </div>
                 @endif
                 @can('managePayout', $booking)
                     <div class="mt-5 grid gap-4">
@@ -109,7 +124,7 @@ $fee = $payout?->commission_amount ?? round((float)$booking->subtotal * (float)$
     @endcan
     @can('reportPaymentIssue', $booking)
         @if($booking->payout && in_array($booking->payout->status, ['pending', 'on_hold'], true))
-            <details class="mt-5 rounded-md border border-amber-200 p-4"><summary class="cursor-pointer text-sm font-semibold">Laporkan Masalah Transaksi</summary>@php
+            <details id="booking-report-issue" tabindex="-1" class="mt-5 scroll-mt-24 rounded-md border border-amber-200 p-4" @if(old('_ui_form') === 'payout-form-5') open @endif><summary class="cursor-pointer text-sm font-semibold">Laporkan Masalah Transaksi</summary>@php
     $bookingFormKey = 'payout-form-5';
     $bookingFormErrors = $errors;
     $bookingFormMatches = !old('_ui_form') || old('_ui_form') === $bookingFormKey;

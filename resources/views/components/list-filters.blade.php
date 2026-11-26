@@ -1,4 +1,4 @@
-@props(['action', 'filters' => [], 'searchLabel' => 'Cari', 'placeholder' => '', 'selects' => []])
+@props(['action', 'filters' => [], 'searchLabel' => 'Cari', 'placeholder' => '', 'selects' => [], 'compact' => false])
 
 <form method="GET" action="{{ $action }}" {{ $attributes->merge(['class' => 'soft-card mt-6 flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-end']) }} role="search" aria-label="Pencarian dan filter daftar">
     <div class="min-w-0 flex-1 sm:min-w-56">
@@ -18,6 +18,8 @@
     @endforeach
     <div class="flex flex-wrap gap-2">
         <x-button type="submit">Terapkan</x-button>
-        <x-button :href="$action" variant="outline">Reset</x-button>
+        @if (! $compact || collect($filters)->contains(fn ($value) => filled($value)))
+            <x-button :href="$action" variant="outline">Reset</x-button>
+        @endif
     </div>
 </form>

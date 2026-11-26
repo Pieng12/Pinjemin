@@ -5,18 +5,25 @@ namespace App\Http\Controllers;
 use App\ItemStatus;
 use App\Models\Booking;
 use App\Services\ActivityService;
+use App\Services\OwnerBusinessReport;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class OwnerDashboardController extends Controller
 {
-    public function __invoke(Request $request, ActivityService $activities): View
+    public function __invoke(Request $request, ActivityService $activities, OwnerBusinessReport $reports): View
     {
         $user = $request->user();
         $activity = $activities->forUser($user, 'owner');
+        $days = match ($request->query('period')) {
+            '7' => 7,
+            '90' => 90,
+            default => 30,
+        };
 
         return view('owner.dashboard', [
             'activity' => $activity,
+            'businessReport' => $reports->forOwner($user, $days),
             'activeItemsCount' => $user->items()->marketplace()->count(),
             'pendingBookingsCount' => $activity['bookingCount'],
             'totalItemsCount' => $user->items()->count(),
