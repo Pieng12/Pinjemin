@@ -2,7 +2,17 @@
 @section('title', 'Pengajuan Identitas - Pinjemin')
 @section('content')
 <section class="page-shell max-w-4xl">
-    <div class="page-header"><div><p class="eyebrow">Data privat</p><h1 class="mt-2 text-3xl font-semibold">Pengajuan Identitas #{{ $verification->id }}</h1><p class="mt-2 text-zinc-600">{{ $verification->user->name }} · {{ $verification->statusLabel() }}</p></div><x-button :href="route(auth()->user()->isAdmin() ? 'admin.identity.index' : 'identity.index')" variant="outline">Kembali</x-button></div>
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">Data privat</p>
+            <h1 class="mt-2 text-3xl font-semibold">Pengajuan Identitas #{{ $verification->id }}</h1>
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+                <p class="text-zinc-600">{{ $verification->user->name }}</p>
+                <span class="badge bg-brand-50 text-brand-800">{{ $verification->statusLabel() }}</span>
+            </div>
+        </div>
+        <x-button :href="route(auth()->user()->isAdmin() ? 'admin.identity.index' : 'identity.index')" variant="outline">Kembali</x-button>
+    </div>
     <div class="card mt-6 p-5">
         <dl class="grid gap-4 text-sm sm:grid-cols-2"><div><dt class="text-zinc-500">Dokumen</dt><dd>{{ strtoupper($verification->document_type) }}</dd></div><div><dt class="text-zinc-500">Nama sesuai dokumen</dt><dd>{{ $verification->legal_name ?? 'Dihapus sesuai retensi' }}</dd></div><div><dt class="text-zinc-500">Nomor identitas</dt><dd>{{ $verification->document_number ? '••••'.substr($verification->document_number, -4) : 'Dihapus sesuai retensi' }}</dd></div><div><dt class="text-zinc-500">Berlaku sampai</dt><dd>{{ $verification->verified_until ? $verification->verified_until->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i').' WIB' : ($verification->status === 'pending' ? 'Menunggu keputusan administrator' : 'Belum ada masa berlaku verifikasi') }}</dd></div></dl>
         @if($verification->review_note)<p class="mt-4 rounded-md bg-zinc-50 p-3 text-sm"><strong>Catatan keputusan:</strong> {{ $verification->review_note }}</p>@endif

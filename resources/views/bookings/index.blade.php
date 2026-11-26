@@ -35,7 +35,7 @@
                                 <th class="px-4 py-3">Tanggal</th>
                                 <th class="px-4 py-3">Jumlah</th>
                                 <th class="px-4 py-3">Total</th>
-                                <th class="px-4 py-3">Status</th>
+                                <th class="min-w-44 px-4 py-3 text-center">Status</th>
                                 <th class="px-4 py-3 text-right">Aksi</th>
                             </tr>
                         </thead>
@@ -58,7 +58,7 @@
                                             <p class="mt-1 text-xs text-zinc-500">Sisa <x-price :amount="$booking->remainingAmount()" suffix="" /></p>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-3"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></td>
+                                    <td class="px-4 py-3 text-center"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></td>
                                     <td class="px-4 py-3 text-right">
                                         <x-button href="{{ route('my-bookings.show', $booking) }}" variant="outline">Detail</x-button>
                                     </td>
@@ -72,13 +72,11 @@
                     @foreach ($bookings as $booking)
                         <article class="p-4">
                             <div class="flex gap-3">
-                                <x-item-image :item="$booking->item" class="h-20 max-w-24" />
+                                <x-item-image :item="$booking->item" class="h-20 max-w-24 shrink-0" />
                                 <div class="min-w-0 flex-1">
-                                    <div class="flex items-start justify-between gap-2">
-                                        <div>
-                                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ $booking->booking_code }}</p>
-                                            <h2 class="mt-1 font-semibold text-zinc-950">{{ $booking->item->name }}</h2>
-                                        </div>
+                                    <p class="text-xs font-semibold wrap-anywhere uppercase tracking-wide text-zinc-500">{{ $booking->booking_code }}</p>
+                                    <h2 class="mt-1 font-semibold wrap-anywhere text-zinc-950">{{ $booking->item->name }}</h2>
+                                    <div class="mt-2">
                                         <x-booking-status-badge :status="$booking->status" :booking="$booking" />
                                     </div>
                                     <p class="mt-2 text-sm text-zinc-600">{{ $booking->start_date->format('d M Y') }} - {{ $booking->end_date->format('d M Y') }}</p>

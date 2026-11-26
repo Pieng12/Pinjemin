@@ -13,7 +13,7 @@
             <div class="min-w-0">
                 <h1 class="text-2xl font-semibold wrap-anywhere text-zinc-950 sm:text-3xl">Pemesanan {{ $booking->booking_code }}</h1>
                 <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    <div><x-booking-status-badge :status="$booking->status" :booking="$booking" class="min-h-7" /></div>
+                    <div><x-booking-status-badge :status="$booking->status" :booking="$booking" /></div>
                     <p class="text-sm text-zinc-600">Diajukan {{ $booking->created_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->locale('id')->translatedFormat('d M Y, H:i') }} WIB</p>
                 </div>
             </div>

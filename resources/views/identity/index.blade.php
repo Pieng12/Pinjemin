@@ -3,7 +3,11 @@
 @section('content')
 <section class="page-shell max-w-3xl">
     <div class="page-header"><div><p class="eyebrow">Privat melalui administrator</p><h1 class="mt-2 text-3xl font-semibold">Verifikasi Identitas</h1><p class="mt-3 text-sm leading-6 text-zinc-600">Diperlukan jika pemilik barang mensyaratkannya. Pemeriksaan manual berlaku maksimal satu tahun; bukan validasi Dukcapil atau jaminan keaslian identitas.</p></div></div>
-    <div class="card mt-6 p-5"><p class="text-sm text-zinc-500">Status akun</p><p class="mt-1 font-semibold text-brand">{{ $current?->statusLabel() ?? 'Belum Diajukan' }}</p>@if($current)<a href="{{ route('identity.show', $current) }}" class="mt-3 inline-block text-sm font-semibold text-brand underline">Lihat pengajuan dan keputusan</a>@endif</div>
+    <div class="card mt-6 p-5">
+        <p class="text-sm text-zinc-500">Status akun</p>
+        <div class="mt-1"><span class="badge bg-brand-50 text-brand-800">{{ $current?->statusLabel() ?? 'Belum Diajukan' }}</span></div>
+        @if($current)<a href="{{ route('identity.show', $current) }}" class="mt-3 inline-block text-sm font-semibold text-brand underline">Lihat pengajuan dan keputusan</a>@endif
+    </div>
     @if(!$current || (!$current->isValid() && $current->status !== 'pending'))
     <form id="identity-form" data-form-id="identity-form" method="POST" action="{{ route('identity.store') }}" enctype="multipart/form-data" class="card mt-6 grid gap-5 p-5 sm:p-6" data-private-image-upload>
         @csrf
@@ -21,6 +25,16 @@
         <x-button type="submit" class="w-fit">Kirim ke Administrator</x-button>
     </form>
     @endif
-    <div class="mt-7 grid gap-3"><h2 class="text-lg font-semibold">Riwayat Pengajuan</h2>@forelse($verifications as $verification)<a href="{{ route('identity.show', $verification) }}" class="card flex flex-wrap justify-between gap-3 p-4 text-sm"><span>{{ strtoupper($verification->document_type) }} · {{ $verification->created_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB</span><strong>{{ $verification->statusLabel() }}</strong></a>@empty<p class="text-sm text-zinc-500">Belum ada pengajuan.</p>@endforelse</div>
+    <div class="mt-7 grid gap-3">
+        <h2 class="text-lg font-semibold">Riwayat Pengajuan</h2>
+        @forelse($verifications as $verification)
+            <a href="{{ route('identity.show', $verification) }}" class="card flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+                <span>{{ strtoupper($verification->document_type) }} · {{ $verification->created_at->copy()->timezone(\App\Models\Booking::RentalTimezone)->format('d M Y H:i') }} WIB</span>
+                <span class="badge bg-brand-50 text-brand-800">{{ $verification->statusLabel() }}</span>
+            </a>
+        @empty
+            <p class="text-sm text-zinc-500">Belum ada pengajuan.</p>
+        @endforelse
+    </div>
 </section>
 @endsection

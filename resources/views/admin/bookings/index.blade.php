@@ -24,8 +24,8 @@
         <x-list-results :results="$bookings" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('admin.bookings.index')" empty-title="Belum ada pemesanan" empty-description="Pemesanan pengguna akan tampil di sini." />
 
         @if ($bookings->isNotEmpty())
-            <div class="mt-8 table-shell">
-                <div class="hidden overflow-x-auto lg:block">
+            <div class="@container mt-8 table-shell">
+                <div class="hidden overflow-x-auto @min-[68rem]:block">
                     <table class="min-w-full divide-y divide-zinc-200 text-sm">
                         <thead class="table-head">
                             <tr>
@@ -36,7 +36,7 @@
                                 <th class="px-4 py-3">Tanggal</th>
                                 <th class="px-4 py-3">Jumlah</th>
                                 <th class="px-4 py-3">Total</th>
-                                <th class="px-4 py-3">Status</th>
+                                <th class="min-w-44 px-4 py-3 text-center">Status</th>
                                 <th class="px-4 py-3 text-right">Aksi</th>
                             </tr>
                         </thead>
@@ -60,14 +60,14 @@
                                             <p class="mt-1 text-xs text-zinc-500">Terverifikasi <x-price :amount="$booking->verifiedAmount()" suffix="" /> / sisa <x-price :amount="$booking->remainingAmount()" suffix="" /></p>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-3"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></td>
+                                    <td class="px-4 py-3 text-center"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></td>
                                     <td class="px-4 py-3 text-right"><x-button href="{{ route('admin.bookings.show', $booking) }}" variant="outline">Detail</x-button></td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-                <div class="divide-y divide-zinc-200 lg:hidden">
+                <div class="divide-y divide-zinc-200 @min-[68rem]:hidden">
                     @foreach ($bookings as $booking)
                         <article class="space-y-4 p-4">
                             <div class="flex items-start gap-3">

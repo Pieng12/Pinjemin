@@ -46,7 +46,7 @@
                                     <p class="mt-0.5 text-xs text-zinc-600">Sisa <x-price :amount="$remaining" suffix="" /></p>
                                 @endif
                             </div>
-                            <div class="owner-record-status min-w-0 text-center"><x-booking-status-badge :status="$booking->status" :booking="$booking" class="owner-status-chip" /></div>
+                            <div class="owner-record-status min-w-0 text-center"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></div>
                             <div class="owner-record-actions">
                                 <x-button :href="$detailUrl" :variant="$waitingForOwner ? 'primary' : 'outline'" class="w-full px-2" :aria-label="($waitingForOwner ? 'Tinjau Pengajuan ' : 'Detail ').$booking->booking_code">
                                     {{ $waitingForOwner ? 'Tinjau Pengajuan' : 'Detail' }}

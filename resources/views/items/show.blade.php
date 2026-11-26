@@ -14,7 +14,7 @@
     <section class="page-shell">
         <x-breadcrumb :items="['Jelajahi' => route('browse'), $item->name => null]" />
         <header class="mt-4 border-b border-brand-100 pb-4 sm:mt-5 sm:pb-5">
-            <span class="badge bg-brand-50 text-brand-700">{{ $item->category->name }}</span>
+            <span class="badge badge-compact bg-brand-50 text-brand-700">{{ $item->category->name }}</span>
             <h1 class="mt-2 wrap-anywhere text-2xl font-semibold tracking-tight text-zinc-950 sm:text-3xl">{{ $item->name }}</h1>
             <ul class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-600">
                 <li class="inline-flex items-center gap-1.5"><i data-lucide="map-pin" class="size-4 shrink-0 text-brand-700" aria-hidden="true"></i>{{ $item->city }}</li>

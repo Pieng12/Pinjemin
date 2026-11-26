@@ -3,7 +3,7 @@
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div><h2 class="text-lg font-semibold">{{ $title }}</h2>@if (! $compact || $activity['bookingCount'] > 0)<p class="mt-1 text-sm text-zinc-600">{{ $activity['bookingCount'] }} pemesanan membutuhkan tindakan Anda.@if($activity['identityCount']) {{ $activity['identityCount'] }} pengajuan identitas menunggu pemeriksaan.@endif</p>@endif</div>
         @if (! $compact)
-            <span class="badge bg-brand-50 text-brand-700">{{ count($activity['tasks']) }} ditampilkan</span>
+            <span class="badge badge-compact bg-brand-50 text-brand-700">{{ count($activity['tasks']) }} ditampilkan</span>
         @elseif ($activity['bookingCount'] > count($activity['tasks']))
             <p class="text-xs text-zinc-600">{{ count($activity['tasks']) }} dari {{ $activity['bookingCount'] }} ditampilkan</p>
         @endif

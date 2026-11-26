@@ -527,7 +527,7 @@
     }
 
     .owner-inventory-grid {
-        grid-template: 'product product' 'status amount' 'actions actions' / minmax(0, 1fr) minmax(0, 1fr);
+        grid-template: 'product product' 'status amount' 'actions actions' / minmax(9rem, 1fr) minmax(0, 1fr);
     }
 
     .owner-booking-grid {
@@ -562,22 +562,29 @@
         @apply mb-1 text-xs font-medium text-zinc-600;
     }
 
-    .owner-records .owner-status-chip {
-        @apply h-10 w-full justify-center px-2 text-center leading-tight;
-    }
-
-    .owner-records .owner-item-status {
-        @apply h-7 w-23 justify-center text-center;
-    }
-
     .owner-form-actions {
         @apply mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-zinc-200 pt-4;
+    }
+
+    @container owner-records (max-width: 20rem) {
+        .owner-booking-grid {
+            grid-template-areas: 'product product' 'period amount' 'status status' 'actions actions';
+        }
+
+        .owner-payout-grid {
+            grid-template-areas: 'product product' 'amount commission' 'status status' 'actions actions';
+        }
+
+        .owner-booking-grid .owner-record-status,
+        .owner-payout-grid .owner-record-status {
+            justify-self: start;
+        }
     }
 
     @container owner-records (min-width: 52rem) {
         .owner-record-labels { display: grid; column-gap: 0.75rem; }
         .owner-inventory-grid {
-            grid-template: 'product status amount actions' / minmax(0, 1.5fr) 6rem minmax(7rem, 0.65fr) 14rem;
+            grid-template: 'product status amount actions' / minmax(0, 1.5fr) 9rem minmax(7rem, 0.65fr) 14rem;
         }
         .owner-booking-grid {
             grid-template: 'product period amount status actions' / minmax(0, 1.4fr) minmax(7.2rem, 0.85fr) minmax(6.75rem, 0.7fr) 10.5rem 8.5rem;
@@ -707,7 +714,17 @@
     }
 
     .badge {
-        @apply inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold;
+        @apply inline-flex items-center justify-center rounded-md px-2 py-1 text-center text-xs leading-4 font-semibold;
+        inline-size: 9rem;
+        max-inline-size: 100%;
+        min-block-size: 2.5rem;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .badge-compact {
+        inline-size: auto;
+        min-block-size: 1.5rem;
     }
 
     .table-shell {

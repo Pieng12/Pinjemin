@@ -27,8 +27,8 @@
         <x-list-results :results="$items" :total-count="$totalCount" :filters="$filters" :selects="$filterSelects" :action="route('admin.items.index')" empty-title="Belum ada barang" empty-description="Barang dari pengguna akan tampil di sini." />
 
         @if ($items->isNotEmpty())
-            <div class="mt-8 table-shell">
-                <div class="hidden overflow-x-auto lg:block">
+            <div class="@container mt-8 table-shell">
+                <div class="hidden overflow-x-auto @min-[62rem]:block">
                     <table class="min-w-full divide-y divide-zinc-200 text-sm">
                         <thead class="table-head">
                             <tr>
@@ -36,7 +36,7 @@
                                 <th class="px-4 py-3">Pemilik</th>
                                 <th class="px-4 py-3">Kategori</th>
                                 <th class="px-4 py-3">Harga</th>
-                                <th class="px-4 py-3">Status</th>
+                                <th class="min-w-44 px-4 py-3 text-center">Status</th>
                                 <th class="px-4 py-3">Dibuat</th>
                                 <th class="px-4 py-3 text-right">Aksi</th>
                             </tr>
@@ -53,7 +53,7 @@
                                     <td class="px-4 py-3 text-zinc-600">{{ $item->user->name }}</td>
                                     <td class="px-4 py-3 text-zinc-600">{{ $item->category->name }}</td>
                                     <td class="px-4 py-3"><x-price :amount="$item->daily_price" suffix="" /></td>
-                                    <td class="px-4 py-3"><x-status-badge :item="$item" /></td>
+                                    <td class="px-4 py-3 text-center"><x-status-badge :item="$item" /></td>
                                     <td class="px-4 py-3 text-zinc-600">{{ $item->created_at->format('d M Y') }}</td>
                                     <td class="px-4 py-3">
                                         <div class="flex justify-end gap-2">
@@ -79,7 +79,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="divide-y divide-zinc-200 lg:hidden">
+                <div class="divide-y divide-zinc-200 @min-[62rem]:hidden">
                     @foreach ($items as $item)
                         <article class="space-y-4 p-4">
                             <div class="flex items-start gap-3">

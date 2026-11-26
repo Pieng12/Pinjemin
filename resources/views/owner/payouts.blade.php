@@ -50,8 +50,8 @@
                                     <p class="owner-record-mobile-label">Komisi</p>
                                     <x-price :amount="$cancelled ? 0 : $payout->commission_amount" suffix="" />
                                 </div>
-                                <div class="owner-record-status">
-                                    <span @class(['badge owner-status-chip', 'bg-emerald-50 text-emerald-800' => $payout->status === 'paid', 'bg-amber-50 text-amber-800' => $payout->status === 'on_hold', 'bg-brand-50 text-brand-800' => $payout->status === 'processing', 'bg-zinc-100 text-zinc-700' => in_array($payout->status, ['pending', 'cancelled'], true)])>{{ $payout->statusLabel() }}</span>
+                                <div class="owner-record-status min-w-0 text-center">
+                                    <span @class(['badge', 'bg-emerald-50 text-emerald-800' => $payout->status === 'paid', 'bg-amber-50 text-amber-800' => $payout->status === 'on_hold', 'bg-brand-50 text-brand-800' => $payout->status === 'processing', 'bg-zinc-100 text-zinc-700' => in_array($payout->status, ['pending', 'cancelled'], true)])>{{ $payout->statusLabel() }}</span>
                                 </div>
                                 <div class="owner-record-actions"><x-button :href="$detailUrl.'#booking-payout'" variant="outline" class="w-full">Rincian</x-button></div>
                             </li>

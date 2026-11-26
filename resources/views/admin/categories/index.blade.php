@@ -32,7 +32,7 @@
                             <tr>
                                 <th class="px-4 py-3">Nama</th>
                                 <th class="px-4 py-3">Slug</th>
-                                <th class="px-4 py-3">Status</th>
+                                <th class="min-w-44 px-4 py-3 text-center">Status</th>
                                 <th class="px-4 py-3 text-right">Aksi</th>
                             </tr>
                         </thead>
@@ -44,7 +44,7 @@
                                         <p class="max-w-xl text-xs leading-5 text-zinc-500">{{ $category->description }}</p>
                                     </td>
                                     <td class="px-4 py-3 text-zinc-600">{{ $category->slug }}</td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-4 py-3 text-center">
                                         <span class="badge {{ $category->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-600' }}">
                                             {{ $category->is_active ? 'Aktif' : 'Nonaktif' }}
                                         </span>

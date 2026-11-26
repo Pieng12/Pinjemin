@@ -40,7 +40,7 @@
                                 <p class="truncate font-semibold text-zinc-950">{{ $booking->item->name }}</p>
                                 <p class="mt-1 text-sm wrap-anywhere text-zinc-600">{{ $booking->renter->name }} · {{ $booking->start_date->locale('id')->translatedFormat('d M') }}</p>
                             </div>
-                            <div class="text-center"><x-booking-status-badge :status="$booking->status" :booking="$booking" class="h-10 w-full justify-center text-center leading-tight" /></div>
+                            <div class="min-w-0 text-center"><x-booking-status-badge :status="$booking->status" :booking="$booking" /></div>
                         </a>
                     @empty
                         <x-empty-state :show-mark="false" :framed="false" title="Belum ada permintaan sewa" description="Pemesanan untuk barang Anda akan tampil di sini." />

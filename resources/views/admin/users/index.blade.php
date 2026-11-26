@@ -31,7 +31,7 @@
                             <tr>
                                 <th class="px-4 py-3">Nama</th>
                                 <th class="px-4 py-3">Email</th>
-                                <th class="px-4 py-3">Peran</th>
+                                <th class="min-w-44 px-4 py-3 text-center">Peran</th>
                                 <th class="px-4 py-3">Kota</th>
                             </tr>
                         </thead>
@@ -40,7 +40,7 @@
                                 <tr class="table-row">
                                     <td class="px-4 py-3 font-medium text-zinc-950">{{ $user->name }}</td>
                                     <td class="px-4 py-3 break-all text-zinc-600">{{ $user->email }}</td>
-                                    <td class="px-4 py-3">
+                                    <td class="px-4 py-3 text-center">
                                         <span class="badge bg-zinc-100 text-zinc-700">{{ $roles[$user->role] ?? $user->role }}</span>
                                     </td>
                                     <td class="px-4 py-3 text-zinc-600">{{ $user->city ?? '-' }}</td>

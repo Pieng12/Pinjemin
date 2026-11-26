@@ -11,7 +11,10 @@
     <div class="grid gap-4">
         @forelse($reports as $report)
             <article class="card card-pad">
-                <h2 class="break-words font-semibold">{{ $report->message->conversation->item_name }}</h2>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 class="min-w-0 break-words font-semibold">{{ $report->message->conversation->item_name }}</h2>
+                    <span class="badge {{ $report->resolved_at ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">{{ $report->resolved_at ? 'Ditinjau' : 'Menunggu Peninjauan' }}</span>
+                </div>
                 <p class="mt-1 break-words text-sm text-zinc-600">{{ \App\Models\ChatReport::Reasons[$report->reason] }} · Dilaporkan oleh {{ $report->reporter->name }} · {{ $report->created_at->copy()->timezone('Asia/Jakarta')->translatedFormat('d M Y H:i') }} WIB</p>
                 <p class="mt-3 break-words text-sm text-zinc-600">Pesan dari {{ $report->message->sender->name }} · {{ $report->message->created_at->copy()->timezone('Asia/Jakarta')->translatedFormat('d M Y H:i') }} WIB</p>
                 @if($report->message->body !== '')<blockquote class="my-3 rounded-lg bg-zinc-100 p-3 text-sm whitespace-pre-wrap wrap-anywhere">{{ $report->message->body }}</blockquote>@endif

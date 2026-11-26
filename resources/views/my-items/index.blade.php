@@ -21,7 +21,7 @@
         @if ($items->isNotEmpty())
             <div class="owner-records mt-4">
                 <div class="owner-record-labels owner-inventory-grid" aria-hidden="true">
-                    <span>Barang</span><span>Status</span><span class="text-right">Tarif sewa</span><span class="text-right">Tindakan</span>
+                    <span>Barang</span><span class="text-center">Status</span><span class="text-right">Tarif sewa</span><span class="text-right">Tindakan</span>
                 </div>
                 <ul class="divide-y divide-zinc-200">
                     @foreach ($items as $item)
@@ -34,7 +34,7 @@
                                     <p class="mt-0.5 text-xs text-zinc-600">{{ $item->city }}</p>
                                 </div>
                             </div>
-                            <div class="owner-record-status"><x-status-badge :item="$item" class="owner-item-status" /></div>
+                            <div class="owner-record-status min-w-0 text-center"><x-status-badge :item="$item" /></div>
                             <div class="owner-record-amount text-right font-semibold text-zinc-950 tabular-nums"><x-price :amount="$item->daily_price" /></div>
                             <div class="owner-record-actions owner-item-actions">
                                 <x-button :href="route('my-items.show', $item)" variant="outline" :aria-label="'Lihat '.$item->name">Lihat</x-button>

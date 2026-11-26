@@ -20,7 +20,16 @@
                 <div class="min-w-0">
                     <a href="{{ route('admin.bookings.show', $booking) }}" class="font-semibold text-brand">{{ $booking->booking_code }}</a>
                     <p class="mt-1 break-words text-sm">{{ $booking->item->name }} / {{ $booking->item->user->name }}</p>
-                    <div class="mt-3 flex flex-wrap gap-2"><span class="badge bg-brand-50 text-brand-700">Pemesanan: {{ $booking->effectiveStatus()->label() }}</span><span class="badge bg-zinc-100 text-zinc-700">Pencairan: {{ $booking->payout->statusLabel() }}</span></div>
+                    <dl class="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+                        <div>
+                            <dt class="mb-1 text-xs text-zinc-600">Pemesanan</dt>
+                            <dd><x-booking-status-badge :status="$booking->effectiveStatus()" /></dd>
+                        </div>
+                        <div>
+                            <dt class="mb-1 text-xs text-zinc-600">Pencairan</dt>
+                            <dd><span class="badge bg-zinc-100 text-zinc-700">{{ $booking->payout->statusLabel() }}</span></dd>
+                        </div>
+                    </dl>
                     @if($booking->refund_status === 'pending' && !$booking->refund_destination)
                         <p class="mt-2 text-sm text-amber-800">Menunggu rekening tujuan pengembalian dana dari penyewa.</p>
                     @elseif($booking->payout->status === 'on_hold')
