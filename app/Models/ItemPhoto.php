@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['path', 'is_primary', 'sort_order'])]
+#[Fillable(['path', 'is_primary', 'sort_order', 'file_token'])]
 class ItemPhoto extends Model
 {
     /** @use HasFactory<ItemPhotoFactory> */
@@ -22,7 +22,9 @@ class ItemPhoto extends Model
 
     public function url(): string
     {
-        return Storage::disk('public')->url($this->path);
+        return $this->file_token
+            ? route('item-photos.show', ['token' => $this->file_token], absolute: false)
+            : Storage::disk('public')->url($this->path);
     }
 
     /** @return array<string, string> */

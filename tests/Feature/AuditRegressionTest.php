@@ -215,16 +215,21 @@ class AuditRegressionTest extends TestCase
         $disk = Storage::fake('public');
         $owner = User::factory()->create();
         $category = Category::factory()->create();
-        Event::listen('eloquent.creating: '.ItemPhoto::class, function (): void {
-            throw new \RuntimeException('Simulated database failure');
+        $photoAttempts = 0;
+        Event::listen('eloquent.creating: '.ItemPhoto::class, function () use (&$photoAttempts): void {
+            if (++$photoAttempts === 2) {
+                throw new \RuntimeException('Simulated database failure');
+            }
         });
         try {
             $this->actingAs($owner)->post(route('my-items.store'), [
                 'name' => 'Kamera Test', 'category_id' => $category->id, 'description' => str_repeat('Deskripsi barang. ', 3),
                 'condition' => 'good', 'daily_price' => '20000.50', 'quantity' => 1, 'city' => 'Medan',
-                'is_active' => 0, 'photos' => [UploadedFile::fake()->image('photo.jpg')],
+                'is_active' => 0, 'photos' => [UploadedFile::fake()->image('photo.jpg'), UploadedFile::fake()->image('second.jpg')],
             ])->assertServerError();
+            $this->assertSame(2, $photoAttempts);
             $this->assertSame([], $disk->allFiles());
+            $this->assertDatabaseCount('item_photo_files', 0);
             $this->assertSame(0, $owner->items()->count());
         } finally {
             Event::forget('eloquent.creating: '.ItemPhoto::class);

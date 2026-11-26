@@ -24,6 +24,7 @@ use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\IncomingBookingController;
 use App\Http\Controllers\IncomingPaymentController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\ItemPhotoController;
 use App\Http\Controllers\MyItemController;
 use App\Http\Controllers\MyItemPhotoController;
 use App\Http\Controllers\OwnerDashboardController;
@@ -41,6 +42,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')-
 
 Route::middleware('marketplace')->group(function (): void {
     Route::get('/jelajahi', [ItemController::class, 'index'])->name('browse');
+    Route::get('/item-photos/{token}', ItemPhotoController::class)->whereUuid('token')->name('item-photos.show');
     Route::get('/sewakan-barang', RentOutController::class)->name('rent-out');
     Route::get('/items/{item:slug}/availability', [BookingController::class, 'availability'])->name('items.availability');
     Route::get('/items/{item:slug}/calendar', [BookingController::class, 'calendar'])->name('items.calendar');

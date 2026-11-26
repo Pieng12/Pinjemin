@@ -21,14 +21,17 @@ class MyItemTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_authenticated_user_can_create_item_with_photo(): void
+    public function test_authenticated_user_can_create_item_with_photo_that_survives_disk_replacement(): void
     {
         Storage::fake('public');
         $user = User::factory()->create();
         $category = Category::factory()->create(['is_active' => true]);
+        $upload = UploadedFile::fake()->image('kamera.jpg', 2500, 1800);
+        $bytes = $upload->get();
+        $this->assertGreaterThan(65535, strlen($bytes));
 
         $this->actingAs($user)
-            ->post('/my-items', $this->validPayload($category))
+            ->post('/my-items', array_replace($this->validPayload($category), ['photos' => [$upload]]))
             ->assertRedirect();
 
         $item = Item::query()->where('name', 'Canon EOS R50')->firstOrFail();
@@ -40,7 +43,36 @@ class MyItemTest extends TestCase
             'is_primary' => true,
         ]);
 
-        Storage::disk('public')->assertExists($item->photos()->firstOrFail()->path);
+        $photo = $item->photos()->firstOrFail();
+        Storage::fake('public')->assertMissing($photo->path);
+
+        $this->post(route('logout'));
+        $this->get(route('browse'))->assertSee($photo->url());
+        $response = $this->get($photo->url())->assertOk()->assertHeader('Content-Type', 'image/jpeg');
+        $this->assertSame($bytes, $response->getContent());
+
+        $this->actingAs($user)->delete(route('my-items.photos.destroy', [$item, $photo]))->assertRedirect();
+        $this->assertDatabaseMissing('item_photo_files', ['item_photo_id' => $photo->id]);
+        $this->get($photo->url())->assertNotFound();
+    }
+
+    public function test_available_legacy_photos_can_be_copied_without_duplicating_files(): void
+    {
+        $disk = Storage::fake('public');
+        $bytes = UploadedFile::fake()->image('existing.png')->get();
+        $disk->put('items/existing.png', $bytes);
+        $original = ItemPhoto::factory()->create(['path' => 'items/existing.png']);
+        $missing = ItemPhoto::factory()->create(['path' => 'items/missing.png']);
+
+        $this->artisan('item-photos:persist')->expectsOutput('1 foto disalin ke database. 1 foto dilewati.')->assertSuccessful();
+        $this->artisan('item-photos:persist')->expectsOutput('0 foto disalin ke database. 1 foto dilewati.')->assertSuccessful();
+
+        $disk->assertExists($original->path);
+        Storage::fake('public');
+        $this->assertDatabaseCount('item_photo_files', 1);
+        $this->assertNull($missing->refresh()->file_token);
+        $response = $this->get($original->refresh()->url())->assertOk()->assertHeader('Content-Type', 'image/png');
+        $this->assertSame($bytes, $response->getContent());
     }
 
     public function test_user_cannot_create_item_for_another_user(): void

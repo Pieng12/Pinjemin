@@ -8,6 +8,7 @@ use App\ItemStatus;
 use App\Models\Category;
 use App\Models\Item;
 use App\Services\AvailabilityService;
+use App\Services\ItemPhotoStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -19,7 +20,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Throwable;
 
 class MyItemController extends Controller
 {
@@ -68,20 +68,14 @@ class MyItemController extends Controller
         ]);
     }
 
-    public function store(StoreItemRequest $request): RedirectResponse
+    public function store(StoreItemRequest $request, ItemPhotoStorage $photoStorage): RedirectResponse
     {
-        $storedPaths = [];
-        try {
-            $item = DB::transaction(function () use ($request, &$storedPaths): Item {
-                $item = $request->user()->items()->create($this->itemData($request->validated()));
-                $this->storePhotos($item, $request->file('photos', []), $storedPaths);
+        $item = DB::transaction(function () use ($request, $photoStorage): Item {
+            $item = $request->user()->items()->create($this->itemData($request->validated()));
+            $this->storePhotos($item, $request->file('photos', []), $photoStorage);
 
-                return $item;
-            });
-        } catch (Throwable $exception) {
-            Storage::disk('public')->delete($storedPaths);
-            throw $exception;
-        }
+            return $item;
+        });
 
         return redirect()->route('my-items.show', $item)->with('status', 'Barang berhasil ditambahkan.');
     }
@@ -113,24 +107,18 @@ class MyItemController extends Controller
         ]);
     }
 
-    public function update(UpdateItemRequest $request, Item $item, AvailabilityService $availability): RedirectResponse
+    public function update(UpdateItemRequest $request, Item $item, AvailabilityService $availability, ItemPhotoStorage $photoStorage): RedirectResponse
     {
-        $storedPaths = [];
-        try {
-            $item = DB::transaction(function () use ($request, $item, $availability, &$storedPaths): Item {
-                $item = Item::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
-                if ($request->integer('quantity') < $item->quantity && $request->integer('quantity') < $availability->minimumStockRequired($item)) {
-                    throw ValidationException::withMessages(['quantity' => 'Jumlah unit tidak boleh kurang dari stok yang sedang direservasi.']);
-                }
-                $item->update($this->itemData($request->validated(), $item));
-                $this->storePhotos($item, $request->file('photos', []), $storedPaths);
+        $item = DB::transaction(function () use ($request, $item, $availability, $photoStorage): Item {
+            $item = Item::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
+            if ($request->integer('quantity') < $item->quantity && $request->integer('quantity') < $availability->minimumStockRequired($item)) {
+                throw ValidationException::withMessages(['quantity' => 'Jumlah unit tidak boleh kurang dari stok yang sedang direservasi.']);
+            }
+            $item->update($this->itemData($request->validated(), $item));
+            $this->storePhotos($item, $request->file('photos', []), $photoStorage);
 
-                return $item;
-            });
-        } catch (Throwable $exception) {
-            Storage::disk('public')->delete($storedPaths);
-            throw $exception;
-        }
+            return $item;
+        });
 
         return redirect()->route('my-items.show', $item)->with('status', 'Barang berhasil diperbarui.');
     }
@@ -222,11 +210,8 @@ class MyItemController extends Controller
         return back()->with('status', 'Persyaratan diperbarui untuk pemesanan berikutnya. Pemesanan yang sudah diajukan tidak berubah.');
     }
 
-    /**
-     * @param  array<int, UploadedFile>  $photos
-     * @param  array<int, string>  $storedPaths
-     */
-    private function storePhotos(Item $item, array $photos, array &$storedPaths): void
+    /** @param  array<int, UploadedFile>  $photos */
+    private function storePhotos(Item $item, array $photos, ItemPhotoStorage $photoStorage): void
     {
         if ($photos === []) {
             return;
@@ -238,19 +223,16 @@ class MyItemController extends Controller
             throw ValidationException::withMessages(['photos' => 'Total foto barang maksimal 5.']);
         }
 
-        foreach ($photos as $photo) {
-            $sortOrder++;
-            $path = $photo->store('items/'.now()->format('Y/m'), 'public');
-            if ($path === false) {
+        foreach ($photos as $upload) {
+            $photo = $item->photos()->create([
+                'path' => $upload->hashName('items/'.now()->format('Y/m')),
+                'is_primary' => ! $hasPrimary,
+                'sort_order' => ++$sortOrder,
+            ]);
+            $contents = $upload->get();
+            if (! is_string($contents) || ! $photoStorage->persist($photo, $contents)) {
                 throw ValidationException::withMessages(['photos' => 'Foto barang gagal disimpan. Silakan coba kembali.']);
             }
-            $storedPaths[] = $path;
-
-            $item->photos()->create([
-                'path' => $path,
-                'is_primary' => ! $hasPrimary,
-                'sort_order' => $sortOrder,
-            ]);
 
             $hasPrimary = true;
         }
