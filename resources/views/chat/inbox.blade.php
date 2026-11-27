@@ -27,7 +27,7 @@
             </a>
         </li>
     @empty
-        <li class="px-5 py-7 text-sm leading-6 text-zinc-600">{{ $inboxSearch !== '' ? 'Tidak ada percakapan untuk barang yang dicari.' : 'Belum ada percakapan. Pilih barang di katalog, lalu tekan Hubungi Pemilik untuk mulai.' }}</li>
+        <li class="px-5 py-7 text-sm leading-6 text-zinc-600">{{ $inboxSearch !== '' ? 'Tidak ada percakapan untuk barang yang dicari.' : 'Belum ada percakapan. Buka detail barang dari katalog, lalu pilih Hubungi Pemilik.' }}</li>
     @endforelse
 </ul>
 @if($conversations->hasPages())

@@ -28,7 +28,6 @@ export function tutorialSteps({ page = '', context = 'guest', marketplaceEnabled
             step('.catalog-filter-panel', '3. Periksa periode sewa', 'Isi kedua tanggal dan jumlah unit yang diperlukan, lalu pilih Terapkan. Pilihan periode terbawa ke detail barang.'),
             step('#sort', '4. Urutkan hasil', 'Pilih urutan terbaru, harga termurah, atau termahal. Gunakan tombol panah di sampingnya untuk menerapkan urutan.'),
             step('.catalog-card a', '5. Baca detail barang', 'Buka kartu untuk melihat foto, kondisi, aturan, harga, dan lokasi. Di halaman detail Anda dapat memilih tanggal serta jumlah unit.'),
-            ...(chatEnabled ? [step('.catalog-card a[href$="/pesan"]', 'Hubungi pemilik', 'Gunakan Chat Barang untuk menanyakan kondisi atau persyaratan barang sebelum mengajukan penyewaan.')] : []),
             ...lists.slice(2),
         ];
     } else if (page === 'items.show') {

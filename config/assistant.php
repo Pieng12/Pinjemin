@@ -70,7 +70,7 @@ return [
         ],
         'chat-item' => [
             'question' => 'Bagaimana memulai Chat Barang?',
-            'answer' => 'Pilih barang di katalog atau buka pemesanan terkait, lalu gunakan tombol untuk menghubungi pemilik atau pihak terkait. Kartu di atas percakapan menampilkan barang dan tarif katalog per hari. Pesan Cepat menambahkan teks ke draf agar Anda dapat memeriksanya sebelum mengirim. Buka Chat di menu akun untuk membaca percakapan yang sudah ada.',
+            'answer' => 'Buka detail barang dari katalog, lalu pilih Hubungi Pemilik. Anda juga dapat memulai percakapan dari pemesanan terkait. Kartu di atas percakapan menampilkan barang dan tarif katalog per hari. Pesan Cepat menambahkan teks ke draf agar Anda dapat memeriksanya sebelum mengirim. Buka Chat di menu akun untuk membaca percakapan yang sudah ada.',
             'aliases' => ['chat barang', 'hubungi pemilik', 'pesan cepat', 'kartu barang di chat', 'cara chat'],
             'keywords' => [['chat', 'percakapan', 'pesan'], ['pemilik', 'barang', 'cepat', 'kartu', 'katalog']],
             'chat' => true, 'home_faq' => true, 'actions' => ['browse', 'chat-inbox'],

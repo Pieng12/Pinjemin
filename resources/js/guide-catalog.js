@@ -34,8 +34,8 @@ export function availableGuides(config) {
         ] },
     ];
     if (config.chatEnabled) guides.push({ id: 'item-chat', title: 'Chat Barang', description: 'Hubungi pihak terkait, gunakan Pesan Cepat, dan kirim lampiran.', entry: 'browse', entryLabel: 'katalog', steps: [
-        ['catalog', 'Pilih barang di katalog', 'Tekan Hubungi Pemilik pada barang yang ingin ditanyakan, lalu masuk ke akun jika diminta.'],
-        ['item', 'Mulai percakapan', 'Periksa kartu barang. Pilih Pesan Cepat atau tulis pesan sendiri. Ikon penjepit kertas digunakan untuk menambahkan lampiran.'],
+        ['catalog', 'Pilih barang di katalog', 'Buka detail barang yang ingin Anda tanyakan.'],
+        ['item', 'Mulai percakapan', 'Pilih Hubungi Pemilik pada halaman detail, lalu masuk jika diminta. Gunakan Pesan Cepat atau tulis pertanyaan Anda.'],
         ['inbox', 'Buka kembali percakapan', 'Pilih Chat di menu akun, lalu cari percakapan berdasarkan nama barang.'],
     ] });
     if (config.navigation?.['admin-finance']) guides.push({ id: 'admin', title: 'Kelola transaksi administrator', description: 'Kenali pemeriksaan pembayaran, pengembalian dana, dan pencairan.', entry: 'admin-finance', entryLabel: 'Keuangan Administrator', steps: [
@@ -79,7 +79,8 @@ export function guideStage(config, id) {
 
 export function guideInstruction(id, stage) {
     if (stage === 'auth') return { text: 'Lengkapi formulir akun, kemudian kirim untuk melanjutkan. Panduan berlanjut setelah Anda berhasil masuk.', label: 'Isi formulir akun', selector: 'main input[name="email"]' };
-    if (id === 'item-chat' && ['catalog', 'item'].includes(stage)) return { text: 'Pilih Hubungi Pemilik pada barang yang ingin Anda tanyakan. Kartu barang dan pilihan Pesan Cepat muncul setelah percakapan dibuka.', label: 'Temukan tombol Hubungi Pemilik', selector: 'main a[href$="/pesan"]' };
+    if (id === 'item-chat' && stage === 'catalog') return { text: 'Buka detail barang yang ingin Anda tanyakan kepada pemilik.', label: 'Pilih barang di katalog', selector: '.catalog-card a, #q' };
+    if (id === 'item-chat' && stage === 'item') return { text: 'Pilih Hubungi Pemilik. Kartu barang dan pilihan Pesan Cepat muncul setelah percakapan dibuka.', label: 'Temukan tombol Hubungi Pemilik', selector: 'main a[href$="/pesan"]' };
     if (stage === 'catalog') return { text: 'Pilih barang yang akan disewa. Sorotan berikutnya muncul setelah Anda membuka detail barang.', label: 'Pilih barang di katalog', selector: '.catalog-card a, #q' };
     if (stage === 'item') return { text: 'Isi periode, jumlah, dan penerimaan barang, lalu ajukan jika sudah sesuai. Panduan berlanjut pada detail pemesanan.', label: 'Isi pilihan sewa', selector: '[data-booking-range], [data-booking-form] [name="quantity"]' };
     if (stage === 'create') return { text: 'Lengkapi informasi barang, kemudian simpan perubahan. Panduan berlanjut pada barang yang Anda simpan.', label: 'Isi informasi barang', selector: '[data-item-form-fields] input[name="name"]' };

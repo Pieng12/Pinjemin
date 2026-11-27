@@ -17,11 +17,7 @@
             </div>
         </div>
     </a>
-    @if(config('features.chat_enabled') && auth()->id() !== $item->user_id)
-        <a href="{{ route('chat.items.create', $item) }}" class="flex min-h-11 items-center justify-center gap-1.5 rounded-b-lg border-t border-brand-100 bg-brand-50/60 px-2 text-center text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-50 sm:text-sm" aria-label="Hubungi Pemilik {{ $item->name }}">
-            <i data-lucide="message-circle" class="size-4 shrink-0" aria-hidden="true"></i> Hubungi Pemilik
-        </a>
-    @elseif(config('features.chat_enabled'))
+    @if(config('features.chat_enabled') && auth()->id() === $item->user_id)
         <a href="{{ route('my-items.show', $item) }}" class="flex min-h-11 items-center justify-center rounded-b-lg border-t border-brand-100 bg-brand-50/60 px-2 text-center text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-50 sm:text-sm">Kelola Barang</a>
     @endif
 </article>

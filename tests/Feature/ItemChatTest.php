@@ -42,7 +42,12 @@ class ItemChatTest extends TestCase
             $this->assertSame('page', $link->getAttribute('aria-current'));
             $this->assertTrue((new \DOMXPath($document))->evaluate('boolean(ancestor::div[@id="account-menu" or @id="mobile-menu"])', $link));
         }
-        $this->get(route('browse'))->assertOk()->assertSee(route('chat.items.create', $item));
+        $this->get(route('browse'))->assertOk()
+            ->assertSee(route('items.show', $item))
+            ->assertDontSee(route('chat.items.create', $item));
+        $this->get(route('items.show', $item))->assertOk()
+            ->assertSee(route('chat.items.create', $item))
+            ->assertSee('Hubungi Pemilik');
     }
 
     public function test_direct_contact_routes_are_closed(): void
@@ -84,7 +89,7 @@ class ItemChatTest extends TestCase
         $renter = User::factory()->create(['password' => 'password123']);
         $composer = route('chat.items.create', $item);
 
-        $this->get(route('browse'))->assertSee($composer);
+        $this->get(route('browse'))->assertDontSee($composer);
         $this->get(route('items.show', $item))->assertSee($composer);
         $this->get($composer)->assertRedirect(route('login'));
         $this->post(route('login'), [
